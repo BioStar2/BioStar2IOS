@@ -1,0 +1,192 @@
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "055-Mb-VO1"; */
+"055-Mb-VO1.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "1D0-kv-YHi"; */
+"1D0-kv-YHi.text" = "총 갯수";
+
+/* Class = "UILabel"; text = "Filter"; ObjectID = "1MB-qw-sOk"; */
+"1MB-qw-sOk.text" = "필터";
+
+/* Class = "UIButton"; normalTitle = "LOG OUT"; ObjectID = "1cs-bD-wci"; */
+"1cs-bD-wci.normalTitle" = "로그아웃";
+
+/* Class = "UILabel"; text = "MONITORING"; ObjectID = "1wa-4S-dr0"; */
+"1wa-4S-dr0.text" = "모니터링";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "3wj-Fy-acM"; */
+"3wj-Fy-acM.text" = "총 갯수";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "5Aj-tA-w2o"; */
+"5Aj-tA-w2o.normalTitle" = "출입문 제어";
+
+/* Class = "UILabel"; text = "Mobile"; ObjectID = "5EA-Um-QXa"; */
+"5EA-Um-QXa.text" = "Mobile";
+
+/* Class = "UILabel"; text = "User Operator"; ObjectID = "68w-aF-V7L"; */
+"68w-aF-V7L.text" = "";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "6Ny-Pc-vVu"; */
+"6Ny-Pc-vVu.text" = "로그 보기";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "9Ds-3P-kuK"; */
+"9Ds-3P-kuK.text" = "0";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "BoY-7y-LfJ"; */
+"BoY-7y-LfJ.normalTitle" = "";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "Bq2-52-Lq8"; */
+"Bq2-52-Lq8.text" = "~";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "C4v-Oo-Tc8"; */
+"C4v-Oo-Tc8.text" = "알람";
+
+/* Class = "UILabel"; text = "USER"; ObjectID = "CCM-7o-Z1h"; */
+"CCM-7o-Z1h.text" = "사용자";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "CFh-1f-2lg"; */
+"CFh-1f-2lg.text" = "로그 보기";
+
+/* Class = "UILabel"; text = "User"; ObjectID = "ESL-mZ-4f9"; */
+"ESL-mZ-4f9.text" = "사용자";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "FQL-Nd-Y4s"; */
+"FQL-Nd-Y4s.normalTitle" = "";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "IoM-mq-eKZ"; */
+"IoM-mq-eKZ.text" = "~";
+
+/* Class = "UILabel"; text = "Monitoring"; ObjectID = "K9T-q1-4HM"; */
+"K9T-q1-4HM.text" = "모니터링";
+
+/* Class = "UILabel"; text = "ALARM"; ObjectID = "KfQ-Gp-nqO"; */
+"KfQ-Gp-nqO.text" = "알람";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "KiH-G2-XbQ"; */
+"KiH-G2-XbQ.text" = "로그 보기";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "LBa-rD-w8a"; */
+"LBa-rD-w8a.text" = "총 갯수";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "LD7-60-GFK"; */
+"LD7-60-GFK.text" = "로그 보기";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "LSO-yI-bcK"; */
+"LSO-yI-bcK.text" = "총 갯수";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "Mc6-5V-ebC"; */
+"Mc6-5V-ebC.text" = "100";
+
+/* Class = "UILabel"; text = "Filter"; ObjectID = "NrE-JF-oG2"; */
+"NrE-JF-oG2.text" = "필터";
+
+/* Class = "UILabel"; text = "Door"; ObjectID = "OSK-q9-hUD"; */
+"OSK-q9-hUD.text" = "모든 출입문";
+
+/* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
+"Oif-vS-bsu.text" = "PIN";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "Q5U-QZ-a7A"; */
+"Q5U-QZ-a7A.text" = "총 갯수";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "QWI-ej-KTa"; */
+"QWI-ej-KTa.normalTitle" = "출입문 제어";
+
+/* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
+"RYc-q8-eZd.text" = "모든 사용자";
+
+/* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
+"RfJ-sx-ICY.text" = "기본 설정";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "RgU-Nd-Rxz"; */
+"RgU-Nd-Rxz.normalTitle" = "출입문 제어";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
+"TLI-j3-9da.text" = "Label";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
+"UPB-Mm-I7v.text" = "~";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "UUY-UX-bcz"; */
+"UUY-UX-bcz.text" = "선택된 갯수";
+
+/* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
+"Yn0-2Y-auA.text" = "Finger";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
+"ZOx-gq-ahd.text" = "BioStar 2";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "ZnU-mv-trd"; */
+"ZnU-mv-trd.text" = "Alarm";
+
+/* Class = "UITextField"; placeholder = "Company Key"; ObjectID = "bxj-aY-qzg"; */
+"bxj-aY-qzg.placeholder" = "Company Key";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "c3F-Jm-x2s"; */
+"c3F-Jm-x2s.text" = "선택된 갯수";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "dAQ-9k-ae6"; */
+"dAQ-9k-ae6.text" = "New";
+
+/* Class = "UILabel"; text = "Total"; ObjectID = "eFD-2m-xWz"; */
+"eFD-2m-xWz.text" = "총 갯수";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "efL-bK-EbE"; */
+"efL-bK-EbE.text" = "BioStar 2";
+
+/* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
+"fS0-an-9PC.placeholder" = "User ID";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "fVe-WV-Nfd"; */
+"fVe-WV-Nfd.text" = "로그 보기";
+
+/* Class = "UILabel"; text = "Monitoring"; ObjectID = "idr-PB-pzx"; */
+"idr-PB-pzx.text" = "모니터링";
+
+/* Class = "UITextField"; placeholder = "Password"; ObjectID = "jUE-Fl-exz"; */
+"jUE-Fl-exz.placeholder" = "비밀번호";
+
+/* Class = "UILabel"; text = "Door"; ObjectID = "mS1-v5-ozU"; */
+"mS1-v5-ozU.text" = "출입문";
+
+/* Class = "UILabel"; text = "DOOR"; ObjectID = "mjW-oy-yxA"; */
+"mjW-oy-yxA.text" = "출입문";
+
+/* Class = "UILabel"; text = "Designed By Suprema"; ObjectID = "nrx-tP-VoH"; */
+"nrx-tP-VoH.text" = "Designed By Suprema";
+
+/* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
+"o1r-Wz-L81.text" = "카드";
+
+/* Class = "UILabel"; text = "v.1.0.2"; ObjectID = "o6j-Ya-JJA"; */
+"o6j-Ya-JJA.text" = "v.1.0.2";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
+"os3-6k-W6J.text" = "BioStar 2";
+
+/* Class = "UIButton"; normalTitle = "Login"; ObjectID = "qeD-ge-Ftw"; */
+"qeD-ge-Ftw.normalTitle" = "로그인";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "rhr-st-kRq"; */
+"rhr-st-kRq.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "s4f-jU-sWo"; */
+"s4f-jU-sWo.text" = "New";
+
+/* Class = "UILabel"; text = "..."; ObjectID = "sBk-FR-Bwr"; */
+"sBk-FR-Bwr.text" = "...";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "sbR-Fu-duh"; */
+"sbR-Fu-duh.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "u3k-5H-JA7"; */
+"u3k-5H-JA7.text" = "~";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "xmf-Xc-m1F"; */
+"xmf-Xc-m1F.text" = "100";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
+"ylR-Zw-87H.text" = "선택된 갯수";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "zVZ-XM-tg7"; */
+"zVZ-XM-tg7.text" = "로그 보기";

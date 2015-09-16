@@ -1,0 +1,84 @@
+
+/* Class = "UILabel"; text = "selected"; ObjectID = "6Mb-f8-fCF"; */
+"6Mb-f8-fCF.text" = "선택된 갯수";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "6xF-o5-Iaj"; */
+"6xF-o5-Iaj.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "7hb-cQ-Vhf"; */
+"7hb-cQ-Vhf.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "8dV-mM-44F"; */
+"8dV-mM-44F.normalTitle" = "확인";
+
+/* Class = "UILabel"; text = "Card ID"; ObjectID = "A9C-YC-Vsp"; */
+"A9C-YC-Vsp.text" = "카드 아이디";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "B5I-bm-IrF"; */
+"B5I-bm-IrF.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "CT1-g3-ida"; */
+"CT1-g3-ida.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "HuT-K7-bAO"; */
+"HuT-K7-bAO.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "MIT-EC-PmO"; */
+"MIT-EC-PmO.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "MVp-ty-8Xp"; */
+"MVp-ty-8Xp.normalTitle" = "확인";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "RMQ-eY-LyY"; */
+"RMQ-eY-LyY.text" = "총 갯수";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "RqU-Kk-KGJ"; */
+"RqU-Kk-KGJ.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "T4l-fQ-AcB"; */
+"T4l-fQ-AcB.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "Tbq-wl-oHD"; */
+"Tbq-wl-oHD.normalTitle" = "확인";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "U01-9R-Qab"; */
+"U01-9R-Qab.text" = "총 갯수";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "VPk-2o-iY1"; */
+"VPk-2o-iY1.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "VRy-Xt-45x"; */
+"VRy-Xt-45x.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "XP0-F1-AcY"; */
+"XP0-F1-AcY.normalTitle" = "취소";
+
+/* Class = "UILabel"; text = "selected"; ObjectID = "YIu-n6-3Yc"; */
+"YIu-n6-3Yc.text" = "선택된 갯수";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "ZKL-U3-WxU"; */
+"ZKL-U3-WxU.normalTitle" = "취소";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "ccf-mr-6t5"; */
+"ccf-mr-6t5.text" = "총 갯수";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "e7m-1X-JUU"; */
+"e7m-1X-JUU.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "eE3-an-rYV"; */
+"eE3-an-rYV.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "gsp-Z5-Ifj"; */
+"gsp-Z5-Ifj.normalTitle" = "확인";
+
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "hcp-i8-mTN"; */
+"hcp-i8-mTN.normalTitle" = "취소";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "iGM-78-qRt"; */
+"iGM-78-qRt.normalTitle" = "확인";
+
+/* Class = "UILabel"; text = "selected"; ObjectID = "sB8-RM-0Tv"; */
+"sB8-RM-0Tv.text" = "선택된 갯수";
+
+/* Class = "UIButton"; normalTitle = "OK"; ObjectID = "yaH-f5-ZgY"; */
+"yaH-f5-ZgY.normalTitle" = "확인";

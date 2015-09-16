@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>04FD42E0-03CA-4FC3-B718-C493F59E3F14</string>
+	<key>IDESourceControlProjectName</key>
+	<string>project</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>47557CEDC279D9CCF3574492C69A30CAD513E9BF</key>
+		<string>192.168.1.18:bss/biostar-mobile-ios.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>BiostarMobile/BiostarMobile.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>47557CEDC279D9CCF3574492C69A30CAD513E9BF</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>192.168.1.18:bss/biostar-mobile-ios.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>47557CEDC279D9CCF3574492C69A30CAD513E9BF</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>47557CEDC279D9CCF3574492C69A30CAD513E9BF</string>
+			<key>IDESourceControlWCCName</key>
+			<string>BioStar2_iOS</string>
+		</dict>
+	</array>
+</dict>
+</plist>
