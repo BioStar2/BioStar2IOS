@@ -12,8 +12,9 @@ BioStar 2 API
 
 ScreenShot
 -----
-![alt tag](http://a1.mzstatic.com/us/r30/Purple69/v4/12/aa/14/12aa1469-0910-5a92-c212-373f12fc01a4/screen322x572.jpeg)
-![alt tag](http://a5.mzstatic.com/us/r30/Purple7/v4/d0/65/35/d06535fe-0945-b659-6dcf-18056705706e/screen322x572.jpeg)
-![alt tag](http://a1.mzstatic.com/us/r30/Purple1/v4/c2/16/9e/c2169e3e-b2d8-95c6-70de-d5b4e1c54875/screen322x572.jpeg)
-![alt tag](http://a1.mzstatic.com/us/r30/Purple1/v4/f3/54/aa/f354aa08-5a96-01e7-aab1-af4c5d6c8b1c/screen322x572.jpeg)
-![alt tag](http://a2.mzstatic.com/us/r30/Purple69/v4/83/ca/29/83ca2981-ed15-7469-3210-3ce98de5a970/screen322x572.jpeg)
+![alt tag](https://lh3.googleusercontent.com/nG7tbEIHSGPW-2J8cpgFFjBmc47ZD2unfm7ikjbAlnuRUz8nMYRnA9s8oz2l_2AXnPM=h900)
+![alt tag](https://lh3.googleusercontent.com/1qIJAY9NHTa7PIdKk6MzRUwCPc6nXQ3IOYKFSyTK-uJOITcfR1qOBjIwhhE__aXNr2w=h900)
+![alt tag](https://lh3.googleusercontent.com/fkLr6C7BVX_0wL0jXqr5wTg4rX_7y_r7eHf8MjyOThrsR557IjdWYUGSrMzfYQahYFA=h900)
+![alt tag](https://lh3.googleusercontent.com/GTEa3rFIj3pVr3G0RmEbNL93B9Um6SvqlyEpMk7kPJgGydNhK3XOa9rOL_8Wacc0Mg=h900)
+![alt tag](https://lh3.googleusercontent.com/GyRhMrwbMPjuBwplsxDYInonFZfib0bbnagro0zEKSFkVx19YL7LSexqyyZr_g7WBsg=h900)
+![alt tag](https://lh3.googleusercontent.com/D8CDp75x93rhL8sz47pSY-wB7ESTPrsR714drLR6oXI3z4B6Ka-6SY2e7LuoftNxMQ=h900)
