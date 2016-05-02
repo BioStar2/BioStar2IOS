@@ -132,18 +132,23 @@
             NSMutableDictionary *unLockDic = [[NSMutableDictionary alloc] init];
             NSMutableDictionary *APBdic = [[NSMutableDictionary alloc] init];
             NSMutableDictionary *alarmDic = [[NSMutableDictionary alloc] init];
+            NSMutableDictionary *releaseDic = [[NSMutableDictionary alloc] init];
             
             [openDic setObject:NSLocalizedString(@"open", nil) forKey:@"name"];
             [openDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
             [contentListArray addObject:openDic];
             
-            [lockDic setObject:NSLocalizedString(@"lock", nil) forKey:@"name"];
+            [lockDic setObject:NSLocalizedString(@"manual_lock", nil) forKey:@"name"];
             [lockDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
             [contentListArray addObject:lockDic];
             
-            [unLockDic setObject:NSLocalizedString(@"unlock", nil) forKey:@"name"];
+            [unLockDic setObject:NSLocalizedString(@"manual_unlock", nil) forKey:@"name"];
             [unLockDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
             [contentListArray addObject:unLockDic];
+            
+            [releaseDic setObject:NSLocalizedString(@"release", nil) forKey:@"name"];
+            [releaseDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+            [contentListArray addObject:releaseDic];
             
             [APBdic setObject:NSLocalizedString(@"clear_apb", nil) forKey:@"name"];
             [APBdic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
@@ -509,7 +514,7 @@
             {
                 if (hasNextPage)
                 {
-                    [userProvider getUsersOffset:offset limit:limit groupID:@"1" query:query];
+                    [deviceProvider getCards:query limit:limit offset:offset];
                     [self startLoading:self];
                 }
             }
@@ -749,7 +754,7 @@
     // 최초로 불러 올때만 팝업 사이즈 조절및 애니메이션 적용
     if ([rows isKindOfClass:[NSArray class]])
     {
-        [self adjustHeight:rows.count];
+        
         NSMutableArray *newCardCollection = [[NSMutableArray alloc] init];
         
         for (NSDictionary *card in rows)
@@ -767,7 +772,7 @@
     
     [listTableView reloadData];
     
-    if (totalCount > limit)
+    if (totalCount > contentListArray.count)
     {
         hasNextPage = YES;
         offset += limit;

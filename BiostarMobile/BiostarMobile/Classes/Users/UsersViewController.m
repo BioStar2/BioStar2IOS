@@ -26,7 +26,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     refreshControl = [[UIRefreshControl alloc] init];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Users"];
+    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Users"];
     [usersTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshUsers) forControlEvents:UIControlEventValueChanged];
     
@@ -581,12 +581,14 @@
     if (firstYPosition < secondYPosition)
     {
         // 스크롤 위로 움직이게
-        canScrollTop = NO;
+        if (decelerate)
+            canScrollTop = NO;
     }
     else
     {
         // 스크롤 아래로
-        canScrollTop = YES;
+        if (decelerate)
+            canScrollTop = YES;
     }
     if (canScrollTop)
     {

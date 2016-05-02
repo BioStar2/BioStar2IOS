@@ -79,7 +79,7 @@
 // cloud 에서 변경되어서 안씀 지워도 되는 메소드
 - (void)getCardsWithGroupID:(NSString*)groupID limit:(NSInteger)limit offset:(NSInteger)offset
 {
-    NSMutableDictionary *param = [[NSMutableDictionary alloc] initWithObjectsAndKeys: nil];
+    NSMutableDictionary *param = [[NSMutableDictionary alloc] init];
     [param setObject:groupID forKey:@"group_id"];
     [param setObject:[NSString stringWithFormat:@"%ld", (long)limit] forKey:@"limit"];
     [param setObject:@"false" forKey:@"nextEnabled"];
@@ -105,7 +105,7 @@
 
 - (void)getCards:(NSString*)query limit:(NSInteger)limit offset:(NSInteger)offset
 {
-    NSMutableDictionary *param = [[NSMutableDictionary alloc] initWithObjectsAndKeys: nil];
+    NSMutableDictionary *param = [[NSMutableDictionary alloc] init];
     if (nil != query)
         [param setObject:query forKey:@"text"];
     
@@ -131,7 +131,7 @@
 
 - (void)getCard:(NSInteger)cardID
 {
-    NSMutableDictionary *param = [[NSMutableDictionary alloc] initWithObjectsAndKeys: nil];
+    NSMutableDictionary *param = [[NSMutableDictionary alloc] init];
     [param setObject:@"0" forKey:@"group_id"];
     [param setObject:[NSString stringWithFormat:@"%d", 100] forKey:@"limit"];
     [param setObject:@"false" forKey:@"nextEnabled"];
@@ -160,8 +160,8 @@
     [network setDelegate:self];
     type = REQUEST_SCAN_FINGERPRINT;
     
-    NSDictionary *param = @{@"enroll_quality" : [NSNumber numberWithInteger:70],
-                            @"get_raw_image" : [NSNumber numberWithBool:YES]};
+    NSDictionary *param = @{@"enroll_quality" : [NSNumber numberWithInteger:40],
+                            @"retrieve_raw_image" : [NSNumber numberWithBool:YES]};
     
     NSError *jsonError;
     NSData *jsonData;

@@ -38,7 +38,7 @@
     toDeletedNewAlarmCount = 0;
     secondYPosition = 0.0f;
     refreshControl = [[UIRefreshControl alloc] init];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Alarms"];
+    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Alarms"];
     [alarmTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshAlarms) forControlEvents:UIControlEventValueChanged];
     
@@ -411,12 +411,14 @@
     if (firstYPosition < secondYPosition)
     {
         // 스크롤 위로 움직이게
-        canScrollTop = NO;
+        if (decelerate)
+            canScrollTop = NO;
     }
     else
     {
         // 스크롤 아래로
-        canScrollTop = YES;
+        if (decelerate)
+            canScrollTop = YES;
     }
     
     if (canScrollTop)

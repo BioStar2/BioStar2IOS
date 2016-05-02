@@ -8,30 +8,30 @@
 
 // ios only
 
-"%ld minute %ld sec" = "%ld Min %ld sec";
+"%ld minute %ld sec" = "%ld Min %ld sek";
 "%ld minute" = "%ld Min";
-"%ld sec" = "%ld sec";
-"%ldth_fingerprint" = "%ldto Fingerprint";
-"1st_fingerprint" = "1mo Fingerprint";
-"2nd_fingerprint" = "2ndo Fingerprint";
-"3rd_fingerprint" = "3zo Fingerprint";
-"quality %ld" = "quality %ld";
-"selected_count %ld" = "Selected %ld";
-"user:%ld device:%ld event:%ld" = "User:%ld Device:%ld Event:%ld";
-"add_card" = "Add Card";
-"date_format" = "Date Format";
-"date_time_format" = "Date/Time Format";
-"delete_alarm" = "Delete Alarm";
-"delete_user" = "Delete User";
-"from_photo" = "From Photo";
-"select_oprtator" = "Select Operator";
-"select_option" = "Select Option";
-"status_active" = "Status Active";
-"status_inactive" = "Status Neaktyvus";
-"time_format" = "Time Format";
+"%ld sec" = "%ld sek";
+"%ldth_fingerprint" = "%ldto Pirštų atspaudas";
+"1st_fingerprint" = "1mo Pirštų atspaudas";
+"2nd_fingerprint" = "2ndo Pirštų atspaudas";
+"3rd_fingerprint" = "3zo Pirštų atspaudas";
+"quality %ld" = "Kokybė %ld";
+"selected_count %ld" = "Pasirinkti %ld";
+"user:%ld device:%ld event:%ld" = "Vartotojas:%ld Prietaisas:%ld Įvykis:%ld";
+"add_card" = "Pridėti Kortelė";
+"date_format" = "Data Formatas";
+"date_time_format" = "Data/Time Formatas";
+"delete_alarm" = "Ištrinti Aliarmas";
+"delete_user" = "Ištrinti Vartotojas";
+"from_photo" = "nuo Nuotrauka";
+"select_operator" = "Pasirinkti Operatorius";
+"select_option" = "Pasirinkti pasirinkimas";
+"status_active" = "Statusas Aktyvus";
+"status_inactive" = "Statusas Neaktyvus";
+"time_format" = "Laikas Formatas";
+"email_not_setted" = "Please set email on device setting app.";
 "AC" = "Aktyvus";
 "IN" = "Neaktyvus";
-"open_door_time_title" = "Durų atidarymo laikas(per 3 valandas)";
 // ios only
 
 
@@ -64,9 +64,7 @@
 "delete_fingerprint" = "Ištrinti pirštų atspaudus";
 "delete_permission" = "Ištrinti leidimą";
 "delete_picture" = "Ištrinti nuotrauką";
-"deleted_door_info" = "Ištrintos durys";
 "deleted_user" = "Vartotojas ištrintas";
-"deleted_user_info" = "Vartotojas ištrintas";
 "designed" = "Designed by Suprema";
 "device" = "Prietaisas";
 "direct_download" = "Tiesioginis APK parsisiuntimas";
@@ -114,7 +112,6 @@
 "invalid_email" = "Negaliojantis e.paštas";
 "invalid_userid" = "Netinkamas naudotojo ID, pasirinkite numerį tarp 1 ~ 4,294,967,294";
 "latest_version" = "Dabartinė versija";
-"lock" = "Užrakinti";
 "log_out" = "Atsijungti";
 "login" = "Prisijungti";
 "login_empty" = "Įveskite trūkstamą ID/Slaptažodžio/URL";
@@ -122,10 +119,12 @@
 "login_fail" = "Prisijungimas negalimas";
 "login_id" = "Prisijungimo ID";
 "low_quality" = "Nepakankama atspaudo kokybė";
+"manual_lock" = "Užrakinti";
+"manual_unlock" = "Atrakinti";
 "max_size" = "Viršytas prisijungimų limitas";
 "memory_poor" = "Nepakanka atminties";
 "menu" = "Meniu";
-"min" = "Min.";
+"minute" = "Min";
 "mobile" = "Mobilus";
 "monitoring" = "Stebėjimas";
 "monitoring_upper" = "STEBĖJIMAS";
@@ -142,14 +141,15 @@
 "none_data" = "Nėra duomenų";
 "none_device" = "Prietaisas nerastas";
 "none_door" = "Durys nerastos";
+"none_user" = "Vartotojas nerastas";
 "notice_connection_fail" = "Tinklo ryšys nutrūko";
 "notification" = "Pranešimas";
 "notification_time" = "Pranešimo laikas";
 "ok" = "OK";
-//"only_alpha_num_email" = "Įrašykite raides, skaičius arba ,\"\",\"\",\"\".\"\"\"";
+"only_alpha_num_email" = "Įrašykite raides, skaičius arba ,\",\",\".\"";
 "only_alpha_num_special" = "Rašykite tik raides ir skaičius";
 "only_number" = "Rašykite tik skaičius";
-//"only_number_dash" = "Raykite tik skaičius ir \"\"-\"\"\"";
+"only_number_dash" = "Raykite tik skaičius ir \"-\"";
 "open" = "Atidaryta";
 "open_door_time" = "Durų atidarymo laikas";
 "open_door_time_des" = "(per 3 valandas)";
@@ -159,7 +159,6 @@
 "password_confirm" = "Slaptažodžio patvirtinimas";
 "password_empty" = "Įveskite slaptažodį";
 "password_guide" = "Įveskite bent 8 ženkus iš kurių bent viena raidė, skaičius ir simbolis.";
-"password_guide_strong" = "Įveskite bent 8 ženkus iš kurių bent viena raidė, skaičius ir simbolis.";
 "password_invalid" = "Slaptažodis nesutampa";
 "period" = "Laikotarpis";
 "permission_setting" = "Leidimų nustatymas";
@@ -208,7 +207,6 @@
 "time" = "Laikas";
 "timezone" = "Laiko zona";
 "total" = "Visas";
-"unlock" = "Atrakinti";
 "unread" = "Naujas";
 "update_guide" = "Papildomame meniu galimas atnaujinimas";
 "user" = "Vartotojas";
@@ -224,3 +222,4 @@
 "version_mobile" = "BioStar 2 Mobile versija";
 "view_log" = "Rodyti prisijungimą";
 "wait" = "Prašome palaukti";
+

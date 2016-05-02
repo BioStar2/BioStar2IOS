@@ -36,19 +36,16 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
         timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
     }
     
-
     alarmDate.text = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                     originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                      transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                       [PreferenceProvider getDateFormat],
-                                                       timeFormat]];
+                                                  originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
+                                                   transDateFormat:timeFormat];
     
     if (isDeleteMode)
     {

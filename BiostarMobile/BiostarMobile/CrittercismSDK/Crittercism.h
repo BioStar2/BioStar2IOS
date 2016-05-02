@@ -8,6 +8,7 @@
 #import "CrittercismDelegate.h"
 #import "CRFilter.h"
 #import "CrittercismConfig.h"
+#import "CrittercismLoggingLevel.h"
 
 // Operating System Support
 //
@@ -135,6 +136,14 @@
 // of NSURLConnection and ASIHTTPRequest method calls.
 
 + (BOOL)logNetworkRequest:(NSString *)method
+                urlString:(NSString *)urlString
+                  latency:(NSTimeInterval)latency
+                bytesRead:(NSUInteger)bytesRead
+                bytesSent:(NSUInteger)bytesSent
+             responseCode:(NSInteger)responseCode
+                    error:(NSError *)error;
+
++ (BOOL)logNetworkRequest:(NSString *)method
                       url:(NSURL *)url
                   latency:(NSTimeInterval)latency
                 bytesRead:(NSUInteger)bytesRead
@@ -224,5 +233,11 @@
 // Set the currency cents value of a transaction.
 
 + (void)setValue:(int)value forTransaction:(NSString*)name;
+
+// Set the logging level to tune the verbosity of Crittercism log messages
+
++ (void)setLoggingLevel:(CRLoggingLevel)loggingLevel;
+
++ (CRLoggingLevel)loggingLevel;
 
 @end

@@ -108,8 +108,8 @@
             {
                 [_blurView setHidden:NO];
                 UIImage *userImage = userPhoto;
-                NSData *imgData = UIImageJPEGRepresentation(userImage, 0);
-                NSLog(@"Size of Image(bytes):%lu",(unsigned long)[imgData length]);
+                NSData *imgData = UIImageJPEGRepresentation(userImage, 1);
+                NSLog(@"user picture Size of Image(bytes):%lu",(unsigned long)[imgData length]);
                 _defaultImageView.image = userImage;
                 [_defaultImageView setHidden:NO];
                 

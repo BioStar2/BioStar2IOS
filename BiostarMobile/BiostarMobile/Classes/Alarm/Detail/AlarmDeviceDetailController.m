@@ -135,7 +135,7 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
@@ -143,10 +143,8 @@
     }
     
     NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                        originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                         transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                          [PreferenceProvider getDateFormat],
-                                                          timeFormat]];
+                                                     originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
+                                                      transDateFormat:timeFormat];
     
     [cell setContent:NSLocalizedString(@"notification_time", nil) content:content];
 

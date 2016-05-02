@@ -35,6 +35,7 @@
 #define NOT_SELECTED            10000
 #define NETWORK_CONNETCTION_ERROR  @"NETWORK_CONNETCTION_ERROR"
 
+#define MAX_IMAGE_FILE_SIZE         16000
 
 typedef enum{
     USER_GROUP,                 // 사용자 편집에서 유저그룹 사용할때

@@ -24,14 +24,14 @@
 "delete_alarm" = "Usuń Alarm";
 "delete_user" = "Usuń Użytkownik";
 "from_photo" = "Z zdjęcie";
-"select_oprtator" = "Wybierz Operator";
+"select_operator" = "Wybierz Operator";
 "select_option" = "Wybierz Opcje";
 "status_active" = "Status Aktywny";
 "status_inactive" = "Status Nieaktywny";
 "time_format" = "Czas Format";
+"email_not_setted" = "Proszę ustawić email w ustawieniach aplikacji";
 "AC" = "Aktywny";
 "IN" = "Nieaktywny";
-"open_door_time_title" = "Czas otwarcia drzwi(w ciągu 3 godzin)";
 // ios only
 
 
@@ -44,6 +44,7 @@
 "all_door" = "Wszystkie drzwi";
 "all_events" = "Wszystkie zdarzenia";
 "all_users" = "Wszyscy użytkownicy";
+"allow_permission" = "Proszę nadać uprawnienia";
 "already_assigned" = "Już przydzielono";
 "app_name" = "BioStar 2";
 "applied_filter" = "Filtr aktywny";
@@ -64,9 +65,7 @@
 "delete_fingerprint" = "Usuń palec";
 "delete_permission" = "Usuń uprawnienie";
 "delete_picture" = "Usunięto zdjęcie";
-"deleted_door_info" = "Usunięto drzwi";
 "deleted_user" = "Usunięto użytkownika";
-"deleted_user_info" = "Już usunięto użytkownika";
 "designed" = "Designed by Suprema";
 "device" = "Urządzenie";
 "direct_download" = "Bezpośrednio pobierz APK";
@@ -104,6 +103,7 @@
 "format" = "Format";
 "from_gallery" = "Z Galerii";
 "group" = "Grupa";
+"guide_feature_permission" = "Wymagane są większe uprawnienia ,aby skorzystać z tej funkcji";
 "held_opened" = "Drzwi przytrzymane";
 "id" = "ID";
 "inactive" = "Nieaktywny";
@@ -114,7 +114,6 @@
 "invalid_email" = "Niepoprawny adres Email";
 "invalid_userid" = "Maksymalna wartość ID użytkownika to 4294967294.";
 "latest_version" = "Najnowsza wersja";
-"lock" = "Zablokowany";
 "log_out" = "Wyloguj";
 "login" = "Login";
 "login_empty" = "Musisz wpisać numer ID/hasło/adres Url";
@@ -122,10 +121,12 @@
 "login_fail" = "Błąd logowania";
 "login_id" = "Login Id";
 "low_quality" = "Jakość skanowania jest niska";
+"manual_lock" = "Zablokowany";
+"manual_unlock" = "Blokada manualna";
 "max_size" = "Maksymalna liczba zarejestrowanych";
 "memory_poor" = "Niewystarczająca pamięć";
 "menu" = "Menu";
-"min" = "Minimum";
+"minute" = "min";
 "mobile" = "Mobilnie";
 "monitoring" = "Monitoring";
 "monitoring_upper" = "Monitoring";
@@ -142,11 +143,12 @@
 "none_data" = "Brak danych";
 "none_device" = "Urządzenie nie znalezione";
 "none_door" = "Nie znaleziono drzwi";
+"none_user" = "Użytkownika nie znaleziono";
 "notice_connection_fail" = "Błąd łączenia z siecią";
 "notification" = "Powiadomienie";
 "notification_time" = "Czas powiadomienia";
 "ok" = "OK";
-//"only_alpha_num_email" = "Wprowadź tylko znaki alfabetu,liczby,\"\",\"\",\"\".\"\"\"";
+"only_alpha_num_email" = "Wprowadź tylko znaki alfabetu,liczby,\",\",\".\"";
 "only_alpha_num_special" = "Wprowadź tylko znaki alfabetu,liczby i znaki specjalne";
 "only_number" = "Proszę wpisać tylko cyfry";
 "only_number_dash" = "Proszę wpisać tylko cyfry i tyldę";
@@ -159,7 +161,6 @@
 "password_confirm" = "Potwierdź hasło";
 "password_empty" = "Musisz podać hasło i je potwierdzić";
 "password_guide" = "Wymagane minimum 8 znaków w tym numeryczne i specjalne";
-"password_guide_strong" = "Wymagane minimum 8 znaków w tym numeryczne i specjalne";
 "password_invalid" = "Nie takie same hasło lub potwierdzenie";
 "period" = "Okres";
 "permission_setting" = "Ustawienia Dostepu";
@@ -176,12 +177,13 @@
 "registeration_option_assign_card" = "Karta przypisana";
 "registeration_option_card_reader" = "Zarejestrowano przez czytnik kart";
 "relay" = "Przekaźnik";
+"release" = "Odblokować";
 "request_open" = "Otwarcie";
 "request_open_fail" = "Otwarcie drzwi zakończone niepowodzeniem";
 "request_open_sent" = "Otwórz drzwi";
 "retry" = "Ponów";
 "retry_get_message" = "Błąd pobierania danych. Czy spróbować ponownie?";
-"retry_get_preference" = "Błąd pobierania danych o strefie czasowej. Czy spróbować ponownie?";
+"retry_get_preference" = "Błąd pobierania danych o strefie czasowej. \n Czy spróbować ponownie?";
 "save" = "Zapisz";
 "scan_success" = "Skanowania zakończone powodzeniem";
 "search" = "Szukaj";
@@ -208,7 +210,6 @@
 "time" = "Czas";
 "timezone" = "Strefa czasowa";
 "total" = "Ogółem";
-"unlock" = "Odblokuj";
 "unread" = "Nowe";
 "update_guide" = "Aktualizacja dostępna za pośrednictwem konfiguracji w menu bocznym";
 "user" = "Użytkownik";
@@ -224,3 +225,4 @@
 "version_mobile" = "BioStar 2 Wersja Mobilna";
 "view_log" = "Przegląd Zdarzeń";
 "wait" = "Ładuję…";
+

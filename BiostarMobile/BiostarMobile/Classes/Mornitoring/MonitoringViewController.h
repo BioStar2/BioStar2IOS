@@ -25,6 +25,7 @@
 #import "UserNewDetailViewController.h"
 #import "MonitorFilterViewController.h"
 #import "MonitoringSubExtraCell.h"
+#import "ImagePopupViewController.h"
 
 typedef enum{
     NONE_SELECT,
@@ -42,7 +43,7 @@ typedef enum{
 } RequestType;
 
 
-@interface MonitoringViewController : BaseViewController <EventProviderDelegate, OneButtonTableDelegate, DoorProviderDelegate, MonitorFilterDelegate>
+@interface MonitoringViewController : BaseViewController <EventProviderDelegate, OneButtonTableDelegate, DoorProviderDelegate, MonitorFilterDelegate, ImagePopupDelegate>
 {
     __weak IBOutlet UITableView *eventTableView;
     __weak IBOutlet UIButton *filterButton;
@@ -53,14 +54,17 @@ typedef enum{
     NSInteger limit;
     NSInteger totalCount;
     EventProvider *eventProvider;
-    DoorProvider *provider;
+    DoorProvider *doorProvider;
     NSMutableArray *events;
     NSMutableArray *doors;
     NSMutableDictionary *doorDic;
     MonitorFilterViewController *filterViewController;
     NSMutableDictionary *condition;
+    NSMutableDictionary *currentErrDic;
     NSString *userID;
     NSInteger requestCount;
+    BOOL eventSearchFailed;
+    BOOL doorSearchFailed;
     BOOL hasNextPage;
     float firstYPosition;
     float secondYPosition;

@@ -72,7 +72,7 @@
 "OSK-q9-hUD.text" = "Toutes les portes";
 
 /* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
-"Oif-vS-bsu.text" = "Pin";
+"Oif-vS-bsu.text" = "PIN";
 
 /* Class = "UILabel"; text = "Total"; ObjectID = "Q5U-QZ-a7A"; */
 "Q5U-QZ-a7A.text" = "Total";
@@ -81,22 +81,20 @@
 "QWI-ej-KTa.normalTitle" = "Door Control";
 
 /* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
-"RYc-q8-eZd.text" = "All Users";
+"RYc-q8-eZd.text" = "Tous les utilisateurs";
 
 /* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
-"RfJ-sx-ICY.text" = "Setting";
+"RfJ-sx-ICY.text" = "Paramètres";
 
 /* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "RgU-Nd-Rxz"; */
 "RgU-Nd-Rxz.normalTitle" = "Contrôle de porte";
 
-/* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
-"TLI-j3-9da.text" = "Label";
 
 /* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
 "UPB-Mm-I7v.text" = "~";
 
 /* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
-"Yn0-2Y-auA.text" = "ㄸmpreinte";
+"Yn0-2Y-auA.text" = "Empreinte";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
 "ZOx-gq-ahd.text" = "BioStar 2";
@@ -137,8 +135,6 @@
 /* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
 "o1r-Wz-L81.text" = "Carte";
 
-/* Class = "UILabel"; text = "v.1.0.2"; ObjectID = "o6j-Ya-JJA"; */
-"o6j-Ya-JJA.text" = "v.1.0.2";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
 "os3-6k-W6J.text" = "BioStar 2";
@@ -159,7 +155,7 @@
 "xmf-Xc-m1F.text" = "100";
 
 /* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
-"ylR-Zw-87H.text" = "Selected";
+"ylR-Zw-87H.text" = "Choisi";
 
 /* Class = "UILabel"; text = "View Log"; ObjectID = "zVZ-XM-tg7"; */
 "zVZ-XM-tg7.text" = "Historique d'identification";

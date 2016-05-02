@@ -15,7 +15,7 @@
  */
 
 #import "DoorsViewController.h"
-#import "DoorDetailViewController.h"
+
 
 @interface DoorsViewController ()
 
@@ -31,7 +31,7 @@
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     refreshControl = [[UIRefreshControl alloc] init];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Doors"];
+    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Doors"];
     [doorsTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshDoors) forControlEvents:UIControlEventValueChanged];
     secondYPosition = 0.0f;
@@ -40,10 +40,11 @@
     doors = [[NSMutableArray alloc] init];
     provider = [[DoorProvider alloc] init];
     provider.delegate = self;
+    query = nil;
     [provider searchDoors:query limit:limit offset:offset];
     isMainRequest = YES;
     [self startLoading:self];
-    query = nil;
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -134,18 +135,22 @@
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DoorCell" forIndexPath:indexPath];
     DoorCell *customCell = (DoorCell*)cell;
-    NSDictionary *dic = [doors objectAtIndex:indexPath.row];
-    customCell.doorID.text = [dic objectForKey:@"name"];
-    customCell.doorName.text = [dic objectForKey:@"description"];
-    
-    if (indexPath.row == doors.count -1)
+    if (doors.count > 0)
     {
-        if (hasNextPage)
+        NSDictionary *dic = [doors objectAtIndex:indexPath.row];
+        customCell.doorID.text = [dic objectForKey:@"name"];
+        customCell.doorName.text = [dic objectForKey:@"description"];
+        [customCell setDoorStatus:dic];
+        if (indexPath.row == doors.count -1)
         {
-            [provider searchDoors:query limit:limit offset:offset];
-            [self startLoading:self];
+            if (hasNextPage)
+            {
+                [provider searchDoors:query limit:limit offset:offset];
+                [self startLoading:self];
+            }
         }
     }
+    
     
     return customCell;
     
@@ -158,11 +163,21 @@
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     DoorDetailViewController *doorDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"DoorDetailViewController"];
-    
+    doorDetailViewController.delegate = self;
     [self pushChildViewController:doorDetailViewController parentViewController:self contentView:self.view animated:YES];
     
     [doorDetailViewController setDoorInfo:[doors objectAtIndex:indexPath.row]];
     
+}
+
+#pragma mark - DoorDetailViewControllerDelegate
+
+- (void)refreshDoorList
+{
+    [doors removeAllObjects];
+    [provider searchDoors:query limit:limit offset:offset];
+    isMainRequest = YES;
+    [self startLoading:self];
 }
 
 #pragma mark - ListPopupViewControllerDelegate
@@ -233,6 +248,7 @@
 {
     [doors removeAllObjects];
     query = textField.text;
+    offset = 0;
     [provider searchDoors:query limit:limit offset:offset];
     [self startLoading:self];
     isMainRequest = NO;
@@ -282,12 +298,14 @@
     if (firstYPosition < secondYPosition)
     {
         // 스크롤 위로 움직이게
-        canScrollTop = NO;
+        if (decelerate)
+            canScrollTop = NO;
     }
     else
     {
         // 스크롤 아래로
-        canScrollTop = YES;
+        if (decelerate)
+            canScrollTop = YES;
     }
     if (canScrollTop)
     {

@@ -111,13 +111,13 @@
 "UUY-UX-bcz.text" = "선택된 갯수";
 
 /* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
-"Yn0-2Y-auA.text" = "Finger";
+"Yn0-2Y-auA.text" = "지문";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
 "ZOx-gq-ahd.text" = "BioStar 2";
 
 /* Class = "UILabel"; text = "Alarm"; ObjectID = "ZnU-mv-trd"; */
-"ZnU-mv-trd.text" = "Alarm";
+"ZnU-mv-trd.text" = "알람";
 
 /* Class = "UITextField"; placeholder = "Company Key"; ObjectID = "bxj-aY-qzg"; */
 "bxj-aY-qzg.placeholder" = "Company Key";
@@ -135,7 +135,7 @@
 "efL-bK-EbE.text" = "BioStar 2";
 
 /* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
-"fS0-an-9PC.placeholder" = "User ID";
+"fS0-an-9PC.placeholder" = "사용자 아이디";
 
 /* Class = "UILabel"; text = "View Log"; ObjectID = "fVe-WV-Nfd"; */
 "fVe-WV-Nfd.text" = "로그 보기";
@@ -158,8 +158,6 @@
 /* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
 "o1r-Wz-L81.text" = "카드";
 
-/* Class = "UILabel"; text = "v.1.0.2"; ObjectID = "o6j-Ya-JJA"; */
-"o6j-Ya-JJA.text" = "v.1.0.2";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
 "os3-6k-W6J.text" = "BioStar 2";

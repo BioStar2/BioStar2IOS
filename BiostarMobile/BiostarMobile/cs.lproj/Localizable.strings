@@ -8,30 +8,30 @@
 
 // ios only
 
-"%ld minute %ld sec" = "%ld Min %ld sec";
+"%ld minute %ld sec" = "%ld Min %ld s";
 "%ld minute" = "%ld Min";
-"%ld sec" = "%ld sec";
-"%ldth_fingerprint" = "%ldto Fingerprint";
-"1st_fingerprint" = "1mo Fingerprint";
-"2nd_fingerprint" = "2ndo Fingerprint";
-"3rd_fingerprint" = "3zo Fingerprint";
-"quality %ld" = "quality %ld";
-"selected_count %ld" = "Selected %ld";
-"user:%ld device:%ld event:%ld" = "User:%ld Device:%ld Event:%ld";
-"add_card" = "Add Card";
-"date_format" = "Date Format";
-"date_time_format" = "Date/Time Format";
-"delete_alarm" = "Delete Alarm";
-"delete_user" = "Delete User";
-"from_photo" = "From Photo";
-"select_oprtator" = "Select Operator";
-"select_option" = "Select Option";
-"status_active" = "Status Active";
-"status_inactive" = "Status Neaktivní";
-"time_format" = "Time Format";
+"%ld sec" = "%ld s";
+"%ldth_fingerprint" = "%ldto Otisk prstu";
+"1st_fingerprint" = "1mo Otisk prstu";
+"2nd_fingerprint" = "2ndo Otisk prstu";
+"3rd_fingerprint" = "3zo Otisk prstu";
+"quality %ld" = "Kvalita %ld";
+"selected_count %ld" = "Vybraný %ld";
+"user:%ld device:%ld event:%ld" = "Uživatel:%ld Zařízení:%ld Událost:%ld";
+"add_card" = "Přidat Karta";
+"date_format" = "Datum Formát";
+"date_time_format" = "Datum/Čas Formát";
+"delete_alarm" = "Smazat Poplachy";
+"delete_user" = "Smazat Uživatel";
+"from_photo" = "od Snímek";
+"select_operator" = "Zvolit Operátor";
+"select_option" = "Zvolit Volba";
+"status_active" = "Stav Aktivní";
+"status_inactive" = "Stav Neaktivní";
+"time_format" = "Čas Formát";
+"email_not_setted" = "V nastavení aplikace vyplňte e-mail.";
 "AC" = "Aktivní";
 "IN" = "Neaktivní";
-"open_door_time_title" = "Doba otevření dveří(za 3 hodiny)";
 // ios only
 
 
@@ -45,6 +45,7 @@
 "all_door" = "Všechny dveře";
 "all_events" = "Všechny události";
 "all_users" = "Všichni uživatelé";
+"allow_permission" = "Udělte oprávnění.";
 "already_assigned" = "Seznam je již přiřazen";
 "app_name" = "BioStar 2";
 "applied_filter" = "Výsledek filtru";
@@ -65,9 +66,7 @@
 "delete_fingerprint" = "Smazat otisk prstu";
 "delete_permission" = "Smazat oprávnění";
 "delete_picture" = "Smazat obrázek";
-"deleted_door_info" = "Již odebrané dveře";
 "deleted_user" = "Uživatel smazán";
-"deleted_user_info" = "Již smazaný uživatel";
 "designed" = "Designed by Suprema";
 "device" = "Zařízení";
 "direct_download" = "Přímý APK download";
@@ -105,6 +104,7 @@
 "format" = "Formát";
 "from_gallery" = "Z galerie obrázků";
 "group" = "Skupina";
+"guide_feature_permission" = "Tato funkcionalita vyžaduje příslušné oprávnění";
 "held_opened" = "Dveře ponechány otevřené";
 "id" = "číslo";
 "inactive" = "Neaktivní";
@@ -115,7 +115,6 @@
 "invalid_email" = "Neplatný e-mail";
 "invalid_userid" = "Neplatné číslo uživatele, zadejte číslo mezi 1 a 4.294.967.294";
 "latest_version" = "Poslední verze";
-"lock" = "Zamknout";
 "log_out" = "ODHLÁSIT";
 "login" = "Přihlášení";
 "login_empty" = "Chybějící ID / heslo / URL";
@@ -123,10 +122,12 @@
 "login_fail" = "Chyba přihlášení";
 "login_id" = "Přihlašovací ID";
 "low_quality" = "Nedostatečná kvalita otisku prstu";
+"manual_lock" = "Zamknout";
+"manual_unlock" = "Manuální uzamčení";
 "max_size" = "Překročen limit registrací";
 "memory_poor" = "Nedostatečná paměť";
 "menu" = "Menu";
-"min" = "Min.";
+"minute" = "Min";
 "mobile" = "Mobilní";
 "monitoring" = "Deník událostí";
 "monitoring_upper" = "DENÍK";
@@ -143,14 +144,15 @@
 "none_data" = "Žádná data";
 "none_device" = "Zařízení nenalezeno";
 "none_door" = "Dveře nenalezeny";
+"none_user" = "Uživatel nenalezen";
 "notice_connection_fail" = "Chyba síťového připojení";
 "notification" = "Upozornění";
 "notification_time" = "Čas upozornění";
 "ok" = "OK";
-//"only_alpha_num_email" = "Zadávejte pouze písmena, číslice a znaky \"\",\"\" a \"\".\"\"\"";
+"only_alpha_num_email" = "Zadávejte pouze písmena, číslice a znaky \",\" a \".\"";
 "only_alpha_num_special" = "Zadávejte pouze písmena, číslice, a speciální znaky";
 "only_number" = "Zadávejte pouze číslice";
-//"only_number_dash" = "Zadávejte pouze číslice a \"\"-\"\"\"";
+"only_number_dash" = "Zadávejte pouze číslice a \"-\"";
 "open" = "Otevřít";
 "open_door_time" = "Doba otevření dveří";
 "open_door_time_des" = "(za 3 hodiny)";
@@ -160,7 +162,6 @@
 "password_confirm" = "Potvrzení hesla";
 "password_empty" = "Zadejte heslo";
 "password_guide" = "Je vyžadováno min. 8 znaků s min. jedním písmenem, číslem, a speciálním znakem";
-"password_guide_strong" = "Je vyžadováno min. 8 znaků s min. jedním písmenem, číslem, a speciálním znakem";
 "password_invalid" = "Hesla si neodpovídají";
 "period" = "Časová zóna";
 "permission_setting" = "Nastavení oprávnění";
@@ -177,6 +178,7 @@
 "registeration_option_assign_card" = "Přiřadit kartu";
 "registeration_option_card_reader" = "Registrovat na čtečce karet";
 "relay" = "Relé";
+"release" = "Uvolnit";
 "request_open" = "Požadavek na otevření dveří";
 "request_open_fail" = "Požadavek na otevření dveří zamítnut";
 "request_open_sent" = "Požadavek na otevření dveří poslán";
@@ -209,7 +211,6 @@
 "time" = "Čas";
 "timezone" = "Časová zóna";
 "total" = "Celkem";
-"unlock" = "Odemknout";
 "unread" = "Nové";
 "update_guide" = "Aktualizace je dostupná skrze konfiguraci v bočním menu";
 "user" = "Uživatel";

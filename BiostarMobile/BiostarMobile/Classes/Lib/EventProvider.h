@@ -28,6 +28,7 @@ typedef enum{
 @optional
 
 - (void)requestSearchEventDidFinish:(NSArray*)eventArray totalCount:(NSInteger)count;
+- (void)requestSearchEventDidFinish:(NSArray*)eventArray isNextPage:(BOOL)isNext;
 - (void)requestGetEventMessageDidFinish:(NSArray *)eventTypes;
 - (void)requestEventProviderDidFail:(NSDictionary*)errDic;
 - (void)cookieWasExpired:(NSDictionary*)errDic;

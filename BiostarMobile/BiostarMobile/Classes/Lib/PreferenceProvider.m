@@ -171,7 +171,7 @@ NSString *deviceToken = nil;            // 푸쉬에 사용될 토큰
     NSData *jsonData;
     
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* version = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
     
     NSDictionary *param = @{@"mobile_app_version" : version,
                             @"mobile_device_type" : @"IOS",

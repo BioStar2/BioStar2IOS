@@ -75,8 +75,6 @@
     {
         NSString *userID = [dic valueForKey:@"user_id"];
         
-        NSLog(@"name : %@ / user_id : %@",[dic objectForKey:@"name"] ,[dic valueForKey:@"user_id"]);
-        
         NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
         
         UIImage *userPhoto = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:userPhotoKey];
@@ -91,8 +89,6 @@
         else
         {
             _userImage.image = [UIImage imageNamed:@"user_thumb_default"];
-            
-            //[provider getUser:userID];
             [provider getUserPhoto:userID];
         }
     }

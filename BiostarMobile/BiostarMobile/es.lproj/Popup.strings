@@ -1,0 +1,78 @@
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "4Au-bi-Clc"; */
+"4Au-bi-Clc.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "6xF-o5-Iaj"; */
+"6xF-o5-Iaj.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "7hb-cQ-Vhf"; */
+"7hb-cQ-Vhf.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "8dV-mM-44F"; */
+"8dV-mM-44F.normalTitle" = "Aceptar";
+
+/* Class = "UILabel"; text = "Card ID"; ObjectID = "A9C-YC-Vsp"; */
+"A9C-YC-Vsp.text" = "ID Tarjeta";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "ApI-Jq-Uuk"; */
+"ApI-Jq-Uuk.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "B5I-bm-IrF"; */
+"B5I-bm-IrF.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "CT1-g3-ida"; */
+"CT1-g3-ida.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "HuT-K7-bAO"; */
+"HuT-K7-bAO.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "MIT-EC-PmO"; */
+"MIT-EC-PmO.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "MVp-ty-8Xp"; */
+"MVp-ty-8Xp.normalTitle" = "Aceptar";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "RMQ-eY-LyY"; */
+"RMQ-eY-LyY.text" = "Total";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "RqU-Kk-KGJ"; */
+"RqU-Kk-KGJ.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "T4l-fQ-AcB"; */
+"T4l-fQ-AcB.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "Tbq-wl-oHD"; */
+"Tbq-wl-oHD.normalTitle" = "Aceptar";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "U01-9R-Qab"; */
+"U01-9R-Qab.text" = "Total";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "VPk-2o-iY1"; */
+"VPk-2o-iY1.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "VRy-Xt-45x"; */
+"VRy-Xt-45x.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "XP0-F1-AcY"; */
+"XP0-F1-AcY.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "ZKL-U3-WxU"; */
+"ZKL-U3-WxU.normalTitle" = "Cancelar";
+
+/* Class = "UILabel"; text = "total"; ObjectID = "ccf-mr-6t5"; */
+"ccf-mr-6t5.text" = "Total";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "e7m-1X-JUU"; */
+"e7m-1X-JUU.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "gsp-Z5-Ifj"; */
+"gsp-Z5-Ifj.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Cancelar"; ObjectID = "hcp-i8-mTN"; */
+"hcp-i8-mTN.normalTitle" = "Cancelar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "iGM-78-qRt"; */
+"iGM-78-qRt.normalTitle" = "Aceptar";
+
+/* Class = "UIButton"; normalTitle = "Aceptar"; ObjectID = "yaH-f5-ZgY"; */
+"yaH-f5-ZgY.normalTitle" = "Aceptar";

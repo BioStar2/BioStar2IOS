@@ -110,6 +110,7 @@
     PreferenceProvider *preferenceProvoder;
     AuthProvider *authProvider;
     NSMutableDictionary *preferenceDic;
+    __weak IBOutlet UILabel *buildVersionButton;
 }
 
 @property (strong, nonatomic) NSDictionary *userDic;
@@ -120,6 +121,7 @@
 - (IBAction)moveToDoorController:(id)sender;
 - (IBAction)moveToMonitorController:(id)sender;
 - (IBAction)moveToAlarmController:(id)sender;
+- (IBAction)showBuildVersion:(id)sender;
 
 - (IBAction)userButtonDown:(id)sender;
 - (IBAction)doorButtonDown:(id)sender;
@@ -166,5 +168,6 @@
 - (void)updateUserCount:(NSInteger)userCount;
 - (CGRect)getCurrentViewFrame:(CGRect)bounds;
 - (void)setBadgeViewWidth;
+- (void)loadMyprofile;
 @end
 

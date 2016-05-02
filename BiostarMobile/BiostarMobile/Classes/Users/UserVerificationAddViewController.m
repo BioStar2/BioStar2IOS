@@ -581,6 +581,7 @@
         case ACCESS_GROUPS:
             if (totalCountView.hidden)
             {
+                // ACCESS_GROUPS 삭제 모드
                 NSMutableDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
                 // Access 삭제 모드
                 if (nil != [verification objectForKey:@"included_by_user_group"])
@@ -1035,13 +1036,29 @@
     
     if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
     {
-        NSMutableArray *accessGroups = [[NSMutableArray alloc] initWithArray:verificationInfos];
-        if ([verificationInfos count] > 1)
-        {
-            // 첫번째 편집 불가한 항목 빼기
-            [accessGroups removeObjectAtIndex:0];
-        }
-        [self.delegate accessGroupDidChange:accessGroups];
+//        NSMutableArray *accessGroups = [[NSMutableArray alloc] initWithArray:verificationInfos];
+//        
+//        
+//        for (NSInteger i = 0; i < verificationInfos.count; i++)
+//        {
+//            NSDictionary *dic = [verificationInfos objectAtIndex:i];
+//            NSLog(@"access group dic : %@", dic);
+//            //편집 불가한 항목 빼기
+//            if (nil != [dic objectForKey:@"included_by_user_group"])
+//            {
+//                if([[dic objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
+//                {
+//                    [accessGroups removeObjectAtIndex:i];
+//                }
+//            }
+//        }
+        
+//        if ([verificationInfos count] > 1)
+//        {
+//            // 첫번째 편집 불가한 항목 빼기
+//            [accessGroups removeObjectAtIndex:0];
+//        }
+        [self.delegate accessGroupDidChange:verificationInfos];
     }
 }
 

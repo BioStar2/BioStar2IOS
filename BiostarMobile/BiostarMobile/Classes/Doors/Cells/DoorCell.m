@@ -28,4 +28,30 @@
     // Configure the view for the selected state
 }
 
+- (void)setDoorStatus:(NSDictionary*)doorDic
+{
+    NSDictionary *status = [doorDic objectForKey:@"status"];
+    
+    if ([[status objectForKey:@"normal"] boolValue] || [[status objectForKey:@"apb_failed"] boolValue])
+    {
+        // 초록
+        self.doorImage.image = [UIImage imageNamed:@"ic_event_door_01"];
+    }
+    
+    if ([[status objectForKey:@"locked"] boolValue] || [[status objectForKey:@"unlocked"] boolValue] ||
+        [[status objectForKey:@"held_opened"] boolValue] || [[status objectForKey:@"scheduleLocked"] boolValue] ||
+        [[status objectForKey:@"scheduleUnlocked"] boolValue] || [[status objectForKey:@"operatorLocked"] boolValue] ||
+        [[status objectForKey:@"operatorUnlocked"] boolValue])
+    {
+        // 노란
+        self.doorImage.image = [UIImage imageNamed:@"ic_event_door_03"];
+    }
+    
+    if ([[status objectForKey:@"disconnected"] boolValue] || [[status objectForKey:@"forced_open"] boolValue] ||
+        [[status objectForKey:@"emergencyLocked"] boolValue] || [[status objectForKey:@"emergencyUnlocked"] boolValue])
+    {
+        // 빨간
+        self.doorImage.image = [UIImage imageNamed:@"ic_event_door_02"];
+    }
+}
 @end

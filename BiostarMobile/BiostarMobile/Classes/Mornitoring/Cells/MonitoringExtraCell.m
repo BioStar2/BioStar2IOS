@@ -82,19 +82,17 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        timeFormat = [NSString stringWithFormat:@"%@:ss", [PreferenceProvider getTimeFormat]];
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
     }
     
-    
-    _eventDateLabel.text = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                                        originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                         transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                                          [PreferenceProvider getDateFormat],
-                                                                          timeFormat]];
+    _eventDateLabel.text = [NSString stringWithFormat:@"%@",
+                             [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
+                                                          originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
+                                                           transDateFormat:timeFormat]];
     
     NSString *extraDescription = [NSString stringWithFormat:@"%@ / %@",
                                   [deviceDic objectForKey:@"id"],
@@ -105,7 +103,6 @@
     {
         if (nil == [doorInfo objectForKey:[deviceDic objectForKey:@"id"]])
         {
-            NSLog(@"nil == [doorInfo objectForKey:[deviceDic objectForKey:@\"id\"]]");
             [_accImageView setHidden:YES];
         }
         else

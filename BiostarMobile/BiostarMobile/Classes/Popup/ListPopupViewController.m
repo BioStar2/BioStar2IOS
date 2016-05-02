@@ -39,7 +39,7 @@
     switch (_type)
     {
         case PERMISSON:
-            titleLabel.text = NSLocalizedString(@"select_oprtator", nil);
+            titleLabel.text = NSLocalizedString(@"select_operator", nil);
             permissionProvider = [[PermissionProvider alloc] init];
             permissionProvider.delegate = self;
             [permissionProvider getPermissions];

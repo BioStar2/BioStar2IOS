@@ -1,0 +1,162 @@
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "1D0-kv-YHi"; */
+"1D0-kv-YHi.text" = "Всего";
+
+/* Class = "UILabel"; text = "Фильтр"; ObjectID = "1MB-qw-sOk"; */
+"1MB-qw-sOk.text" = "Фильтр";
+
+/* Class = "UIButton"; normalTitle = "ВЫЙТИ"; ObjectID = "1cs-bD-wci"; */
+"1cs-bD-wci.normalTitle" = "ВЫЙТИ";
+
+/* Class = "UILabel"; text = "ЖУРНАЛ"; ObjectID = "1wa-4S-dr0"; */
+"1wa-4S-dr0.text" = "ЖУРНАЛ";
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "3wj-Fy-acM"; */
+"3wj-Fy-acM.text" = "Всего";
+
+/* Class = "UIButton"; normalTitle = "Контроль двери"; ObjectID = "5Aj-tA-w2o"; */
+"5Aj-tA-w2o.normalTitle" = "Контроль двери";
+
+/* Class = "UILabel"; text = "Мобильный"; ObjectID = "5EA-Um-QXa"; */
+"5EA-Um-QXa.text" = "Мобильный";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "6Ny-Pc-vVu"; */
+"6Ny-Pc-vVu.text" = "Просмотр журнала";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "9Ds-3P-kuK"; */
+"9Ds-3P-kuK.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "Bq2-52-Lq8"; */
+"Bq2-52-Lq8.text" = "~";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "C4v-Oo-Tc8"; */
+"C4v-Oo-Tc8.text" = "Тревога";
+
+/* Class = "UILabel"; text = "USER"; ObjectID = "CCM-7o-Z1h"; */
+"CCM-7o-Z1h.text" = "ПОЛЬЗОВАТЕЛИ";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "CFh-1f-2lg"; */
+"CFh-1f-2lg.text" = "Просмотр журнала";
+
+/* Class = "UILabel"; text = "User"; ObjectID = "ESL-mZ-4f9"; */
+"ESL-mZ-4f9.text" = "Пользователь";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "IoM-mq-eKZ"; */
+"IoM-mq-eKZ.text" = "~";
+
+/* Class = "UILabel"; text = "ЖУРНАЛ"; ObjectID = "K9T-q1-4HM"; */
+"K9T-q1-4HM.text" = "ЖУРНАЛ";
+
+/* Class = "UILabel"; text = "ALARM"; ObjectID = "KfQ-Gp-nqO"; */
+"KfQ-Gp-nqO.text" = "ТРЕВОГИ";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "KiH-G2-XbQ"; */
+"KiH-G2-XbQ.text" = "Просмотр журнала";
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "LBa-rD-w8a"; */
+"LBa-rD-w8a.text" = "Всего";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "LD7-60-GFK"; */
+"LD7-60-GFK.text" = "Просмотр журнала";
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "LSO-yI-bcK"; */
+"LSO-yI-bcK.text" = "Всего";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "Mc6-5V-ebC"; */
+"Mc6-5V-ebC.text" = "100";
+
+/* Class = "UILabel"; text = "Фильтр"; ObjectID = "NrE-JF-oG2"; */
+"NrE-JF-oG2.text" = "Фильтр";
+
+/* Class = "UILabel"; text = "All Doors"; ObjectID = "OSK-q9-hUD"; */
+"OSK-q9-hUD.text" = "Все двери";
+
+/* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
+"Oif-vS-bsu.text" = "PIN";
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "Q5U-QZ-a7A"; */
+"Q5U-QZ-a7A.text" = "Всего";
+
+/* Class = "UIButton"; normalTitle = "Контроль двери"; ObjectID = "QWI-ej-KTa"; */
+"QWI-ej-KTa.normalTitle" = "Контроль двери";
+
+/* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
+"RYc-q8-eZd.text" = "Все пользователи";
+
+/* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
+"RfJ-sx-ICY.text" = "Настройки";
+
+/* Class = "UIButton"; normalTitle = "Контроль двери"; ObjectID = "RgU-Nd-Rxz"; */
+"RgU-Nd-Rxz.normalTitle" = "Контроль двери";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
+"TLI-j3-9da.text" = "Label";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
+"UPB-Mm-I7v.text" = "~";
+
+/* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
+"Yn0-2Y-auA.text" = "Отпечаток";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
+"ZOx-gq-ahd.text" = "BioStar 2";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "ZnU-mv-trd"; */
+"ZnU-mv-trd.text" = "Тревога";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "dAQ-9k-ae6"; */
+"dAQ-9k-ae6.text" = "Новый";
+
+/* Class = "UILabel"; text = "Всего"; ObjectID = "eFD-2m-xWz"; */
+"eFD-2m-xWz.text" = "Всего";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "efL-bK-EbE"; */
+"efL-bK-EbE.text" = "BioStar 2";
+
+/* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
+"fS0-an-9PC.placeholder" = "User ID";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "fVe-WV-Nfd"; */
+"fVe-WV-Nfd.text" = "Просмотр журнала";
+
+/* Class = "UILabel"; text = "ЖУРНАЛ"; ObjectID = "idr-PB-pzx"; */
+"idr-PB-pzx.text" = "ЖУРНАЛ";
+
+/* Class = "UITextField"; placeholder = "Password"; ObjectID = "jUE-Fl-exz"; */
+"jUE-Fl-exz.placeholder" = "Пароль";
+
+/* Class = "UILabel"; text = "Door"; ObjectID = "mS1-v5-ozU"; */
+"mS1-v5-ozU.text" = "Дверь";
+
+/* Class = "UILabel"; text = "DOOR"; ObjectID = "mjW-oy-yxA"; */
+"mjW-oy-yxA.text" = "ДВЕРИ";
+
+/* Class = "UILabel"; text = "Designed By Suprema"; ObjectID = "nrx-tP-VoH"; */
+"nrx-tP-VoH.text" = "Разработано Suprema";
+
+/* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
+"o1r-Wz-L81.text" = "Карта";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
+"os3-6k-W6J.text" = "BioStar 2";
+
+/* Class = "UIButton"; normalTitle = "Login"; ObjectID = "qeD-ge-Ftw"; */
+"qeD-ge-Ftw.normalTitle" = "Логин";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "s4f-jU-sWo"; */
+"s4f-jU-sWo.text" = "Новый";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "sbR-Fu-duh"; */
+"sbR-Fu-duh.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "u3k-5H-JA7"; */
+"u3k-5H-JA7.text" = "~";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "xmf-Xc-m1F"; */
+"xmf-Xc-m1F.text" = "100";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
+"ylR-Zw-87H.text" = "выбран";
+
+/* Class = "UILabel"; text = "Просмотр журнала"; ObjectID = "zVZ-XM-tg7"; */
+"zVZ-XM-tg7.text" = "Просмотр журнала";

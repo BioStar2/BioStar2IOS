@@ -113,6 +113,17 @@
     [network requestURL:url withParam:jsonStringParam method:POST];
 }
 
+- (void)releaseDoor:(NSInteger)doorID;
+{
+    _requestType = RELEASE_DOOR;
+    
+    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_RELEASE, (long)doorID]];
+    
+    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    
+    [network requestURL:url withParam:jsonStringParam method:POST];
+}
+
 - (void)clearAlarm:(NSInteger)doorID;
 {
     _requestType = CLEAR_ALARM_DOOR;
@@ -208,6 +219,13 @@
             if ([self.delegate respondsToSelector:@selector(requestUnlockDoorDidFinish:)])
             {
                 [self.delegate requestUnlockDoorDidFinish:resultDic];
+            }
+            break;
+            
+        case RELEASE_DOOR:
+            if ([self.delegate respondsToSelector:@selector(requestReleaseDoorDidFinish:)])
+            {
+                [self.delegate requestReleaseDoorDidFinish:resultDic];
             }
             break;
             

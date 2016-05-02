@@ -128,7 +128,7 @@
             VersionCell *customCell = (VersionCell*)cell;
             
             NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-            NSString* version = [infoDict objectForKey:@"CFBundleVersion"];
+            NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
             customCell.titleLabel.text = [NSString stringWithFormat:@"V.%@", version];
             
             if (hasNewVersion)
@@ -310,7 +310,7 @@
     
     // 단말 버전 서버 버전 비교
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* deviceVersion = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString* deviceVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
     NSString* serverVersion = [resultdic objectForKey:@"latest_version"];
     
     if ([serverVersion compare:deviceVersion options:NSNumericSearch] == NSOrderedDescending)

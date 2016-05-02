@@ -28,6 +28,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    isUserEditPhoto = NO;
     isForPopupRequest = NO;
     hasOperator = NO;
     isUpdatedOrDeleted = NO;
@@ -185,7 +186,7 @@
 {
     if (_type == MODIFY_MODE)
     {
-        hasOperator = NO;
+        //hasOperator = NO;
         _type = VIEW_MODE;
         [doneButton setHidden:YES];
         [editButtonView setHidden:NO];
@@ -253,14 +254,29 @@
 
 - (BOOL)verifyOperator
 {
-//    if (nil != [toUpdateUserInfoDic objectForKey:@"email"] && ![[toUpdateUserInfoDic objectForKey:@"email"] isEqualToString:@""])
-//    {
-//        if (![toUpdateUserInfoDic objectForKey:@"roles"])
-//        {
-//            [self showVerificationPopup:NSLocalizedString(@"roles error", nil)];
-//            return NO;
-//        }
-//    }
+    NSArray *roles = [toUpdateUserInfoDic objectForKey:@"roles"];
+    
+    if (roles.count > 0)
+    {
+        NSString *loginID = [toUpdateUserInfoDic objectForKey:@"login_id"];
+        NSString *password = [toUpdateUserInfoDic objectForKey:@"password"];
+        if (nil == loginID || [loginID isEqualToString:@""])
+        {
+            [self showVerificationPopup:NSLocalizedString(@"user_create_empty_idpassword", nil)];
+            return NO;
+        }
+        
+        BOOL password_exist = [[toUpdateUserInfoDic objectForKey:@"password_exist"] boolValue];
+        if (!password_exist)
+        {
+            if (nil == password || [password isEqualToString:@""])
+            {
+                [self showVerificationPopup:NSLocalizedString(@"password_empty", nil)];
+                return NO;
+            }
+        }
+        
+    }
     
     return YES;
 }
@@ -298,31 +314,47 @@
         return;
     }
     
+    isForPopupRequest = NO;
+    
     switch (_type)
     {
         case MODIFY_MODE:
-            isForPopupRequest = NO;
-            [provider modifyUser:[toUpdateUserInfoDic objectForKey:@"user_id"] userInfo:toUpdateUserInfoDic];
-            [self startLoading:self];
             
+            if (isUserEditPhoto)
+            {
+                [provider modifyUser:[toUpdateUserInfoDic objectForKey:@"user_id"] userInfo:toUpdateUserInfoDic];
+            }
+            else
+            {
+                NSMutableDictionary *tempUserInfoDic = [[NSMutableDictionary alloc] initWithDictionary:toUpdateUserInfoDic];
+                [tempUserInfoDic removeObjectForKey:@"photo"];
+                [provider modifyUser:[tempUserInfoDic objectForKey:@"user_id"] userInfo:tempUserInfoDic];
+            }
             break;
         
         case CREATE_MODE:
-            isForPopupRequest = NO;
             [provider createUser:toUpdateUserInfoDic];
-            [self startLoading:self];
             break;
-        
             
         case PROFILE_MODE:
-            isForPopupRequest = NO;
-            [toUpdateUserInfoDic removeObjectForKey:@"fingerprint_templates"];
-            [provider updateProfile:toUpdateUserInfoDic];
-            [self startLoading:self];
+        {
+            NSMutableDictionary *tempUserInfoDic = [[NSMutableDictionary alloc] initWithDictionary:toUpdateUserInfoDic];
+            [tempUserInfoDic removeObjectForKey:@"fingerprint_templates"];
+            
+            if (!isUserEditPhoto)
+            {
+                [tempUserInfoDic removeObjectForKey:@"photo"];
+            }
+            
+            [provider modifyUser:[tempUserInfoDic objectForKey:@"user_id"] userInfo:tempUserInfoDic];
+            
             break;
+        }
         default:
             break;
     }
+    
+    [self startLoading:self];
 }
 
 - (IBAction)switchEditMode:(id)sender {
@@ -473,6 +505,8 @@
         return;
     }
     
+    [self.view endEditing:YES];
+    
     NSDictionary *item1 = @{@"name" : NSLocalizedString(@"take_picture", nil)};
     NSDictionary *item2 = @{@"name" : NSLocalizedString(@"from_photo", nil)};
     NSDictionary *item3 = @{@"name" : NSLocalizedString(@"delete_picture", nil)};
@@ -514,7 +548,7 @@
         {
             NSData *imageData = [[NSData alloc] initWithBase64EncodedString:imageString options:NSDataBase64DecodingIgnoreUnknownCharacters];
             UIImage *serverImage = [UIImage imageWithData:imageData];
-            UIImage* scaledImage = [CommonUtil imageWithImage:serverImage scaledToSize:CGSizeMake(200, 200)];
+            UIImage* scaledImage = [CommonUtil imageCompress:serverImage fileSize:MAX_IMAGE_FILE_SIZE];
             
             NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
             [[SDImageCache sharedImageCache] storeImage:scaledImage forKey:userPhotoKey toDisk:YES];
@@ -781,7 +815,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"Name", nil);
+                            customCell.titleLabel.text = NSLocalizedString(@"name", nil);
                             customCell.contentField.text = [userInfoDic objectForKey:@"name"];
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1485,8 +1519,32 @@
     [self loadUserInfo:userInfo];
 }
 
+- (void)requestDidFinishModifyMyProfile:(NSDictionary*)result
+{
+    isUserEditPhoto = NO;
+    [self finishLoading];
+    isUpdatedOrDeleted = YES;
+    NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+    
+    if (nil != [userInfoDic objectForKey:@"photo"] && [[userInfoDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
+    {
+        [[SDImageCache sharedImageCache] storeImage:[userInfoDic objectForKey:@"photo"] forKey:userPhotoKey toDisk:YES];
+    }
+    else
+    {
+        [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES];
+    }
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+    successPopupCtrl.type = UPDATE_USER;
+    successPopupCtrl.delegate = self;
+    [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
+}
+
 - (void)requestDidFinishModifyUserInfo:(NSDictionary*)result
 {
+    isUserEditPhoto = NO;
     isUpdatedOrDeleted = YES;
     _type = VIEW_MODE;
 
@@ -1517,6 +1575,7 @@
 
 - (void)requestDidFinishCreateUser:(NSDictionary*)result
 {
+    isUserEditPhoto = NO;
     isUpdatedOrDeleted = YES;
     [self finishLoading];
     _type = VIEW_MODE;
@@ -1689,7 +1748,7 @@
             
         case 2:
             // 사진 삭제
-            //[toUpdateUserInfoDic removeObjectForKey:@"photo"];
+            isUserEditPhoto = YES;
             [toUpdateUserInfoDic setObject:@"" forKey:@"photo"];
             [detailTableView reloadData];
             break;
@@ -1772,13 +1831,11 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     // 사진 찍었거나 선택후 편집 까지 마치면 호출됨
+    isUserEditPhoto = YES;
     NSLog(@"%@", info);
     UIImage *editedImage = [info objectForKey:@"UIImagePickerControllerEditedImage"];
 
-    UIImage* scaledImage = [CommonUtil imageWithImage:editedImage scaledToSize:CGSizeMake(200, 200)];
-    
-    NSData *imgData = UIImageJPEGRepresentation(scaledImage, 0);
-    NSLog(@"Size of Image(bytes):%lu",(unsigned long)[imgData length]);
+    UIImage* scaledImage = [CommonUtil imageCompress:editedImage fileSize:MAX_IMAGE_FILE_SIZE];
     
     [toUpdateUserInfoDic setObject:scaledImage forKey:@"photo"];
     [self dismissViewControllerAnimated:YES completion:^{
@@ -1851,7 +1908,16 @@
 
 - (void)updateComplete
 {
-    [self loadUserInfo:userInfoDic];
+    
+    if (_type == PROFILE_MODE)
+    {
+        [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+    }
+    else
+    {
+        [self loadUserInfo:userInfoDic];
+    }
+    
 }
 
 - (void)createComplete

@@ -175,9 +175,9 @@
             }
             break;
         case REQUEST_SEARCH_EVENT:
-            if ([self.delegate respondsToSelector:@selector(requestSearchEventDidFinish:totalCount:)])
+            if ([self.delegate respondsToSelector:@selector(requestSearchEventDidFinish:isNextPage:)])
             {
-                [self.delegate requestSearchEventDidFinish:[resultDic objectForKey:@"records"] totalCount:[[resultDic objectForKey:@"total"] integerValue]];
+                [self.delegate requestSearchEventDidFinish:[resultDic objectForKey:@"records"] isNextPage:[[resultDic objectForKey:@"is_next"] boolValue]];
             }
             break;
         default:

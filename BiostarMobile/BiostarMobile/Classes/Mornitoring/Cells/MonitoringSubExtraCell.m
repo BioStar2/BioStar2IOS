@@ -81,20 +81,17 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        timeFormat = [NSString stringWithFormat:@"%@:ss", [PreferenceProvider getTimeFormat]];
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
     }
     
-    NSString *description = [NSString stringWithFormat:@"%@"
-                             ,[CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                                           originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                            transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                                             [PreferenceProvider getDateFormat],
-                                                                             timeFormat]]
-                             ];
+    NSString *description = [NSString stringWithFormat:@"%@",
+                             [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
+                                                          originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
+                                                           transDateFormat:timeFormat]];
     
     _eventDateLabel.text = description;
     
@@ -121,22 +118,18 @@
     if (nil == deviceName || [deviceName isEqualToString:@""])
     {
         _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", deviceID, deviceID];
-        NSLog(@"%@", [NSString stringWithFormat:@"%@ / %@", deviceID, deviceID]);
     }
     else
     {
         _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", deviceID, deviceName];
-        NSLog(@"%@", [NSString stringWithFormat:@"%@ / %@", deviceID, deviceName]);
+        
     }
-    
-    
     
     
     if (canMoveDetail)
     {
         if (nil == [doorInfo objectForKey:[deviceDic objectForKey:@"id"]] && nil == [userDic objectForKey:@"user_id"])
         {
-            NSLog(@"nil == [doorInfo objectForKey:[deviceDic objectForKey:@\"id\"]]");
             [_accImageView setHidden:YES];
         }
         else

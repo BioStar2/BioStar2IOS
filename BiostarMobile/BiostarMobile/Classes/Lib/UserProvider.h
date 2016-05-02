@@ -19,6 +19,8 @@
 #import "BSNetwork.h"
 #import "AuthProvider.h"
 #import "SDImageCache.h"
+#import "Commonutil.h"
+#import "Common.h"
 
 #define UserProviderInstance   [[UserProvider alloc] init]
 
@@ -32,6 +34,7 @@ typedef enum{
     UserCreate,
     UserDelete,
     UserGroup,
+    MyProfileModify
 } UserRequestType;
 
 
@@ -44,6 +47,7 @@ typedef enum{
 - (void)requestDidFinishGettingUserInfo:(NSDictionary*)userInfo;
 - (void)requestDidFinishGettingUserPhoto;
 - (void)requestDidFinishModifyUserInfo:(NSDictionary*)result;
+- (void)requestDidFinishModifyMyProfile:(NSDictionary*)result;
 - (void)requestDidFinishCreateUser:(NSDictionary*)result;
 - (void)requestDidFinishGetUserGroups:(NSArray*)groups;
 - (void)requestDidFinishDeleteUser:(NSDictionary*)result;
@@ -76,6 +80,5 @@ typedef enum{
 - (void)getUserGroups;
 - (void)deleteUser:(NSString*)userID;
 - (void)deleteUsers:(NSArray*)userIDs;
-- (UIImage *)scaledImageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize;
 
 @end

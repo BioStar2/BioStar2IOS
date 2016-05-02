@@ -112,15 +112,6 @@
             {
                 _contentField.text = @"";
             }
-//            NSString *password = [userInfoDic objectForKey:@"password"];
-//            if (nil != password && ![password isEqualToString:@""])
-//            {
-//                _contentField.text = [userInfoDic objectForKey:@"password"];
-//            }
-//            else
-//            {
-//                _contentField.text = @"";
-//            }
             
             [_contentField setEnabled:NO];
             [_contentField setSecureTextEntry:YES];
@@ -128,7 +119,16 @@
             break;
         case CELL_USER_GROUP:
             _titleLabel.text = NSLocalizedString(@"group", nil);
-            _contentField.text = [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"];
+            
+            if (nil != [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"])
+            {
+                _contentField.text = [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"];
+            }
+            else
+            {
+                _contentField.text = NSLocalizedString(@"all_users", nil);
+            }
+            
             [_contentField setEnabled:NO];
             [_contentField setSecureTextEntry:NO];
 

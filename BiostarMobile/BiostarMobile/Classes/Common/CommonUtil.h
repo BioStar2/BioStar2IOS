@@ -20,7 +20,9 @@
 @interface CommonUtil : NSObject
 
 + (UIColor *)colorFromHexString:(NSString *)hexString;
-+ (UIImage *)imageWithImage:(UIImage *)__autoreleasing image scaledToSize:(CGSize)newSize;
++ (UIImage *)imageScale:(UIImage *)__autoreleasing image size:(CGSize)newSize;
++ (UIImage *)imageCompress:(UIImage *)__autoreleasing image fileSize:(unsigned long)fileSize;
++ (NSData *)getImageDataCompress:(UIImage *)__autoreleasing image fileSize:(unsigned long)fileSize;
 
 // 데이터 포맷만 바꾸기
 + (NSString *)stringFromDateString:(NSString*)dateString originDateFormat:(NSString*)originFormat transDateFormat:(NSString*)transFormat;

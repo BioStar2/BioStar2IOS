@@ -29,7 +29,7 @@
     doorProvider.delegate = self;
     menuIndex = NOT_SELECTED;
     isMainRequest = NO;
-    
+    needToReloadDoorList = NO;
     if (![AuthProvider hasWritePermission:@"DOOR"])
     {
         [doorControlButton setTitle:NSLocalizedString(@"request_open", nil) forState:UIControlStateNormal];
@@ -96,6 +96,13 @@
 
 - (IBAction)moveToBack:(id)sender
 {
+    if (needToReloadDoorList)
+    {
+        if ([self.delegate respondsToSelector:@selector(refreshDoorList)])
+        {
+            [self.delegate refreshDoorList];
+        }
+    }
     [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
 }
 
@@ -122,10 +129,35 @@
 - (void)setDoorInfo:(NSDictionary*)info
 {
     doorDic = [[NSDictionary alloc] initWithDictionary:info];
+    doorID = [[doorDic objectForKey:@"id"] integerValue];
     [detailTableView reloadData];
     titleLabel.text = [doorDic objectForKey:@"name"];
     doorMainDec.text = [doorDic objectForKey:@"name"];
     doorSubDec.text = [doorDic objectForKey:@"description"];
+    
+    NSDictionary *status = [doorDic objectForKey:@"status"];
+    
+    if ([[status objectForKey:@"normal"] boolValue] || [[status objectForKey:@"apb_failed"] boolValue])
+    {
+        // 초록
+        doorImage.image = [UIImage imageNamed:@"ic_event_door_01"];
+    }
+    
+    if ([[status objectForKey:@"locked"] boolValue] || [[status objectForKey:@"unlocked"] boolValue] ||
+        [[status objectForKey:@"held_opened"] boolValue] || [[status objectForKey:@"scheduleLocked"] boolValue] ||
+        [[status objectForKey:@"scheduleUnlocked"] boolValue] || [[status objectForKey:@"operatorLocked"] boolValue] ||
+        [[status objectForKey:@"operatorUnlocked"] boolValue])
+    {
+        // 노란
+        doorImage.image = [UIImage imageNamed:@"ic_event_door_03"];
+    }
+    
+    if ([[status objectForKey:@"disconnected"] boolValue] || [[status objectForKey:@"forced_open"] boolValue] ||
+        [[status objectForKey:@"emergencyLocked"] boolValue] || [[status objectForKey:@"emergencyUnlocked"] boolValue])
+    {
+        // 빨간
+        doorImage.image = [UIImage imageNamed:@"ic_event_door_02"];
+    }
 }
 
 - (void)getSelectedDoor:(NSInteger)selectedDoorID
@@ -148,7 +180,7 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
@@ -159,6 +191,32 @@
     
 
     NSString *toastContent = [NSString stringWithFormat:@"%@ / %@",dateString ,doorName];
+    return toastContent;
+}
+
+- (NSString*)getErrorToastContent:(NSString *)message
+{
+    NSString *doorName = [doorDic objectForKey:@"name"];
+    if ([doorName isEqualToString:@""] || nil == doorName)
+    {
+        doorName = [doorDic objectForKey:@"id"];
+    }
+    
+    NSString *timeFormat;
+    
+    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+    {
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+    }
+    else
+    {
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+    }
+    
+    NSString *dateString = [CommonUtil stringFromCurrentLocaleDateString:[[NSDate date] description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:timeFormat];
+    
+    
+    NSString *toastContent = [NSString stringWithFormat:@"%@ / %@ \n%@",dateString ,doorName, message];
     return toastContent;
 }
 
@@ -187,14 +245,18 @@
             [doorProvider unlockDoor:[[doorDic objectForKey:@"id"] integerValue]];
             break;
         case 3:
+            // release
+            [doorProvider releaseDoor:[[doorDic objectForKey:@"id"] integerValue]];
+            break;
+        case 4:
             // clear APB
             [doorProvider clearAntiPassback:[[doorDic objectForKey:@"id"] integerValue]];
             break;
-        case 4:
+        case 5:
             // clear alarm
             [doorProvider clearAlarm:[[doorDic objectForKey:@"id"] integerValue]];
             break;
-        
+            
         default:
             break;
     }
@@ -251,7 +313,8 @@
             
             if (nil != [doorDic objectForKey:@"door_relay"])
             {
-                content = [NSString stringWithFormat:@"Relay %ld %@"
+                content = [NSString stringWithFormat:@"%@ %ld %@"
+                           , NSLocalizedString(@"relay", nil)
                            ,(long)[[[doorDic objectForKey:@"door_relay"] objectForKey:@"index"] integerValue]
                            ,[[[doorDic objectForKey:@"door_relay"] objectForKey:@"device"] objectForKey:@"name"] ];
             }
@@ -264,7 +327,8 @@
             
             if (nil != [doorDic objectForKey:@"exit_button"])
             {
-                content = [NSString stringWithFormat:@"Input Port %ld %@"
+                content = [NSString stringWithFormat:@"%@ %ld %@"
+                           ,NSLocalizedString(@"input_port", nil)
                            ,(long)[[[doorDic objectForKey:@"exit_button"] objectForKey:@"index"] integerValue]
                            ,[[[doorDic objectForKey:@"exit_button"] objectForKey:@"device"] objectForKey:@"name"]];
             }
@@ -278,7 +342,8 @@
             
             if (nil != [doorDic objectForKey:@"door_sensor"])
             {
-                content = [NSString stringWithFormat:@"Input Port %ld %@"
+                content = [NSString stringWithFormat:@"%@ %ld %@"
+                           ,NSLocalizedString(@"input_port", nil)
                            ,(long)[[[doorDic objectForKey:@"door_sensor"] objectForKey:@"index"] integerValue]
                            ,[[[doorDic objectForKey:@"door_sensor"] objectForKey:@"device"] objectForKey:@"name"]];
             }
@@ -345,67 +410,127 @@
 - (void)requestOpenDoorDidFinish:(NSDictionary*)result
 {
     
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
                    title:NSLocalizedString(@"door_is_open", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    
+    [self getSelectedDoor:doorID];
+    
 }
 
 - (void)requestLockDoorDidFinish:(NSDictionary *)result
 {
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"lock", nil)
+                   title:NSLocalizedString(@"manual_lock", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
 }
 
 - (void)requestUnlockDoorDidFinish:(NSDictionary *)result
 {
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"unlock", nil)
+                   title:NSLocalizedString(@"manual_unlock", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
+}
+
+- (void)requestReleaseDoorDidFinish:(NSDictionary *)result
+{
+    needToReloadDoorList = YES;
+    [self finishLoading];
+    [self.view makeToast:[self getToastContent]
+                duration:2.0 position:CSToastPositionBottom
+                   title:NSLocalizedString(@"release", nil)
+                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
 }
 
 - (void)requestClearArarmDidFinish:(NSDictionary *)result
 {
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
                    title:NSLocalizedString(@"clear_alarm", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
 }
 
 - (void)requestClearAntiPassBackDidFinish:(NSDictionary *)result
 {
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
                    title:NSLocalizedString(@"clear_apb", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
 }
 
 - (void)requestAskOpenDoorDidFinish:(NSDictionary *)result
 {
+    needToReloadDoorList = YES;
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
                    title:NSLocalizedString(@"request_open_sent", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    [self getSelectedDoor:doorID];
 }
 
 - (void)requestDoorProviderDidFail:(NSDictionary*)errDic
 {
     [self finishLoading];
     
-    [self.view makeToast:NSLocalizedString(@"fail", nil)
-                duration:2.0
-                position:CSToastPositionBottom
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    NSString *title = nil;
+    switch (menuIndex)
+    {
+        case 0:
+            // open
+            title = NSLocalizedString(@"request_open_fail", nil);
+            break;
+        case 1:
+            // lock
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_lock", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 2:
+            // unlock
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_unlock", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 3:
+            // release
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"release", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 4:
+            // clear APB
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_apb", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 5:
+            // clear alarm
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_alarm", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+            
+        default:
+            [self.view makeToast:NSLocalizedString(@"fail", nil)
+                        duration:2.0
+                        position:CSToastPositionBottom
+                           image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            break;
+    }
     
+    [self.view makeToast:[self getErrorToastContent:[errDic objectForKey:@"message"]]
+                duration:2.0 position:CSToastPositionBottom
+                   title:title
+                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
 }
 
 
@@ -423,7 +548,6 @@
 {
     if (isMainRequest)
     {
-        isMainRequest = YES;
         [doorProvider getDoor:doorID];
         [self startLoading:self];
     }

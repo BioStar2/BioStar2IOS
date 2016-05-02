@@ -46,7 +46,7 @@
     [sidemenuView addGestureRecognizer:panGesture];
     
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* version = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
     versionLabel.text = [NSString stringWithFormat:@"V.%@", version];
     
     authProvider = [[AuthProvider alloc] init];
@@ -273,24 +273,7 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    userName.text = [_userDic objectForKey:@"name"];
-    NSArray *roles = [_userDic objectForKey:@"roles"];
-    userOperator.text = [[roles lastObject] objectForKey:@"description"];
-    
-    if (nil != [_userDic objectForKey:@"photo"])
-    {
-        NSData *imageData = [NSData base64DataFromString:[_userDic objectForKey:@"photo"]];
-        UIImage *userImage = [UIImage imageWithData:imageData];
-        
-        UIImage *image = [CommonUtil imageWithImage:userImage scaledToSize:CGSizeMake(30, 30)];
-        
-        userPhoto.image = image;
-        
-        userPhoto.layer.cornerRadius = userPhoto.frame.size.height /2;
-        userPhoto.layer.masksToBounds = YES;
-        userPhoto.layer.borderWidth = 0;
-    }
-    
+    [self loadMyprofile];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -306,6 +289,27 @@
     
     timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateWatch) userInfo:nil repeats:YES];
     [self updateWatch];
+}
+
+- (void)loadMyprofile
+{
+    userName.text = [_userDic objectForKey:@"name"];
+    NSArray *roles = [_userDic objectForKey:@"roles"];
+    userOperator.text = [[roles lastObject] objectForKey:@"description"];
+    
+    if (nil != [_userDic objectForKey:@"photo"])
+    {
+        NSData *imageData = [NSData base64DataFromString:[_userDic objectForKey:@"photo"]];
+        UIImage *userImage = [UIImage imageWithData:imageData];
+        
+        UIImage *image = [CommonUtil imageCompress:userImage fileSize:MAX_IMAGE_FILE_SIZE];
+        
+        userPhoto.image = image;
+        
+        userPhoto.layer.cornerRadius = userPhoto.frame.size.height /2;
+        userPhoto.layer.masksToBounds = YES;
+        userPhoto.layer.borderWidth = 0;
+    }
 }
 
 - (void)setUserDic:(NSDictionary *)userDic
@@ -445,6 +449,15 @@
              parentViewController:self
                       contentView:contentView animated:YES];
     
+}
+
+- (IBAction)showBuildVersion:(id)sender {
+    NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
+    NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
+    
+    NSString *builtInfo = [NSString stringWithFormat:@"Build number : %@", buildversion];
+    
+    [self.view makeToast:builtInfo];
 }
 
 - (IBAction)userButtonDown:(id)sender {
@@ -909,6 +922,9 @@
 
 - (void)notificationIsOccured:(NSNotification*)userInfo
 {
+    if (![AuthProvider hasWritePermission:@"DOOR"])
+        return;
+    
     if (nil != [[userInfo.object objectForKey:@"aps"] objectForKey:@"badge"])
     {
         alarmCountLabel.text = [[[userInfo.object objectForKey:@"aps"] objectForKey:@"badge"] stringValue];
@@ -942,6 +958,9 @@
 
 - (void)requestDidFinishGettingMyProfile:(NSDictionary*)result
 {
+    _userDic = result;
+    [self loadMyprofile];
+    [self finishLoading];
     NSLog(@"requestDidFinishGettingMyProfile : %@", result);
 }
 

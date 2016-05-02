@@ -1,0 +1,162 @@
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "1D0-kv-YHi"; */
+"1D0-kv-YHi.text" = "总共";
+
+/* Class = "UILabel"; text = "筛选"; ObjectID = "1MB-qw-sOk"; */
+"1MB-qw-sOk.text" = "筛选";
+
+/* Class = "UIButton"; normalTitle = "LOG OUT"; ObjectID = "1cs-bD-wci"; */
+"1cs-bD-wci.normalTitle" = "注销";
+
+/* Class = "UILabel"; text = "监控"; ObjectID = "1wa-4S-dr0"; */
+"1wa-4S-dr0.text" = "监控";
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "3wj-Fy-acM"; */
+"3wj-Fy-acM.text" = "总共";
+
+/* Class = "UIButton"; normalTitle = "门控制"; ObjectID = "5Aj-tA-w2o"; */
+"5Aj-tA-w2o.normalTitle" = "门控制";
+
+/* Class = "UILabel"; text = "Mobile"; ObjectID = "5EA-Um-QXa"; */
+"5EA-Um-QXa.text" = "移动";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "6Ny-Pc-vVu"; */
+"6Ny-Pc-vVu.text" = "查看日志";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "9Ds-3P-kuK"; */
+"9Ds-3P-kuK.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "Bq2-52-Lq8"; */
+"Bq2-52-Lq8.text" = "~";
+
+/* Class = "UILabel"; text = "警报"; ObjectID = "C4v-Oo-Tc8"; */
+"C4v-Oo-Tc8.text" = "警报";
+
+/* Class = "UILabel"; text = "USER"; ObjectID = "CCM-7o-Z1h"; */
+"CCM-7o-Z1h.text" = "用户";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "CFh-1f-2lg"; */
+"CFh-1f-2lg.text" = "查看日志";
+
+/* Class = "UILabel"; text = "User"; ObjectID = "ESL-mZ-4f9"; */
+"ESL-mZ-4f9.text" = "用户";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "IoM-mq-eKZ"; */
+"IoM-mq-eKZ.text" = "~";
+
+/* Class = "UILabel"; text = "监控"; ObjectID = "K9T-q1-4HM"; */
+"K9T-q1-4HM.text" = "监控";
+
+/* Class = "UILabel"; text = "警报"; ObjectID = "KfQ-Gp-nqO"; */
+"KfQ-Gp-nqO.text" = "警报";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "KiH-G2-XbQ"; */
+"KiH-G2-XbQ.text" = "查看日志";
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "LBa-rD-w8a"; */
+"LBa-rD-w8a.text" = "总共";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "LD7-60-GFK"; */
+"LD7-60-GFK.text" = "查看日志";
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "LSO-yI-bcK"; */
+"LSO-yI-bcK.text" = "总共";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "Mc6-5V-ebC"; */
+"Mc6-5V-ebC.text" = "100";
+
+/* Class = "UILabel"; text = "筛选"; ObjectID = "NrE-JF-oG2"; */
+"NrE-JF-oG2.text" = "筛选";
+
+/* Class = "UILabel"; text = "All Doors"; ObjectID = "OSK-q9-hUD"; */
+"OSK-q9-hUD.text" = "所有门";
+
+/* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
+"Oif-vS-bsu.text" = "PIN";
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "Q5U-QZ-a7A"; */
+"Q5U-QZ-a7A.text" = "总共";
+
+/* Class = "UIButton"; normalTitle = "门控制"; ObjectID = "QWI-ej-KTa"; */
+"QWI-ej-KTa.normalTitle" = "门控制";
+
+/* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
+"RYc-q8-eZd.text" = "所有用户";
+
+/* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
+"RfJ-sx-ICY.text" = "设定";
+
+/* Class = "UIButton"; normalTitle = "门控制"; ObjectID = "RgU-Nd-Rxz"; */
+"RgU-Nd-Rxz.normalTitle" = "门控制";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
+"TLI-j3-9da.text" = "";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
+"UPB-Mm-I7v.text" = "~";
+
+/* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
+"Yn0-2Y-auA.text" = "指纹";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
+"ZOx-gq-ahd.text" = "BioStar 2";
+
+/* Class = "UILabel"; text = "警报"; ObjectID = "ZnU-mv-trd"; */
+"ZnU-mv-trd.text" = "警报";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "dAQ-9k-ae6"; */
+"dAQ-9k-ae6.text" = "新建";
+
+/* Class = "UILabel"; text = "总共"; ObjectID = "eFD-2m-xWz"; */
+"eFD-2m-xWz.text" = "总共";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "efL-bK-EbE"; */
+"efL-bK-EbE.text" = "BioStar 2";
+
+/* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
+"fS0-an-9PC.placeholder" = "用户ID";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "fVe-WV-Nfd"; */
+"fVe-WV-Nfd.text" = "查看日志";
+
+/* Class = "UILabel"; text = "监控"; ObjectID = "idr-PB-pzx"; */
+"idr-PB-pzx.text" = "监控";
+
+/* Class = "UITextField"; placeholder = "Password"; ObjectID = "jUE-Fl-exz"; */
+"jUE-Fl-exz.placeholder" = "密码";
+
+/* Class = "UILabel"; text = "Door"; ObjectID = "mS1-v5-ozU"; */
+"mS1-v5-ozU.text" = "门";
+
+/* Class = "UILabel"; text = "DOOR"; ObjectID = "mjW-oy-yxA"; */
+"mjW-oy-yxA.text" = "门";
+
+/* Class = "UILabel"; text = "Designed By Suprema"; ObjectID = "nrx-tP-VoH"; */
+"nrx-tP-VoH.text" = "Suprema 设计";
+
+/* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
+"o1r-Wz-L81.text" = "卡片";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
+"os3-6k-W6J.text" = "BioStar 2";
+
+/* Class = "UIButton"; normalTitle = "Login"; ObjectID = "qeD-ge-Ftw"; */
+"qeD-ge-Ftw.normalTitle" = "登录";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "s4f-jU-sWo"; */
+"s4f-jU-sWo.text" = "新建";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "sbR-Fu-duh"; */
+"sbR-Fu-duh.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "u3k-5H-JA7"; */
+"u3k-5H-JA7.text" = "~";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "xmf-Xc-m1F"; */
+"xmf-Xc-m1F.text" = "100";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
+"ylR-Zw-87H.text" = "选";
+
+/* Class = "UILabel"; text = "查看日志"; ObjectID = "zVZ-XM-tg7"; */
+"zVZ-XM-tg7.text" = "查看日志";

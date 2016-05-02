@@ -62,6 +62,7 @@
     NSMutableDictionary *toUpdateUserInfoDic;
     UserProvider *provider;
     NSString *userID;
+    BOOL isUserEditPhoto;
     BOOL hasOperator;
     BOOL isUpdatedOrDeleted;
     BOOL isForPopupRequest;

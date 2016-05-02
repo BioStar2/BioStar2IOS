@@ -24,6 +24,7 @@ typedef enum{
     OPEN_DOOR,
     LOCK_DOOR,
     UNLOCK_DOOR,
+    RELEASE_DOOR,
     CLEAR_ALARM_DOOR,
     CLEAR_ANTI_PASS_BACK_DOOR,
     REQUEST_OPEN_DOOR,
@@ -39,6 +40,7 @@ typedef enum{
 - (void)requestOpenDoorDidFinish:(NSDictionary*)result;
 - (void)requestLockDoorDidFinish:(NSDictionary *)result;
 - (void)requestUnlockDoorDidFinish:(NSDictionary *)result;
+- (void)requestReleaseDoorDidFinish:(NSDictionary *)result;
 - (void)requestClearArarmDidFinish:(NSDictionary *)result;
 - (void)requestClearAntiPassBackDidFinish:(NSDictionary *)result;
 - (void)requestAskOpenDoorDidFinish:(NSDictionary *)result;
@@ -68,6 +70,7 @@ static NSMutableArray *doors = nil;         // 모니터링에서 도어디테�
 - (void)openDoor:(NSInteger)doorID;
 - (void)lockDoor:(NSInteger)doorID;
 - (void)unlockDoor:(NSInteger)doorID;
+- (void)releaseDoor:(NSInteger)doorID;
 - (void)clearAlarm:(NSInteger)doorID;
 - (void)clearAntiPassback:(NSInteger)doorID;
 - (void)reqeustOpen:(NSInteger)doorID phoneNumber:(NSString*)phoneNumber;

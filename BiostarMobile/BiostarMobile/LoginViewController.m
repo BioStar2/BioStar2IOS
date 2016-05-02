@@ -386,6 +386,30 @@
     [userDefaults synchronize];
 }
 
+- (BOOL)validateSubDomain:(NSString*)string
+{
+    if ([string isEqualToString:@""])
+    {
+        return YES;
+    }
+    NSString *abnRegex = @"[a-z0-9-]+"; // check for one or more occurrence of string you can also use * instead + for ignoring null value
+    NSPredicate *abnTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", abnRegex];
+    BOOL isValid = [abnTest evaluateWithObject:string];
+    return isValid;
+}
+
+- (BOOL)validateDomain:(NSString*)string
+{
+    if ([string isEqualToString:@""])
+    {
+        return YES;
+    }
+    NSString *abnRegex = @"[A-Za-z0-9/:.]+"; // check for one or more occurrence of string you can also use * instead + for ignoring null value
+    NSPredicate *abnTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", abnRegex];
+    BOOL isValid = [abnTest evaluateWithObject:string];
+    return isValid;
+}
+
 #pragma mark - UITExtField Delegate
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
@@ -473,35 +497,53 @@
         {
             content = [[NSMutableString alloc] initWithString:subDomainLabel.text];
             
+            if (range.length == 0)
+            {
+                // append
+                if ([self validateSubDomain:string])
+                    [content insertString:string atIndex:range.location];
+                else
+                    return NO;
+            }
+            else
+            {
+                //delete
+                [content deleteCharactersInRange:range];
+            }
+            
+            if ([self validateSubDomain:content])
+                subDomainLabel.text = content;
+            
         }
         else
         {
             content = [[NSMutableString alloc] initWithString:tempDomain];
-        }
-        
-        if (range.length == 0)
-        {
-            // append
-            [content insertString:string atIndex:range.location];
-        }
-        else
-        {
-            //delete
-            [content deleteCharactersInRange:range];
-        }
-        
-        if (isEditingSubdomain)
-        {
-            subDomainLabel.text = content;
-        }
-        else
-        {
+            
+            if (range.length == 0)
+            {
+                // append
+                if ([self validateDomain:string])
+                {
+                    [content insertString:string atIndex:range.location];
+                }
+                else
+                    return NO;
+                
+            }
+            else
+            {
+                //delete
+                [content deleteCharactersInRange:range];
+            }
+            
             domainLabel.text = [self parserDomain:content];
             domainLabel.text = [self parserIPAddress:domainLabel.text];
             [tempDomain setString:content];
         }
+        return YES;
     }
-    return YES;
+    else
+        return YES;
 }
 
 #pragma mark - KeyBoard Noti
@@ -647,7 +689,7 @@
 {
     // 단말 버전 서버 버전 비교
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* deviceVersion = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString* deviceVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
     NSString* fouceUpdateVersion = [resultdic objectForKey:@"force_update_version"];
     
     if ([fouceUpdateVersion compare:deviceVersion options:NSNumericSearch] == NSOrderedDescending)

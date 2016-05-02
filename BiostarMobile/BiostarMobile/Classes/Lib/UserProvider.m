@@ -61,17 +61,6 @@ NSString *password_strength_level = nil;
     return self;
 }
 
-- (UIImage *)scaledImageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize {
-    //UIGraphicsBeginImageContext(newSize);
-    // In next line, pass 0.0 to use the current device's pixel scaling factor (and thus account for Retina resolution).
-    // Pass 1.0 to force exact pixel size.
-    UIGraphicsBeginImageContextWithOptions(newSize, NO, 0.0);
-    [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
-    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return newImage;
-}
-
 - (void)setServerURL:(NSString*)URL
 {
     [network setServerURL:URL];
@@ -93,7 +82,7 @@ NSString *password_strength_level = nil;
     
     _type = UsersInfo;
     
-    NSMutableDictionary *param = [[NSMutableDictionary alloc] initWithObjectsAndKeys: nil];
+    NSMutableDictionary *param = [[NSMutableDictionary alloc] init];
     [param setObject:groupID forKey:@"group_id"];
     [param setObject:[NSString stringWithFormat:@"%ld", (long)limit] forKey:@"limit"];
     [param setObject:[NSString stringWithFormat:@"%ld", (long)offset] forKey:@"offset"];
@@ -140,16 +129,21 @@ NSString *password_strength_level = nil;
 - (void)updateProfile:(NSDictionary*)userInfoDic
 {
     [network setDelegate:self];
-    _type = UserModify;
+    _type = MyProfileModify;
     
     NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] initWithDictionary:userInfoDic];
     
     if ([[tempDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
     {
         UIImage *photo = [tempDic objectForKey:@"photo"];
-        NSData *photoData = UIImagePNGRepresentation(photo);
+        
+        NSData *photoData = [CommonUtil getImageDataCompress:photo fileSize:MAX_IMAGE_FILE_SIZE];
+        
+        NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
+        
         NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
         [tempDic setObject:photoStr forKey:@"photo"];
+        
     }
     
     
@@ -174,22 +168,14 @@ NSString *password_strength_level = nil;
     if ([[tempDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
     {
         UIImage *photo = [tempDic objectForKey:@"photo"];
-        UIImage* scaledImage = [self scaledImageWithImage:photo scaledToSize:CGSizeMake(100, 100)];
-        NSData *photoData = UIImagePNGRepresentation(scaledImage);
+        
+        NSData *photoData = [CommonUtil getImageDataCompress:photo fileSize:MAX_IMAGE_FILE_SIZE];
+        
+        NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
+        
         NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
         [tempDic setObject:photoStr forKey:@"photo"];
         
-        unsigned long photoSize = (unsigned long)[photoData length];
-        NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
-        
-        if (photoSize > 512000)
-        {
-            UIImage* scaledImage = [self scaledImageWithImage:photo scaledToSize:CGSizeMake(50, 50)];
-            NSData *photoData = UIImagePNGRepresentation(scaledImage);
-            NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-            [tempDic setObject:photoStr forKey:@"photo"];
-            NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
-        }
     }
     
     
@@ -214,22 +200,15 @@ NSString *password_strength_level = nil;
     if ([[tempDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
     {
         UIImage *photo = [tempDic objectForKey:@"photo"];
-        UIImage* scaledImage = [self scaledImageWithImage:photo scaledToSize:CGSizeMake(100, 100)];
-        NSData *photoData = UIImagePNGRepresentation(scaledImage);
+        
+        NSData *photoData = [CommonUtil getImageDataCompress:photo fileSize:MAX_IMAGE_FILE_SIZE];
+        
+        NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
+        
         NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
         [tempDic setObject:photoStr forKey:@"photo"];
         
-        unsigned long photoSize = (unsigned long)[photoData length];
-        NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
-        
-        if (photoSize > 512000)
-        {
-            UIImage* scaledImage = [self scaledImageWithImage:photo scaledToSize:CGSizeMake(50, 50)];
-            NSData *photoData = UIImagePNGRepresentation(scaledImage);
-            NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
-            [tempDic setObject:photoStr forKey:@"photo"];
-            NSLog(@"Size of Image(bytes):%lu",(unsigned long)[photoData length]);
-        }
+
     }
     
     
@@ -352,6 +331,12 @@ NSString *password_strength_level = nil;
             if ([self.delegate respondsToSelector:@selector(requestDidFinishDeleteUser:)])
             {
                 [self.delegate requestDidFinishDeleteUser:resultDic];
+            }
+            break;
+        case MyProfileModify:
+            if ([self.delegate respondsToSelector:@selector(requestDidFinishModifyMyProfile:)])
+            {
+                [self.delegate requestDidFinishModifyMyProfile:resultDic];
             }
             break;
         default:

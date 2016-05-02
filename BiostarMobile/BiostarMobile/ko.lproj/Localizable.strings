@@ -24,17 +24,15 @@
 "delete_alarm" = "알람 삭제";
 "delete_user" = "사용자 삭제";
 "from_photo" = "사진첩에서 가져오기";
-"select_oprtator" = "권한 선택";
+"select_operator" = "권한 선택";
 "select_option" = "옵션 선택";
 "status_active" = "활성화";
 "status_inactive" = "비활성화";
 "time_format" = "시간 형식";
+"email_not_setted" = "단말 설정 앱에서 이메일 셋팅을 해주세요.";
 "AC" = "활성화";
 "IN" = "비활성화";
-"open_door_time_title" = "출입문 개방 시간(요청후 3시간내에 로그)";
-"email_not_setted" = "단말 설정 앱에서 이메일 셋팅을 해주세요.";
 // ios only
-
 
 "access_group" = "출입 그룹";
 "active" = "활성화";
@@ -45,6 +43,7 @@
 "all_door" = "모든 출입문";
 "all_events" = "모든 이벤트";
 "all_users" = "모든 사용자";
+"allow_permission" = "권한을허용해주세요";
 "already_assigned" = "이미 할당되었습니다.";
 "app_name" = "BioStar 2";
 "applied_filter" = "검색조건이 적용되었습니다.";
@@ -65,9 +64,7 @@
 "delete_fingerprint" = "지문 삭제";
 "delete_permission" = "권한삭제";
 "delete_picture" = "사진 삭제";
-"deleted_door_info" = "삭제된 출입문입니다.";
 "deleted_user" = "사용자가 삭제되었습니다.";
-"deleted_user_info" = "삭제된 사용자입니다.";
 "designed" = "Designed by Suprema";
 "device" = "장치";
 "direct_download" = "APK 직접 다운로드";
@@ -93,7 +90,7 @@
 "event" = "이벤트";
 "exit_button" = "퇴실 버튼";
 "exit_device" = "퇴실 장치";
-"fail" = "실패";
+"fail" = "요청이 실패했습니다";
 "fail_retry" = "요청이 실패했습니다.\n다시 시도하시겠습니까?";
 "fail_verify_finger" = "지문이 일치하지 않습니다.";
 "filter" = "필터";
@@ -105,6 +102,7 @@
 "format" = "형식";
 "from_gallery" = "갤러리에서 가져오기";
 "group" = "그룹";
+"guide_feature_permission" = "해당기능을사용하려면권한이필요합니다.";
 "held_opened" = "장시간 문열림";
 "id" = "ID";
 "inactive" = "비활성화";
@@ -115,7 +113,6 @@
 "invalid_email" = "이메일 주소가 올바르지 않습니다.";
 "invalid_userid" = "사용할 수 없는 ID입니다.\n 1 ~ 4294967294의 숫자를 입력하십시오.";
 "latest_version" = "최신 버전입니다.";
-"lock" = "잠김";
 "log_out" = "로그아웃";
 "login" = "로그인";
 "login_empty" = "아이디와 패스워드 도메인정보를 입력해야 합니다.";
@@ -123,10 +120,12 @@
 "login_fail" = "로그인 실패";
 "login_id" = "로그인 아이디";
 "low_quality" = "스캔 품질이 낮습니다.";
+"manual_lock" = "수동 잠김";
+"manual_unlock" = "수동 개방";
 "max_size" = "최대등록 갯수를 넘었습니다.";
 "memory_poor" = "스마트폰의 메모리가 부족합니다.";
 "menu" = "메뉴";
-"min" = "분";
+"minute" = "분";
 "mobile" = "모바일";
 "monitoring" = "모니터링";
 "monitoring_upper" = "모니터링";
@@ -143,15 +142,16 @@
 "none_data" = "데이타가 없습니다.";
 "none_device" = "장치를 찾을 수 없습니다.";
 "none_door" = "출입문을 찾을 수 없습니다.";
+"none_user" = "사용자를 찾을 수 없습니다.";
 "notice_connection_fail" = "네트워크 연결에 실패했습니다.";
 "notification" = "Push 알림";
 "notification_time" = "알림 시간";
 "ok" = "확인";
-//"only_alpha_num_email" = "알파벳,숫자,\"\",\"\",\"\".\"\"만 입력해주세요.";
+"only_alpha_num_email" = "알파벳,숫자,\",\",\".\"만 입력해주세요.";
 "only_alpha_num_special" = "알파벳,숫자,일부 특수기호만 입력해주세요";
 "only_number" = "숫자만 입력해주세요";
-//"only_number_dash" = "숫자와 \"\"-\"\"만 이력해주세요.";
-"open" = "개방";
+"only_number_dash" = "\"숫자와\"-\",\"+\"만입력해주세요.\"";
+"open" = "열림";
 "open_door_time" = "출입문 개방 시간";
 "open_door_time_des" = "요청후 3시간내에 로그";
 "open_time" = "개방 시간";
@@ -159,14 +159,14 @@
 "password" = "암호";
 "password_confirm" = "암호 확인";
 "password_empty" = "암호와 암호확인란에 입력하세요.";
-"password_guide" = "8자리 이상을 입력해야합니다. 알파벳,숫자가 한글자 이상씩 포함되야 합니다.";
-"password_guide_strong" = "8자리 이상을 입력해야합니다. 알파벳(대문자/소문자),숫자,특수기호가 한글자 이상씩 포함되야 합니다.";
+"password_guide" = "알파벳, 숫자를 포함한 8자리 이상을 입력해야합니다.";
+"password_guide_strong" = "알파벳 대문자/소문자,숫자,특수기호를 포함한 8자리 이상을 입력해야합니다.";
 "password_invalid" = "암호가 일치하지 않습니다.";
 "period" = "기간";
 "permission_setting" = "권한설정";
 "pin_upper" = "PIN";
 "pincount" = "4자리 이상 입력하세요";
-"playstore" = "구글 플래이 스토어";
+"playstore" = "구글 플레이 스토어";
 "preference" = "기본 설정";
 "quality" = "품질";
 "quit" = "종료";
@@ -177,12 +177,13 @@
 "registeration_option_assign_card" = "카드 할당";
 "registeration_option_card_reader" = "장치리더로 등록(신규카드)";
 "relay" = "릴레이";
+"release" = "해제";
 "request_open" = "출입문 개방 요청";
 "request_open_fail" = "출입문 개방 요청 실패";
 "request_open_sent" = "출입문 개방 요청을 보냈습니다.";
 "retry" = "재시도";
 "retry_get_message" = "메시지 정보를 받는데 실패했습니다.\n 다시 시도하시겠습니까?";
-"retry_get_preference" = "표준시간대 정보를 받는데 실패했습니다.\n 다시 시도하시겠습니까?";
+"retry_get_preference" = "설정 정보를 받는데 실패했습니다.\n 다시 시도하시겠습니까?";
 "save" = "저장";
 "scan_success" = "지문등록 성공";
 "search" = "찾기";
@@ -209,7 +210,6 @@
 "time" = "시간";
 "timezone" = "표준시간대";
 "total" = "총 갯수";
-"unlock" = "잠금해제";
 "unread" = "새로운 알림";
 "update_guide" = "사이드 메뉴의 환경설정을 통해서 업데이트가 가능합니다.";
 "user" = "사용자";

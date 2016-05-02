@@ -74,4 +74,6 @@ typedef enum{
 - (void)showOneButtonPopup:(BOOL)needDelegate type:(Popup_Type)type;
 - (void)checkUpdate;
 - (void)deleteCookie;
+- (BOOL)validateSubDomain:(NSString*)string;
+- (BOOL)validateDomain:(NSString*)string;
 @end

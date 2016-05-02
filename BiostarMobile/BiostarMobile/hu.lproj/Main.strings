@@ -1,0 +1,162 @@
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "1D0-kv-YHi"; */
+"1D0-kv-YHi.text" = "Teljes";
+
+/* Class = "UILabel"; text = "Szűrő"; ObjectID = "1MB-qw-sOk"; */
+"1MB-qw-sOk.text" = "Szűrő";
+
+/* Class = "UIButton"; normalTitle = "LOG OUT"; ObjectID = "1cs-bD-wci"; */
+"1cs-bD-wci.normalTitle" = "KIJELENTKEZÉS";
+
+/* Class = "UILabel"; text = "MONITORING"; ObjectID = "1wa-4S-dr0"; */
+"1wa-4S-dr0.text" = "MONITOROZÁS";
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "3wj-Fy-acM"; */
+"3wj-Fy-acM.text" = "Teljes";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "5Aj-tA-w2o"; */
+"5Aj-tA-w2o.normalTitle" = "Ajtó felügyelet";
+
+/* Class = "UILabel"; text = "Mobile"; ObjectID = "5EA-Um-QXa"; */
+"5EA-Um-QXa.text" = "Mobile";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "6Ny-Pc-vVu"; */
+"6Ny-Pc-vVu.text" = "Log adatok megnyitása";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "9Ds-3P-kuK"; */
+"9Ds-3P-kuK.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "Bq2-52-Lq8"; */
+"Bq2-52-Lq8.text" = "~";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "C4v-Oo-Tc8"; */
+"C4v-Oo-Tc8.text" = "Riasztás";
+
+/* Class = "UILabel"; text = "USER"; ObjectID = "CCM-7o-Z1h"; */
+"CCM-7o-Z1h.text" = "FELHASZNÁLÓ";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "CFh-1f-2lg"; */
+"CFh-1f-2lg.text" = "Log adatok megnyitása";
+
+/* Class = "UILabel"; text = "User"; ObjectID = "ESL-mZ-4f9"; */
+"ESL-mZ-4f9.text" = "Felhasználó";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "IoM-mq-eKZ"; */
+"IoM-mq-eKZ.text" = "~";
+
+/* Class = "UILabel"; text = "Monitoring"; ObjectID = "K9T-q1-4HM"; */
+"K9T-q1-4HM.text" = "Monitorozás";
+
+/* Class = "UILabel"; text = "ALARM"; ObjectID = "KfQ-Gp-nqO"; */
+"KfQ-Gp-nqO.text" = "RIASZTÁS";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "KiH-G2-XbQ"; */
+"KiH-G2-XbQ.text" = "Log adatok megnyitása";
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "LBa-rD-w8a"; */
+"LBa-rD-w8a.text" = "Teljes";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "LD7-60-GFK"; */
+"LD7-60-GFK.text" = "Log adatok megnyitása";
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "LSO-yI-bcK"; */
+"LSO-yI-bcK.text" = "Teljes";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "Mc6-5V-ebC"; */
+"Mc6-5V-ebC.text" = "100";
+
+/* Class = "UILabel"; text = "Szűrő"; ObjectID = "NrE-JF-oG2"; */
+"NrE-JF-oG2.text" = "Szűrő";
+
+/* Class = "UILabel"; text = "All Doors"; ObjectID = "OSK-q9-hUD"; */
+"OSK-q9-hUD.text" = "Minden ajtó";
+
+/* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
+"Oif-vS-bsu.text" = "PIN";
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "Q5U-QZ-a7A"; */
+"Q5U-QZ-a7A.text" = "Teljes";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "QWI-ej-KTa"; */
+"QWI-ej-KTa.normalTitle" = "Ajtó felügyelet";
+
+/* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
+"RYc-q8-eZd.text" = "Minden felhasználó";
+
+/* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
+"RfJ-sx-ICY.text" = "Beálíltások";
+
+/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "RgU-Nd-Rxz"; */
+"RgU-Nd-Rxz.normalTitle" = "Ajtó felügyelet";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
+"TLI-j3-9da.text" = "";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
+"UPB-Mm-I7v.text" = "~";
+
+/* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
+"Yn0-2Y-auA.text" = "Ujjlenyomat";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
+"ZOx-gq-ahd.text" = "BioStar 2";
+
+/* Class = "UILabel"; text = "Alarm"; ObjectID = "ZnU-mv-trd"; */
+"ZnU-mv-trd.text" = "Riasztás";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "dAQ-9k-ae6"; */
+"dAQ-9k-ae6.text" = "Új";
+
+/* Class = "UILabel"; text = "Teljes"; ObjectID = "eFD-2m-xWz"; */
+"eFD-2m-xWz.text" = "Teljes";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "efL-bK-EbE"; */
+"efL-bK-EbE.text" = "BioStar 2";
+
+/* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
+"fS0-an-9PC.placeholder" = "Felhasználó ID";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "fVe-WV-Nfd"; */
+"fVe-WV-Nfd.text" = "Log adatok megnyitása";
+
+/* Class = "UILabel"; text = "Monitoring"; ObjectID = "idr-PB-pzx"; */
+"idr-PB-pzx.text" = "Monitorozás";
+
+/* Class = "UITextField"; placeholder = "Password"; ObjectID = "jUE-Fl-exz"; */
+"jUE-Fl-exz.placeholder" = "Jelszó";
+
+/* Class = "UILabel"; text = "Door"; ObjectID = "mS1-v5-ozU"; */
+"mS1-v5-ozU.text" = "Ajtó";
+
+/* Class = "UILabel"; text = "DOOR"; ObjectID = "mjW-oy-yxA"; */
+"mjW-oy-yxA.text" = "AJTÓ";
+
+/* Class = "UILabel"; text = "Designed By Suprema"; ObjectID = "nrx-tP-VoH"; */
+"nrx-tP-VoH.text" = "Designed By Suprema";
+
+/* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
+"o1r-Wz-L81.text" = "Kártya";
+
+/* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
+"os3-6k-W6J.text" = "BioStar 2";
+
+/* Class = "UIButton"; normalTitle = "Login"; ObjectID = "qeD-ge-Ftw"; */
+"qeD-ge-Ftw.normalTitle" = "Bejelentkezés";
+
+/* Class = "UILabel"; text = "New"; ObjectID = "s4f-jU-sWo"; */
+"s4f-jU-sWo.text" = "Új";
+
+/* Class = "UILabel"; text = "0"; ObjectID = "sbR-Fu-duh"; */
+"sbR-Fu-duh.text" = "0";
+
+/* Class = "UILabel"; text = "~"; ObjectID = "u3k-5H-JA7"; */
+"u3k-5H-JA7.text" = "~";
+
+/* Class = "UILabel"; text = "100"; ObjectID = "xmf-Xc-m1F"; */
+"xmf-Xc-m1F.text" = "100";
+
+/* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
+"ylR-Zw-87H.text" = "kiválasztva";
+
+/* Class = "UILabel"; text = "View Log"; ObjectID = "zVZ-XM-tg7"; */
+"zVZ-XM-tg7.text" = "Log adatok megnyitása";

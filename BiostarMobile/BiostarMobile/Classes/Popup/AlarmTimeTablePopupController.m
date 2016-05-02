@@ -26,7 +26,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
-    titleLabel.text = NSLocalizedString(@"open_door_time_title", nil);
+    titleLabel.text = NSLocalizedString(@"open_door_time", nil);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -104,7 +104,7 @@
         
         if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
         {
-            timeFormat = @"hh:mm:ss a";
+            timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
         }
         else
         {
@@ -113,9 +113,7 @@
         
         NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
                                                          originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                          transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                                           [PreferenceProvider getDateFormat],
-                                                                           timeFormat]];
+                                                          transDateFormat:timeFormat];
         
         [cell setContent:content];
         return cell;

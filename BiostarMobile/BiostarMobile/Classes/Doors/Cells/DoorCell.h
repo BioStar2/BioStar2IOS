@@ -17,8 +17,14 @@
 #import <UIKit/UIKit.h>
 
 @interface DoorCell : UITableViewCell
+{
+    
+}
+
 @property (weak, nonatomic) IBOutlet UIImageView *doorImage;
 @property (weak, nonatomic) IBOutlet UILabel *doorID;
 @property (weak, nonatomic) IBOutlet UILabel *doorName;
+
+- (void)setDoorStatus:(NSDictionary*)doorDic;
 
 @end

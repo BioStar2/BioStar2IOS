@@ -1,27 +1,27 @@
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "1D0-kv-YHi"; */
-"1D0-kv-YHi.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "1D0-kv-YHi"; */
+"1D0-kv-YHi.text" = "Ogółem";
 
-/* Class = "UILabel"; text = "Filter"; ObjectID = "1MB-qw-sOk"; */
-"1MB-qw-sOk.text" = "Filter";
+/* Class = "UILabel"; text = "Filtr"; ObjectID = "1MB-qw-sOk"; */
+"1MB-qw-sOk.text" = "Filtr";
 
 /* Class = "UIButton"; normalTitle = "LOG OUT"; ObjectID = "1cs-bD-wci"; */
-"1cs-bD-wci.normalTitle" = "LOG OUT";
+"1cs-bD-wci.normalTitle" = "Wyloguj";
 
 /* Class = "UILabel"; text = "MONITORING"; ObjectID = "1wa-4S-dr0"; */
 "1wa-4S-dr0.text" = "MONITORING";
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "3wj-Fy-acM"; */
-"3wj-Fy-acM.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "3wj-Fy-acM"; */
+"3wj-Fy-acM.text" = "Ogółem";
 
-/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "5Aj-tA-w2o"; */
-"5Aj-tA-w2o.normalTitle" = "Door Control";
+/* Class = "UIButton"; normalTitle = "Zarządzanie drzwiami"; ObjectID = "5Aj-tA-w2o"; */
+"5Aj-tA-w2o.normalTitle" = "Zarządzanie drzwiami";
 
 /* Class = "UILabel"; text = "Mobile"; ObjectID = "5EA-Um-QXa"; */
-"5EA-Um-QXa.text" = "Mobile";
+"5EA-Um-QXa.text" = "Mobilnie";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "6Ny-Pc-vVu"; */
-"6Ny-Pc-vVu.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "6Ny-Pc-vVu"; */
+"6Ny-Pc-vVu.text" = "Przegląd Zdarzeń";
 
 /* Class = "UILabel"; text = "0"; ObjectID = "9Ds-3P-kuK"; */
 "9Ds-3P-kuK.text" = "0";
@@ -33,13 +33,13 @@
 "C4v-Oo-Tc8.text" = "Alarm";
 
 /* Class = "UILabel"; text = "USER"; ObjectID = "CCM-7o-Z1h"; */
-"CCM-7o-Z1h.text" = "USER";
+"CCM-7o-Z1h.text" = "Użytkownik";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "CFh-1f-2lg"; */
-"CFh-1f-2lg.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "CFh-1f-2lg"; */
+"CFh-1f-2lg.text" = "Przegląd Zdarzeń";
 
 /* Class = "UILabel"; text = "User"; ObjectID = "ESL-mZ-4f9"; */
-"ESL-mZ-4f9.text" = "User";
+"ESL-mZ-4f9.text" = "Użytkownik";
 
 /* Class = "UILabel"; text = "~"; ObjectID = "IoM-mq-eKZ"; */
 "IoM-mq-eKZ.text" = "~";
@@ -50,53 +50,53 @@
 /* Class = "UILabel"; text = "ALARM"; ObjectID = "KfQ-Gp-nqO"; */
 "KfQ-Gp-nqO.text" = "ALARM";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "KiH-G2-XbQ"; */
-"KiH-G2-XbQ.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "KiH-G2-XbQ"; */
+"KiH-G2-XbQ.text" = "Przegląd Zdarzeń";
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "LBa-rD-w8a"; */
-"LBa-rD-w8a.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "LBa-rD-w8a"; */
+"LBa-rD-w8a.text" = "Ogółem";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "LD7-60-GFK"; */
-"LD7-60-GFK.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "LD7-60-GFK"; */
+"LD7-60-GFK.text" = "Przegląd Zdarzeń";
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "LSO-yI-bcK"; */
-"LSO-yI-bcK.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "LSO-yI-bcK"; */
+"LSO-yI-bcK.text" = "Ogółem";
 
 /* Class = "UILabel"; text = "100"; ObjectID = "Mc6-5V-ebC"; */
 "Mc6-5V-ebC.text" = "100";
 
-/* Class = "UILabel"; text = "Filter"; ObjectID = "NrE-JF-oG2"; */
-"NrE-JF-oG2.text" = "Filter";
+/* Class = "UILabel"; text = "Filtr"; ObjectID = "NrE-JF-oG2"; */
+"NrE-JF-oG2.text" = "Filtr";
 
 /* Class = "UILabel"; text = "All Doors"; ObjectID = "OSK-q9-hUD"; */
-"OSK-q9-hUD.text" = "All Doors";
+"OSK-q9-hUD.text" = "Wszystkie drzwi";
 
 /* Class = "UILabel"; text = "Pin"; ObjectID = "Oif-vS-bsu"; */
-"Oif-vS-bsu.text" = "Pin";
+"Oif-vS-bsu.text" = "PIN";
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "Q5U-QZ-a7A"; */
-"Q5U-QZ-a7A.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "Q5U-QZ-a7A"; */
+"Q5U-QZ-a7A.text" = "Ogółem";
 
-/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "QWI-ej-KTa"; */
-"QWI-ej-KTa.normalTitle" = "Door Control";
+/* Class = "UIButton"; normalTitle = "Zarządzanie drzwiami"; ObjectID = "QWI-ej-KTa"; */
+"QWI-ej-KTa.normalTitle" = "Zarządzanie drzwiami";
 
 /* Class = "UILabel"; text = "All Users"; ObjectID = "RYc-q8-eZd"; */
-"RYc-q8-eZd.text" = "All Users";
+"RYc-q8-eZd.text" = "Wszyscy użytkownicy";
 
 /* Class = "UILabel"; text = "Setting"; ObjectID = "RfJ-sx-ICY"; */
-"RfJ-sx-ICY.text" = "Setting";
+"RfJ-sx-ICY.text" = "Ustawienia";
 
-/* Class = "UIButton"; normalTitle = "Door Control"; ObjectID = "RgU-Nd-Rxz"; */
-"RgU-Nd-Rxz.normalTitle" = "Door Control";
+/* Class = "UIButton"; normalTitle = "Zarządzanie drzwiami"; ObjectID = "RgU-Nd-Rxz"; */
+"RgU-Nd-Rxz.normalTitle" = "Zarządzanie drzwiami";
 
 /* Class = "UILabel"; text = "Label"; ObjectID = "TLI-j3-9da"; */
-"TLI-j3-9da.text" = "Label";
+"TLI-j3-9da.text" = "";
 
 /* Class = "UILabel"; text = "~"; ObjectID = "UPB-Mm-I7v"; */
 "UPB-Mm-I7v.text" = "~";
 
 /* Class = "UILabel"; text = "Finger"; ObjectID = "Yn0-2Y-auA"; */
-"Yn0-2Y-auA.text" = "Finger";
+"Yn0-2Y-auA.text" = "Odcisk palca";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "ZOx-gq-ahd"; */
 "ZOx-gq-ahd.text" = "BioStar 2";
@@ -105,40 +105,39 @@
 "ZnU-mv-trd.text" = "Alarm";
 
 /* Class = "UILabel"; text = "New"; ObjectID = "dAQ-9k-ae6"; */
-"dAQ-9k-ae6.text" = "New";
+"dAQ-9k-ae6.text" = "Nowy";
 
-/* Class = "UILabel"; text = "Total"; ObjectID = "eFD-2m-xWz"; */
-"eFD-2m-xWz.text" = "Total";
+/* Class = "UILabel"; text = "Ogółem"; ObjectID = "eFD-2m-xWz"; */
+"eFD-2m-xWz.text" = "Ogółem";
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "efL-bK-EbE"; */
 "efL-bK-EbE.text" = "BioStar 2";
 
 /* Class = "UITextField"; placeholder = "User ID"; ObjectID = "fS0-an-9PC"; */
-"fS0-an-9PC.placeholder" = "User ID";
+"fS0-an-9PC.placeholder" = "ID Użytkownika";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "fVe-WV-Nfd"; */
-"fVe-WV-Nfd.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "fVe-WV-Nfd"; */
+"fVe-WV-Nfd.text" = "Przegląd Zdarzeń";
 
 /* Class = "UILabel"; text = "Monitoring"; ObjectID = "idr-PB-pzx"; */
 "idr-PB-pzx.text" = "Monitoring";
 
 /* Class = "UITextField"; placeholder = "Password"; ObjectID = "jUE-Fl-exz"; */
-"jUE-Fl-exz.placeholder" = "Password";
+"jUE-Fl-exz.placeholder" = "Hasło";
 
 /* Class = "UILabel"; text = "Door"; ObjectID = "mS1-v5-ozU"; */
-"mS1-v5-ozU.text" = "Door";
+"mS1-v5-ozU.text" = "Drzwi";
 
 /* Class = "UILabel"; text = "DOOR"; ObjectID = "mjW-oy-yxA"; */
-"mjW-oy-yxA.text" = "DOOR";
+"mjW-oy-yxA.text" = "Drzwi";
 
 /* Class = "UILabel"; text = "Designed By Suprema"; ObjectID = "nrx-tP-VoH"; */
 "nrx-tP-VoH.text" = "Designed By Suprema";
 
 /* Class = "UILabel"; text = "Card"; ObjectID = "o1r-Wz-L81"; */
-"o1r-Wz-L81.text" = "Card";
+"o1r-Wz-L81.text" = "Karta";
 
-/* Class = "UILabel"; text = "v.1.0.2"; ObjectID = "o6j-Ya-JJA"; */
-"o6j-Ya-JJA.text" = "v.1.0.2";
+
 
 /* Class = "UILabel"; text = "BioStar 2"; ObjectID = "os3-6k-W6J"; */
 "os3-6k-W6J.text" = "BioStar 2";
@@ -147,7 +146,7 @@
 "qeD-ge-Ftw.normalTitle" = "Login";
 
 /* Class = "UILabel"; text = "New"; ObjectID = "s4f-jU-sWo"; */
-"s4f-jU-sWo.text" = "New";
+"s4f-jU-sWo.text" = "Nowy";
 
 /* Class = "UILabel"; text = "0"; ObjectID = "sbR-Fu-duh"; */
 "sbR-Fu-duh.text" = "0";
@@ -159,7 +158,7 @@
 "xmf-Xc-m1F.text" = "100";
 
 /* Class = "UILabel"; text = "Selected"; ObjectID = "ylR-Zw-87H"; */
-"ylR-Zw-87H.text" = "Selected";
+"ylR-Zw-87H.text" = "Wybrany";
 
-/* Class = "UILabel"; text = "View Log"; ObjectID = "zVZ-XM-tg7"; */
-"zVZ-XM-tg7.text" = "View Log";
+/* Class = "UILabel"; text = "Przegląd Zdarzeń"; ObjectID = "zVZ-XM-tg7"; */
+"zVZ-XM-tg7.text" = "Przegląd Zdarzeń";

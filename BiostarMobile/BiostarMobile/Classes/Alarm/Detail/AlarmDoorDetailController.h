@@ -41,9 +41,9 @@
     NSMutableDictionary *condition;
     NSMutableDictionary *doorDic;
     NSMutableDictionary *userDic;
-    NSMutableArray *openTimeArray;
+    
     BOOL isMainRequest;
-    BOOL isEventSearch;
+    
     BOOL isFoundDoor;
     NSInteger doorID;
     NSInteger menuIndex;
@@ -56,7 +56,7 @@
 - (IBAction)moveToLog:(id)sender;
 - (void)controlDoorOperator:(NSInteger)index;
 - (NSString*)getToastContent;
-- (void)searchEventForNotiTime;
+- (NSString*)getErrorToastContent:(NSString *)message;
 - (void)setDefaultPeriod;
 - (void)setDefaultEventType;
 - (void)setDefaultDevice;

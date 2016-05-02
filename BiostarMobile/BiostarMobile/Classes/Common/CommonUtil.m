@@ -27,7 +27,7 @@
     return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
 }
 
-+ (UIImage *)imageWithImage:(UIImage *)__autoreleasing image scaledToSize:(CGSize)newSize {
++ (UIImage *)imageScale:(UIImage *)__autoreleasing image size:(CGSize)newSize {
     //UIGraphicsBeginImageContext(newSize);
     // In next line, pass 0.0 to use the current device's pixel scaling factor (and thus account for Retina resolution).
     // Pass 1.0 to force exact pixel size.
@@ -38,6 +38,59 @@
     return newImage;
 }
 
++ (UIImage *)imageCompress:(UIImage *)__autoreleasing image fileSize:(unsigned long)fileSize
+{
+    CGFloat width = 200;
+    CGFloat height = 200;
+    
+    CGSize tempSize = CGSizeMake(width, height);
+    UIImage *newImage = [self imageScale:image size:tempSize];
+    
+    NSData *photoData = UIImageJPEGRepresentation(newImage, 0);
+    
+    unsigned long photoSize = (unsigned long)[photoData length];
+    
+    while (photoSize >= fileSize)
+    {
+        width = width - 1;
+        height = height - 1;
+        tempSize = CGSizeMake(width, height);
+        newImage = [self imageScale:image size:tempSize];
+        photoData = UIImageJPEGRepresentation(newImage, 0);
+        photoSize = (unsigned long)[photoData length];
+        
+        NSLog(@"Size of Image(bytes):%lu",(unsigned long)photoSize);
+    }
+    
+    return newImage;
+}
+
++ (NSData *)getImageDataCompress:(UIImage *)__autoreleasing image fileSize:(unsigned long)fileSize
+{
+    CGFloat width = 200;
+    CGFloat height = 200;
+    
+    CGSize tempSize = CGSizeMake(width, height);
+    UIImage *newImage = [self imageScale:image size:tempSize];
+    
+    NSData *photoData = UIImageJPEGRepresentation(newImage, 0);
+    
+    unsigned long photoSize = (unsigned long)[photoData length];
+    
+    while (photoSize >= fileSize)
+    {
+        width = width - 1;
+        height = height - 1;
+        tempSize = CGSizeMake(width, height);
+        newImage = [self imageScale:image size:tempSize];
+        photoData = UIImageJPEGRepresentation(newImage, 0);
+        photoSize = (unsigned long)[photoData length];
+        
+        NSLog(@"Size of Image(bytes):%lu",(unsigned long)photoSize);
+    }
+    
+    return photoData;
+}
 
 // 데이터 포맷만 바꾸기
 + (NSString *)stringFromDateString:(NSString*)dateString originDateFormat:(NSString*)originFormat transDateFormat:(NSString*)transFormat

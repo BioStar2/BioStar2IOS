@@ -31,6 +31,8 @@
     limit = 50;
     totalCount = 0;
     hasNextPage = NO;
+    eventSearchFailed = NO;
+    doorSearchFailed = NO;
     canScrollTop = NO;
     canMoveToDetail = YES;
     secondYPosition = 0.0f;
@@ -38,19 +40,20 @@
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     refreshControl = [[UIRefreshControl alloc] init];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Event"];
+    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Event"];
     [eventTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshEvents) forControlEvents:UIControlEventValueChanged];
     
     events = [[NSMutableArray alloc] init];
     doors = [[NSMutableArray alloc] init];
     doorDic = [[NSMutableDictionary alloc] init];
+    currentErrDic = [[NSMutableDictionary alloc] init];
     
     eventProvider = [[EventProvider alloc] init];
     eventProvider.delegate = self;
     
-    provider = [[DoorProvider alloc] init];
-    provider.delegate = self;
+    doorProvider = [[DoorProvider alloc] init];
+    doorProvider.delegate = self;
     
     switch (_requestType)
     {
@@ -67,7 +70,7 @@
             
         case EVENT_MONITOR:
             [eventProvider searchEvent:nil offset:offset limit:limit];
-            [provider getDoors];
+            [doorProvider getDoors];
             requestCount = 2;
             break;
     }
@@ -214,7 +217,6 @@
 - (void)searchByFilter
 {
     offset = 0;
-    [events removeAllObjects];
     [eventProvider searchEvent:condition offset:offset limit:limit];
     [self startLoading:self];
 }
@@ -223,10 +225,28 @@
 {
     requestCount--;
     
-    if (requestCount == 0)
+    if (requestCount <= 0)
     {
-        [self finishLoading];
-        [eventTableView reloadData];
+        requestCount = 0;
+        
+        if (!eventSearchFailed && !doorSearchFailed)
+        {
+            [self finishLoading];
+            [eventTableView reloadData];
+        }
+        else
+        {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.delegate = self;
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:[currentErrDic objectForKey:@"message"]];
+            
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [self finishLoading];
+        }
     }
     
     
@@ -245,12 +265,14 @@
     switch (currentType)
     {
         case NONE_SELECT:
-            [self.view makeToast:NSLocalizedString(@"deleted_door_info", nil)
+        {
+            NSString *toastStr = [NSString stringWithFormat:@"%@\n%@",NSLocalizedString(@"none_door", nil) ,NSLocalizedString(@"none_user", nil)];
+            [self.view makeToast:toastStr
                         duration:2.0
                         position:CSToastPositionBottom
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
             break;
-            
+        }
         case SELECT_USER:
         {
             
@@ -453,6 +475,14 @@
         
         if (nil != [userDic objectForKey:@"user_id"])
         {
+            if (nil == [userDic objectForKey:@"name"])
+            {
+                [self.view makeToast:NSLocalizedString(@"none_user", nil)
+                            duration:2.0
+                            position:CSToastPositionBottom
+                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                return;
+            }
             ID = [[userDic objectForKey:@"user_id"] integerValue];
             type = SELECT_USER;
         }
@@ -481,9 +511,9 @@
 
 #pragma mark - EventProviderDelegate
 
-- (void)requestSearchEventDidFinish:(NSArray*)eventArray totalCount:(NSInteger)count
+- (void)requestSearchEventDidFinish:(NSArray*)eventArray isNextPage:(BOOL)isNext
 {
-    if (count == 0)
+    if (!isNext)
     {
         [self.view makeToast:NSLocalizedString(@"no_more_data", nil)
                     duration:2.0
@@ -493,12 +523,17 @@
     
     [refreshControl endRefreshing];
     
+    if (offset == 0)
+    {
+        [events removeAllObjects];
+    }
+    
     if ([eventArray isKindOfClass:[NSArray class]])
     {
         [events addObjectsFromArray:eventArray];
     }
     
-    if (events.count < count)
+    if (isNext)
     {
         hasNextPage = YES;
         offset += limit;
@@ -529,20 +564,34 @@
     }
 }
 
+
 - (void)requestEventProviderDidFail:(NSDictionary*)errDic
 {
+    eventSearchFailed = YES;
+    
     [refreshControl endRefreshing];
     switch (_requestType)
     {
         case EVENT_USER:
-            [self finishLoading];
-            break;
-            
         case EVENT_DOOR:
+        {
             [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.delegate = self;
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
+            
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            
             break;
+        }
             
         case EVENT_MONITOR:
+            [currentErrDic setDictionary:errDic];
             [self checkRequestResult];
             break;
     }
@@ -565,10 +614,7 @@
         case EVENT_MONITOR:
             NSLog(@"requestGetDoorsDidFinish EVENT_MONITOR");
             
-            if (doorArray.count < 1)
-            {
-                NSLog(@"doorArray.count < 1");
-            }
+            
             for (NSDictionary *door in doorArray)
             {
                 if (nil != [door objectForKey:@"entry_device"])
@@ -622,21 +668,9 @@
 
 - (void)requestDoorProviderDidFail:(NSDictionary*)errDic
 {
-    switch (_requestType)
-    {
-        case EVENT_USER:
-            [self finishLoading];
-            break;
-            
-        case EVENT_DOOR:
-            [self finishLoading];
-            break;
-            
-        case EVENT_MONITOR:
-            [self checkRequestResult];
-            break;
-    }
-    
+    doorSearchFailed = YES;
+    [currentErrDic setDictionary:errDic];
+    [self checkRequestResult];
 }
 
 
@@ -729,6 +763,44 @@
     [self searchByFilter];
 }
 
+#pragma mark - ImagePopupDelegate
+
+- (void)confirmImagePopup
+{
+    switch (_requestType)
+    {
+        case EVENT_USER:
+        case EVENT_DOOR:
+            eventSearchFailed = NO;
+            [eventProvider searchEvent:condition offset:offset limit:limit];
+            break;
+            
+        case EVENT_MONITOR:
+            if (eventSearchFailed && doorSearchFailed)
+            {
+                eventSearchFailed = NO;
+                doorSearchFailed = NO;
+                [eventProvider searchEvent:nil offset:offset limit:limit];
+                [doorProvider getDoors];
+                requestCount = 2;
+            }
+            else if (!eventSearchFailed && doorSearchFailed)
+            {
+                doorSearchFailed = NO;
+                [doorProvider getDoors];
+                requestCount = 1;
+            }
+            else if (eventSearchFailed && !doorSearchFailed)
+            {
+                eventSearchFailed = NO;
+                [eventProvider searchEvent:nil offset:offset limit:limit];
+                requestCount = 1;
+            }
+            break;
+    }
+    
+}
+
 #pragma mark - ScrollView Delegate
 
 
@@ -741,23 +813,33 @@
                   willDecelerate:(BOOL)decelerate
 {
     secondYPosition = scrollView.contentOffset.y;
+    
     NSLog(@"scrollViewDidEndDragging");
     if (firstYPosition < secondYPosition)
     {
         // 스크롤 위로 움직이게
-        canScrollTop = NO;
+        if (decelerate)
+        {
+            canScrollTop = NO;
+        }
     }
     else
     {
         // 스크롤 아래로
-        canScrollTop = YES;
+        if (decelerate)
+        {
+            canScrollTop = YES;
+        }
+        
     }
     if (canScrollTop)
     {
+        NSLog(@"canScrollTop");
         scrollButton.transform = CGAffineTransformMakeRotation(0);
     }
     else
     {
+        NSLog(@"not canScrollTop");
         scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     }
     
@@ -802,6 +884,7 @@
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    NSLog(@"scrollViewWillBeginDragging");
     firstYPosition = scrollView.contentOffset.y;
     
 }

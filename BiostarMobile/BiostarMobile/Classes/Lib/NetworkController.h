@@ -53,20 +53,21 @@ typedef enum{
 #define API_DOORS                       @"/doors"
 #define API_DOORS_OPEN                  @"/doors/%ld/open"
 #define API_DOORS_UNLOCK                @"/doors/%ld/unlock"
+#define API_DOORS_RELEASE               @"/doors/%ld/release"
 #define API_DOORS_LOCK                  @"/doors/%ld/lock"
 #define API_DOORS_CLEAR_ALARM           @"/doors/%ld/clear_alarm"
 #define API_DOORS_CLEAR_APB             @"/doors/%ld/clear_anti_pass_back"
 #define API_DOORS_REQUEST_OPEN          @"/doors/%ld/request_open"
 
 #define API_EVENTS                      @"/events"
-#define API_EVENTS_SEARCH               @"/monitoring/event_log/search"
+#define API_EVENTS_SEARCH               @"/monitoring/event_log/search_more"
 #define API_EVENT_TYPES                 @"/references/event_types"
 
 #define API_PERMISSIONS                 @"/references/role_codes"
 #define API_PREFERENCE                  @"/setting"
 #define API_NOTIFICATIONS               @"/setting/notifications"
 #define API_DELETE_NOTIFICATIONS        @"/setting/notifications/delete"
-#define API_UPDATE_TOKEN                @"/setting/updateNotificationToken"
+#define API_UPDATE_TOKEN                @"/setting/update_notification_token"
 #define API_APP_VERSIONS                @"/admin/app_versions"
 #define API_CHECK_UPDATE                @"/register/app_versions"
 

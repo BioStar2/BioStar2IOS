@@ -31,8 +31,9 @@
     doorProvider.delegate = self;
     menuIndex = NOT_SELECTED;
     isMainRequest = NO;
-    isEventSearch = NO;
+    
     isFoundDoor = NO;
+    
     // 알림시간 가져오기 위해서 필요함.
     eventProvider = [[EventProvider alloc] init];
     eventProvider.delegate = self;
@@ -81,14 +82,14 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)searchEventForNotiTime
-{
-    [self setDefaultPeriod];
-    [self setDefaultEventType];
-    [self setDefaultDevice];
-    
-    [eventProvider searchEvent:condition offset:0 limit:1000];
-}
+//- (void)searchEventForNotiTime
+//{
+//    [self setDefaultPeriod];
+//    [self setDefaultEventType];
+//    [self setDefaultDevice];
+//    
+//    [eventProvider searchEvent:condition offset:0 limit:1000];
+//}
 
 - (void)setDefaultEventType
 {
@@ -307,10 +308,14 @@
             [doorProvider unlockDoor:doorID];
             break;
         case 3:
+            // release
+            [doorProvider releaseDoor:doorID];
+            break;
+        case 4:
             // clear APB
             [doorProvider clearAntiPassback:doorID];
             break;
-        case 4:
+        case 5:
             // clear alarm
             [doorProvider clearAlarm:doorID];
             break;
@@ -324,7 +329,7 @@
 
 - (NSString*)getToastContent
 {
-    NSString *doorName = doorNameLabel.text;
+    NSString *doorName = [doorDic objectForKey:@"name"];
     if ([doorName isEqualToString:@""] || nil == doorName)
     {
         doorName = [doorDic objectForKey:@"id"];
@@ -334,7 +339,7 @@
     
     if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = @"hh:mm:ss a";
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
@@ -343,7 +348,34 @@
     
     NSString *dateString = [CommonUtil stringFromCurrentLocaleDateString:[[NSDate date] description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:timeFormat];
     
+    
     NSString *toastContent = [NSString stringWithFormat:@"%@ / %@",dateString ,doorName];
+    return toastContent;
+}
+
+- (NSString*)getErrorToastContent:(NSString *)message
+{
+    NSString *doorName = [doorDic objectForKey:@"name"];
+    if ([doorName isEqualToString:@""] || nil == doorName)
+    {
+        doorName = [doorDic objectForKey:@"id"];
+    }
+    
+    NSString *timeFormat;
+    
+    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+    {
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+    }
+    else
+    {
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+    }
+    
+    NSString *dateString = [CommonUtil stringFromCurrentLocaleDateString:[[NSDate date] description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:timeFormat];
+    
+    
+    NSString *toastContent = [NSString stringWithFormat:@"%@ / %@ \n%@",dateString ,doorName, message];
     return toastContent;
 }
 
@@ -362,102 +394,33 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
     //return [alarmArray count];
-    return 2;
+    return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     
-    if (indexPath.row == 0)
+    // 알림시간
+    AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
+    NSDate *calculatedDate = [CommonUtil dateFromString:[self.detailInfo objectForKey:@"event_datetime"]  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    
+    NSString *timeFormat;
+    
+    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        // 알림시간
-        AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
-        NSDate *calculatedDate = [CommonUtil dateFromString:[self.detailInfo objectForKey:@"event_datetime"]  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-        
-        NSString *timeFormat;
-        
-        if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
-        {
-            timeFormat = @"hh:mm:ss a";
-        }
-        else
-        {
-            timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
-        }
-        
-        NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                            originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                             transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                              [PreferenceProvider getDateFormat],
-                                                              timeFormat]];
-        [cell setContent:NSLocalizedString(@"notification_time", nil) content:content];
-        return cell;
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        // 출입문 열림 시간
-        if (openTimeArray.count > 0)
-        {
-            if (openTimeArray.count == 1)
-            {
-                AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
-                
-                NSDictionary *tempDic = [openTimeArray objectAtIndex:0];
-                NSDate *calculatedDate = [CommonUtil dateFromString:[tempDic objectForKey:@"datetime"] originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-                
-                NSString *timeFormat;
-                
-                if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
-                {
-                    timeFormat = @"hh:mm:ss a";
-                }
-                else
-                {
-                    timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
-                }
-                
-                NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                                                 originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                                  transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                                                   [PreferenceProvider getDateFormat],
-                                                                                   timeFormat]];
-                
-                [cell setContent:NSLocalizedString(@"open_door_time", nil) content:content];
-                return cell;
-            }
-            else
-            {
-                AlarmDoorDetailAcclCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailAcclCell" forIndexPath:indexPath];
-                NSDictionary *tempDic = [openTimeArray objectAtIndex:0];
-                NSDate *calculatedDate = [CommonUtil dateFromString:[tempDic objectForKey:@"datetime"] originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-                
-                NSString *timeFormat;
-                
-                if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
-                {
-                    timeFormat = @"hh:mm:ss a";
-                }
-                else
-                {
-                    timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
-                }
-                
-                NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
-                                                                 originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                                  transDateFormat:[NSString stringWithFormat:@"%@ %@",
-                                                                                   [PreferenceProvider getDateFormat],
-                                                                                   timeFormat]];
-                [cell setContent:NSLocalizedString(@"open_door_time", nil) content:content];
-                return cell;
-            }
-        }
-        else
-        {
-            AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
-            [cell setContent:NSLocalizedString(@"open_door_time", nil) content:nil];
-            return cell;
-        }
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
     }
+    
+    NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
+                                                     originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
+                                                      transDateFormat:timeFormat];
+    
+    [cell setContent:NSLocalizedString(@"notification_time", nil) content:content];
+    return cell;
     
 }
 
@@ -466,16 +429,16 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row == 1)
-    {
-        if (openTimeArray.count > 0)
-        {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            AlarmTimeTablePopupController __weak *alarmTablePopupController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmTimeTablePopupController"];
-            [alarmTablePopupController setTimeArray:openTimeArray];
-            [self showPopup:alarmTablePopupController parentViewController:self parentView:self.view];
-        }
-    }
+//    if (indexPath.row == 1)
+//    {
+//        if (openTimeArray.count > 0)
+//        {
+//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//            AlarmTimeTablePopupController __weak *alarmTablePopupController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmTimeTablePopupController"];
+//            [alarmTablePopupController setTimeArray:openTimeArray];
+//            [self showPopup:alarmTablePopupController parentViewController:self parentView:self.view];
+//        }
+//    }
 }
 
 #pragma mark - ListSubInfoPopupDelegate
@@ -490,10 +453,14 @@
 - (void)requestGetDoorDidFinish:(NSDictionary*)door
 {
     isFoundDoor = YES;
-    isMainRequest = YES;
-    isEventSearch = YES;
+    
     doorDic = [[NSMutableDictionary alloc] initWithDictionary:door];
-    [self searchEventForNotiTime];
+    
+    [self finishLoading];
+    
+    [self setDefaultPeriod];
+    [self setDefaultEventType];
+    [self setDefaultDevice];
 }
 
 - (void)requestOpenDoorDidFinish:(NSDictionary*)result
@@ -511,7 +478,7 @@
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"lock", nil)
+                   title:NSLocalizedString(@"manual_lock", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
 }
 
@@ -520,7 +487,16 @@
     [self finishLoading];
     [self.view makeToast:[self getToastContent]
                 duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"unlock", nil)
+                   title:NSLocalizedString(@"manual_unlock", nil)
+                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
+}
+
+- (void)requestReleaseDoorDidFinish:(NSDictionary *)result
+{
+    [self finishLoading];
+    [self.view makeToast:[self getToastContent]
+                duration:2.0 position:CSToastPositionBottom
+                   title:NSLocalizedString(@"release", nil)
                    image:[UIImage imageNamed:@"toast_popup_i_02"]];
 }
 
@@ -568,9 +544,45 @@
     }
     else
     {
-        [self.view makeToast:NSLocalizedString(@"fail", nil)
-                    duration:2.0
-                    position:CSToastPositionBottom
+        NSString *title = nil;
+        switch (menuIndex)
+        {
+            case 0:
+                // open
+                title = NSLocalizedString(@"request_open_fail", nil);
+                break;
+            case 1:
+                // lock
+                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_lock", nil) ,NSLocalizedString(@"fail", nil)];
+                break;
+            case 2:
+                // unlock
+                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_unlock", nil) ,NSLocalizedString(@"fail", nil)];
+                break;
+            case 3:
+                // release
+                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"release", nil) ,NSLocalizedString(@"fail", nil)];
+                break;
+            case 4:
+                // clear APB
+                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_apb", nil) ,NSLocalizedString(@"fail", nil)];
+                break;
+            case 5:
+                // clear alarm
+                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_alarm", nil) ,NSLocalizedString(@"fail", nil)];
+                break;
+                
+            default:
+                [self.view makeToast:NSLocalizedString(@"fail", nil)
+                            duration:2.0
+                            position:CSToastPositionBottom
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+                break;
+        }
+        
+        [self.view makeToast:[self getErrorToastContent:[errDic objectForKey:@"message"]]
+                    duration:2.0 position:CSToastPositionBottom
+                       title:title
                        image:[UIImage imageNamed:@"toast_popup_i_02"]];
     }
 }
@@ -581,14 +593,7 @@
 {
     isMainRequest = YES;
     
-    if (isEventSearch)
-    {
-        [self searchEventForNotiTime];
-    }
-    else
-    {
-        [doorProvider getDoor:doorID];
-    }
+    [doorProvider getDoor:doorID];
     
     [self startLoading:self];
 }
@@ -613,24 +618,31 @@
     }
 }
 
-#pragma mark - EventProviderDelegate
-
-- (void)requestSearchEventDidFinish:(NSArray*)eventArray totalCount:(NSInteger)count
-{
-    [self finishLoading];
-    [openTimeArray addObjectsFromArray:eventArray];
-    [detailTableView reloadData];
-}
-
-- (void)requestEventProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
+//#pragma mark - EventProviderDelegate
+//
+//- (void)requestSearchEventDidFinish:(NSArray*)eventArray isNextPage:(BOOL)isNext
+//{
+//    [self finishLoading];
+//    [openTimeArray addObjectsFromArray:eventArray];
+//    [detailTableView reloadData];
+//}
+//
+//- (void)requestSearchEventDidFinish:(NSArray*)eventArray totalCount:(NSInteger)count
+//{
+//    [self finishLoading];
+//    [openTimeArray addObjectsFromArray:eventArray];
+//    [detailTableView reloadData];
+//}
+//
+//- (void)requestEventProviderDidFail:(NSDictionary*)errDic
+//{
+//    [self finishLoading];
+//    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+//    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
+//    imagePopupCtrl.delegate = self;
+//    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+//    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//}
 @end

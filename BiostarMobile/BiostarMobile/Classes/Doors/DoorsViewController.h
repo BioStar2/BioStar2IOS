@@ -19,8 +19,9 @@
 #import "BaseViewController.h"
 #import "DoorProvider.h"
 #import "ImagePopupViewController.h"
+#import "DoorDetailViewController.h"
 
-@interface DoorsViewController : BaseViewController <DoorProviderDelegate, ImagePopupDelegate>
+@interface DoorsViewController : BaseViewController <DoorProviderDelegate, ImagePopupDelegate, DoorDetailViewControllerDelegate>
 {
     __weak IBOutlet UITableView *doorsTableView;
     __weak IBOutlet UIView *countView;

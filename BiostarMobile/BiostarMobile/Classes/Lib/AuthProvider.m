@@ -58,6 +58,11 @@ NSDictionary *loginUserInfo = nil;
 
 + (BOOL)hasWritePermission:(NSString*)permissionValue
 {
+    if (nil == loginUserInfo)
+    {
+        return NO;
+    }
+    
     NSArray *permissions = [loginUserInfo objectForKey:@"permissions"];
     
     NSDictionary *permission = nil;
@@ -106,7 +111,7 @@ NSDictionary *loginUserInfo = nil;
 {
 
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* version = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
     version = [NSString stringWithFormat:@"V.%@", version];
     
     NSDictionary *userDic = @{@"user_id" : loginID,

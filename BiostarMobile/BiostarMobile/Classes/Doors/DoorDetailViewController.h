@@ -25,6 +25,14 @@
 #import "EventProvider.h"
 #import "MonitorFilterViewController.h"
 
+@protocol DoorDetailViewControllerDelegate <NSObject>
+
+@optional
+
+- (void)refreshDoorList;
+
+@end
+
 @interface DoorDetailViewController : BaseViewController <DoorProviderDelegate, ListSubInfoPopupDelegate, ImagePopupDelegate>
 {
     
@@ -39,11 +47,14 @@
     __weak IBOutlet UIButton *logLabelButton;
     
     NSDictionary *doorDic;
+    BOOL needToReloadDoorList;
     DoorProvider *doorProvider;
     BOOL isMainRequest;
     NSInteger menuIndex;
     NSInteger doorID;
 }
+
+@property (assign, nonatomic) id <DoorDetailViewControllerDelegate> delegate;
 
 - (IBAction)moveToLog:(id)sender;
 - (IBAction)moveToBack:(id)sender;
@@ -52,4 +63,5 @@
 - (void)getSelectedDoor:(NSInteger)selectedDoorID;  //도어 메인외에 다른 컨트롤러에서 진입할때
 - (void)controlDoorOperator:(NSInteger)index;
 - (NSString*)getToastContent;
+- (NSString*)getErrorToastContent:(NSString *)message;
 @end
