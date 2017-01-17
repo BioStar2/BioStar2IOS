@@ -20,8 +20,7 @@
 #import "MonitoringViewController.h"
 #import "DeviceProvider.h"
 
-
-@interface AlarmDeviceDetailController : BaseViewController <DeviceProviderDelegate, ImagePopupDelegate>
+@interface AlarmDeviceDetailController : BaseViewController 
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UILabel *deviceName;
@@ -33,15 +32,13 @@
     __weak IBOutlet UIImageView *alarmImage;
     
     DeviceProvider *deviceProvider;
-    NSInteger rowCount;
-    NSString *eventKey;
 }
 
-@property (strong, nonatomic) NSDictionary *detailInfo;
-@property (assign, nonatomic) AlarmType alarmType;
+@property (strong, nonatomic) GetNotification *detailInfo;
+@property (assign, nonatomic) NotificationType notiType;
 
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)moveToLog:(id)sender;
-- (void)setAlarmInfo:(NSString*)alarmname;
-
+- (void)getDevice:(NSString*)deviceID;
+- (NSString*)getLocalizedDecription:(NSString*)key args:(NSArray*)args;
 @end

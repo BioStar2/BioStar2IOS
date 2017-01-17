@@ -27,6 +27,9 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     switch (_type)
     {
         case PIN:
@@ -73,6 +76,60 @@
     [self closePopup:self parentViewController:self.parentViewController];
 }
 
+- (BOOL)checkPasswordStrengthLevel
+{
+    NSString *password_strength_level;
+    if ([PreferenceProvider isUpperVersion])
+    {
+        password_strength_level = [PreferenceProvider getBioStarSetting].password_strength_level;
+    }
+    else
+    {
+        password_strength_level = [AuthProvider getLoginUserInfo].password_strength_level;
+    }
+    
+    if ([password_strength_level isEqualToString:@"MEDIUM"])
+    {
+        if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
+        {
+            [self.view makeToast:NSLocalizedString(@"password_guide", nil)
+                        duration:2.0
+                        position:CSToastPositionTop
+                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
+            return NO;
+        }
+        if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
+        {
+            [self.view makeToast:NSLocalizedString(@"password_guide", nil)
+                        duration:2.0
+                        position:CSToastPositionTop
+                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
+            return NO;
+        }
+    }
+    else
+    {
+        if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
+        {
+            [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
+                        duration:2.0
+                        position:CSToastPositionTop
+                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
+            return NO;
+        }
+        if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
+        {
+            [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
+                        duration:2.0
+                        position:CSToastPositionTop
+                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
+            return NO;
+        }
+    }
+    
+    return YES;
+}
+
 - (IBAction)confirmCurrentPopup:(id)sender
 {
     if (_type == PIN)
@@ -81,10 +138,12 @@
         {
             [self.view endEditing:YES];
             
-            if ([self.delegate respondsToSelector:@selector(confirmPin:)])
+            if (self.responseBlock)
             {
-                [self.delegate confirmPin:pin];
+                self.responseBlock(_type, pin);
+                self.responseBlock = nil;
             }
+            
             [self closePopup:self parentViewController:self.parentViewController];
         }
         else
@@ -116,44 +175,8 @@
     else
     {
         // 정규식 비교 필요
-        if ([[UserProvider getPasswordStrengthLevel] isEqualToString:@"MEDIUM"])
-        {
-            if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
-            {
-                [self.view makeToast:NSLocalizedString(@"password_guide", nil)
-                            duration:2.0
-                            position:CSToastPositionTop
-                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
-                return;
-            }
-            if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
-            {
-                [self.view makeToast:NSLocalizedString(@"password_guide", nil)
-                            duration:2.0
-                            position:CSToastPositionTop
-                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
-                return;
-            }
-        }
-        else
-        {
-            if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
-            {
-                [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
-                            duration:2.0
-                            position:CSToastPositionTop
-                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
-                return;
-            }
-            if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
-            {
-                [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
-                            duration:2.0
-                            position:CSToastPositionTop
-                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
-                return;
-            }
-        }
+        if(![self checkPasswordStrengthLevel])
+            return;
         
         if (![pin isEqualToString:comparisonPin])
         {
@@ -166,9 +189,10 @@
         
         [self.view endEditing:YES];
         
-        if ([self.delegate respondsToSelector:@selector(confirmPassword:)])
+        if (self.responseBlock)
         {
-            [self.delegate confirmPassword:pin];
+            self.responseBlock(_type, pin);
+            self.responseBlock = nil;
         }
         [self closePopup:self parentViewController:self.parentViewController];
     }
@@ -176,6 +200,10 @@
     
 }
 
+- (void)getResponse:(PinPopupResponseBlock)responseBlock
+{
+    self.responseBlock = responseBlock;
+}
 
 #pragma mark - Table view data source
 

@@ -26,8 +26,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [self setSharedViewController:self];
     canScrollTop = NO;
-    
+    titleLabel.text = NSLocalizedString(@"all_door", nil);
+    totalDecLabel.text = NSLocalizedString(@"total", nil);
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     refreshControl = [[UIRefreshControl alloc] init];
@@ -39,11 +41,9 @@
     offset = 0;
     doors = [[NSMutableArray alloc] init];
     provider = [[DoorProvider alloc] init];
-    provider.delegate = self;
     query = nil;
-    [provider searchDoors:query limit:limit offset:offset];
     isMainRequest = YES;
-    [self startLoading:self];
+    [self searchDoors:query limit:limit offset:offset];
     
 }
 
@@ -101,11 +101,88 @@
 
 - (void)refreshDoors
 {
-    isMainRequest = YES;
     [doors removeAllObjects];
     offset = 0;
-    [provider searchDoors:query limit:limit offset:offset];
+    isMainRequest = YES;
+    [self searchDoors:query limit:limit offset:offset];
+}
+
+- (void)searchDoors:(NSString *)searchQuery limit:(NSInteger)searchLimit offset:(NSInteger)searchOffset
+{
     [self startLoading:self];
+    
+    [provider searchDoors:searchQuery limit:searchLimit offset:searchOffset completeBlock:^(GetDoorList *result) {
+        
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        isMainRequest = NO;
+        
+        NSInteger total = result.total;
+        if (nil == query)
+        {
+            [[NSNotificationCenter defaultCenter] postNotificationName:DOOR_COUNT_UPDATE object:@{@"count" : [NSNumber numberWithInteger:total]}];
+        }
+        
+        [self cancelSearch:nil];
+        [self.view endEditing:YES];
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)total];
+        totalCount = total;
+        
+        if (total != 0)
+        {
+            [doors addObjectsFromArray:result.records];
+            
+            if (doors.count < total)
+            {
+                hasNextPage = YES;
+                offset += limit;
+            }
+            else
+            {
+                hasNextPage = NO;
+            }
+            
+            [doorsTableView reloadData];
+        }
+        else
+        {
+            hasNextPage = NO;
+            [doors removeAllObjects];
+            [doorsTableView reloadData];
+            
+        }
+        
+        
+    } onError:^(Response *error) {
+        
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self searchDoors:query limit:limit offset:offset];
+            }
+            else
+            {
+                if (isMainRequest)
+                {
+                    [self moveToBack:nil];
+                }
+            }
+        }];
+        
+    }];
+    
 }
 /*
 #pragma mark - Navigation
@@ -137,16 +214,15 @@
     DoorCell *customCell = (DoorCell*)cell;
     if (doors.count > 0)
     {
-        NSDictionary *dic = [doors objectAtIndex:indexPath.row];
-        customCell.doorID.text = [dic objectForKey:@"name"];
-        customCell.doorName.text = [dic objectForKey:@"description"];
-        [customCell setDoorStatus:dic];
+        ListDoorItem *door = [doors objectAtIndex:indexPath.row];
+        customCell.doorID.text = door.name;
+        customCell.doorName.text = door.door_description;
+        [customCell setDoorStatus:door];
         if (indexPath.row == doors.count -1)
         {
             if (hasNextPage)
             {
-                [provider searchDoors:query limit:limit offset:offset];
-                [self startLoading:self];
+                [self searchDoors:query limit:limit offset:offset];
             }
         }
     }
@@ -174,73 +250,12 @@
 
 - (void)refreshDoorList
 {
-    [doors removeAllObjects];
-    [provider searchDoors:query limit:limit offset:offset];
     isMainRequest = YES;
-    [self startLoading:self];
-}
-
-#pragma mark - ListPopupViewControllerDelegate
-
-- (void)didSelectCardOption:(NSInteger)optionIndex
-{
-
+    [doors removeAllObjects];
+    [self searchDoors:query limit:limit offset:offset];
     
 }
 
-#pragma mark - DoorProviderDelegate
-- (void)requestGetDoorsDidFinish:(NSArray*)doorArray totalCount:(NSInteger)total
-{
-    [[NSNotificationCenter defaultCenter] postNotificationName:DOOR_COUNT_UPDATE object:@{@"count" : [NSNumber numberWithInteger:total]}];
-    [refreshControl endRefreshing];
-    
-    [self cancelSearch:nil];
-    [self finishLoading];
-    [self.view endEditing:YES];
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)total];
-    totalCount = total;
-    
-    if (total != 0)
-    {
-        [doors addObjectsFromArray:doorArray];
-        
-        if (doors.count < total)
-        {
-            hasNextPage = YES;
-            offset += limit;
-        }
-        else
-        {
-            hasNextPage = NO;
-        }
-        
-        [doorsTableView reloadData];
-    }
-    else
-    {
-        hasNextPage = NO;
-        [doors removeAllObjects];
-        [doorsTableView reloadData];
-        
-    }
-    
-    
-}
-
-- (void)requestDoorProviderDidFail:(NSDictionary*)errDic
-{
-    [refreshControl endRefreshing];
-    [self finishLoading];
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
 
 #pragma mark - UITextFieldDelegate
 
@@ -248,39 +263,22 @@
 {
     [doors removeAllObjects];
     query = textField.text;
+    
+    NSString *tempQuery = [textField.text stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
+    
+    if ([tempQuery isEqualToString:@""])
+    {
+        query = nil;
+    }
     offset = 0;
-    [provider searchDoors:query limit:limit offset:offset];
-    [self startLoading:self];
     isMainRequest = NO;
+    [self searchDoors:query limit:limit offset:offset];
+    
     [textField resignFirstResponder];
     
     return YES;
 }
 
-#pragma mark - ImagePopupDelegate
-- (void)confirmImagePopup
-{
-    if (isMainRequest)
-    {
-        [provider getDoors];
-        isMainRequest = YES;
-        [self startLoading:self];
-    }
-    else
-    {
-        [provider searchDoors:query limit:limit offset:offset];
-        [self startLoading:self];
-        isMainRequest = NO;
-    }
-}
-
-- (void)cancelImagePopup
-{
-    if (isMainRequest)
-    {
-        [self moveToBack:nil];
-    }
-}
 
 #pragma mark - ScrollView Delegate
 

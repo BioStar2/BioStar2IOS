@@ -15,6 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "UserRole.h"
 
 @interface UserDetailOperatorCell : UITableViewCell
 {
@@ -29,4 +30,8 @@
 }
 
 - (void)setOperatorCellContent:(NSArray*)operators isEditMode:(BOOL)flag;
+- (void)setPermission:(NSString*)name isEditMode:(BOOL)flag;
+- (NSString*)getTitle;
+
+
 @end

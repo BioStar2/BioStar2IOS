@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld 분 %ld 초";
 "%ld minute" = "%ld 분";
 "%ld sec" = "%ld 초";
@@ -33,6 +32,35 @@
 "AC" = "활성화";
 "IN" = "비활성화";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ 장치가 재시작 되었습니다.";
+"notificationType.message.deviceRs485Disconnect"      = "%@ 의 연결이 끊어졌습니다.";
+"notificationType.message.deviceTampering"            = "%@ 의 탬퍼가 동작되었습니다.";
+"notificationType.message.doorApb"                    = "안티패스백 알람이 %@ 구역에서 발생했습니다.";
+"notificationType.message.doorForcedOpen"             = "출입문 %@ 이(가) 강제로 개방되었습니다.";
+"notificationType.message.doorHeldOpen"               = "출입문 %@ 이(가) 개방되었습니다.";
+"notificationType.message.doorOpenRequest"            = "사용자(%2$@)에 의해 출입문(%1$@) 개방이 요청되었습니다.";
+"notificationType.message.exception"                  = "예외";
+"notificationType.message.exceptionManagement"        = "예외";
+"notificationType.message.leaveManagement"            = "부재";
+"notificationType.message.zoneApb"                    = "안티패스백 알람이 %@ 구역에서 발생했습니다.";
+"notificationType.message.zoneFire"                   = "화재 경보가 %@ 구역에서 발생했습니다.";
+"notificationType.title.deviceReboot"                 = "장치 재시작";
+"notificationType.title.deviceRs485Disconnect"        = "장치의 RS485 연결이 끊어졌습니다.";
+"notificationType.title.deviceTampering"              = "장치 탬퍼";
+"notificationType.title.doorApb"                      = "출입문 안티패스백";
+"notificationType.title.doorForcedOpen"               = "출입문 강제 열림";
+"notificationType.title.doorHeldOpen"                 = "출입문 장시간 열림";
+"notificationType.title.doorOpenRequest"              = "출입문 개방 요청";
+"notificationType.title.exception"                    = "예외";
+"notificationType.title.exceptionManagement"          = "예외";
+"notificationType.title.leaveManagement"              = "부재";
+"notificationType.title.zoneApb"                      = "안티패스백 구역";
+"notificationType.title.zoneFire"                     = "화재 경보 구역";
+// push
+
 
 "access_group" = "출입 그룹";
 "active" = "활성화";
@@ -102,11 +130,11 @@
 "format" = "형식";
 "from_gallery" = "갤러리에서 가져오기";
 "group" = "그룹";
-"guide_feature_permission" = "해당기능을사용하려면권한이필요합니다.";
+"guide_feature_permission" = "해당 기능을 사용하려면 권한이 필요합니다.";
 "held_opened" = "장시간 문열림";
 "id" = "ID";
 "inactive" = "비활성화";
-"info" = "알림";
+"info" = "정보";
 "inherited" = "상속받은 정보입니다.";
 "inherited_not_change" = "변경할 수 없습니다.";
 "input_port" = "입력 포트";
@@ -175,7 +203,7 @@
 "recent_url" = "접속 주소";
 "registeration_option" = "등록 방법";
 "registeration_option_assign_card" = "카드 할당";
-"registeration_option_card_reader" = "장치리더로 등록(신규카드)";
+"registeration_option_card_reader" = "리더로 등록(신규카드)";
 "relay" = "릴레이";
 "release" = "해제";
 "request_open" = "출입문 개방 요청";
@@ -225,3 +253,56 @@
 "version_mobile" = "BioStar 2 모바일 버전";
 "view_log" = "로그 보기";
 "wait" = "잠시만 기다려주세요..";
+
+
+/////
+"mobile_card" = "모바일 스마트 카드";
+"myprofile_upper" = "내정보";
+"mobile_card_upper" = "모바일 스마트 카드";
+"access_on_card" = "억세스 온 카드";
+"secure_card" = "보안 크리덴셜 카드";
+"donot_again" = "다시 보지 않기";
+"guide_register_mobile_card1" = "발급받은 모바일 카드를 확인할 수 있습니다.";
+"guide_register_mobile_card2" = "모바일 스마트 카드를 등록하면 사용이 가능합니다.";
+"guide_register_mobile_card3" = "모바일 스마트 카드를 터치하여 카드 등록을 요청하세요.";
+"guide_register_mobile_card4" = "스마트폰에 지문이 저장됩니다.";
+"guide_register_mobile_card5" = "사용중인 카드를 잠시 사용 중지하고 싶을 경우,\n 왼쪽으로 밀어주세요.";
+"register_mobile_card" = "해당 카드가 등록되었습니다.";
+"stop_mobile_card" = "해당 카드 사용이 중지되었습니다.";
+"user_other_device_mobile_card" = "다른 기기에서 사용중인 카드입니다.";
+"issue_card_count" = "발급회차";
+"block" = "차단";
+"unblock" = "차단해제";
+"register_card" = "카드 등록";
+"card_type" = "카드 종류";
+"register_method" = "등록 방법";
+"card_data_format" = "카드 데이터 형식";
+"card_layout_format" = "카드 레이아웃 형식";
+"smartcard_type" = "스마트 카드 종류";
+"id_code" = "식별 코드";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "스마트 카드";
+"read_card" = "카드읽기";
+"registeration_option_direct_input" = "직접 입력";
+"none_wigand" = "장치에 선택한 Wiegand 형식이 설정되지 않았습니다. BioStar PC 버전을 통해 장치에 Wigand형식을 설정하십시오.";
+"csn_format_wigand_scan" = "CSN포맷 종류가 Wiegand로 설정되어 있어서 CSN 카드를 스캔할 수 없습니다.";
+"none_registered_fingerprint" = "등록된 지문이 없습니다.";
+"none_select_card" = "카드가 입력(선택)되지 않았습니다.";
+"rescan" = "재 스캔 방법";
+"rescan_default" = "80점 등록 품질(권장)";
+"rescan_change" = "등록 품질 변경";
+"question_block_card" = "선택한 카드를 차단하시겠습니까?";
+"question_unblock_card" = "선택한 카드의 차단을 해제하시겠습니까?";
+"question_reregister_card" = "선택한 모바일 카드를 재등록 하도록 허용하시겠습니까?";
+
+"over_value" = "최대값이 넘었습니다.";
+"discern_empty" = "식별코드가 설정되지 않았습니다.";
+"none_card_layout_format" = "스마트카드 레이아웃 형식이 입력되지 않았습니다.";
+"invalid_card_type" = "카드 형식이 맞지 않습니다.";
+"wiegand_format_empty" = "WIEGAND format이 설정되지 않았습니다.";
+"write_card" = "카드쓰기";
+"invalid_card_id" = "카드 ID는 0으로 시작할 수 없습니다.";
+"non_blocked" = "엑세스 온 카드는 차단 후 삭제 할 수 있습니다.";
+"add_credential" = "크리덴셜을 추가하시겠습니까?";
+/////

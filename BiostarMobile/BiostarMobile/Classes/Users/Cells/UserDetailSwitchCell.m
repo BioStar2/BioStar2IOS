@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -62,4 +63,10 @@
     else
         password.text = @"";
 }
+
+- (NSString*)getTitle
+{
+    return titleLabel.text;
+}
+
 @end

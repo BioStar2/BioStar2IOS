@@ -15,6 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "UserItemAccessGroup.h"
 #import "Common.h"
 
 @interface VerificationCell : UITableViewCell
@@ -23,6 +24,8 @@
 @property (weak, nonatomic) IBOutlet UIImageView *accImage;
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 
-- (void)setCellDictionary:(NSDictionary*)dic;
-- (void)setCardAndFingerprintCell:(NSDictionary*)dic;
+- (void)setAccessGroup:(UserItemAccessGroup*)accessGroup isEditMode:(BOOL)isEditMode;
+- (void)setCheckSeleted:(BOOL)isSelected;
+- (NSString*)getTitle;
+
 @end

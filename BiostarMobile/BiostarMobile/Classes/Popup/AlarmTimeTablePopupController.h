@@ -28,6 +28,7 @@
     __weak IBOutlet UIImageView *notiImage;
     __weak IBOutlet UITableView *timeTableView;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *confirmBtn;
 }
 
 @property (strong, nonatomic) NSMutableArray *timeArray;

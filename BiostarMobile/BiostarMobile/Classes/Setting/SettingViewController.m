@@ -25,17 +25,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
-    _preferenceDic = [[NSMutableDictionary alloc] init];
-    _notifications = [[NSMutableArray alloc] init];
-    
+    titleLabel.text = NSLocalizedString(@"preference", nil);
+    [self setSharedViewController:self];
     provider = [[PreferenceProvider alloc] init];
-    provider.delegate = self;
-    [provider getPreferenceProvider];
-    
-    [self startLoading:self];
     hasNewVersion = NO;
-    
+    [self getPreferencd];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -53,6 +47,79 @@
 }
 */
 
+- (void)getPreferencd
+{
+    [self startLoading:self];
+    
+    [provider getPreferenceWithCompleteHandler:^(Setting *setting) {
+        
+        self.setting = setting;
+        [self getAppVersions];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        //imagePopupCtrl.delegate = self;
+        imagePopupCtrl.type = REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getPreferencd];
+            }
+        }];
+    }];
+    
+    
+    
+}
+
+- (void)getAppVersions
+{
+    [provider getAppVersionsWithCompleteHandler:^(AppVersionInfo *versionInfo) {
+        [self finishLoading];
+        
+        // 단말 버전 서버 버전 비교
+        NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
+        NSString* deviceVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
+        
+        if ([versionInfo.latest_version compare:deviceVersion options:NSNumericSearch] == NSOrderedDescending)
+        {
+            // actualVersion is lower than the requiredVersion
+            hasNewVersion = YES;
+        }
+        
+        [settingTableView reloadData];
+    } onError:^(Response *error) {
+        
+        [self finishLoading];
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        //imagePopupCtrl.delegate = self;
+        imagePopupCtrl.type = REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getAppVersions];
+            }
+        }];
+
+    }];
+    
+}
 
 - (IBAction)moveToBack:(id)sender
 {
@@ -61,25 +128,57 @@
 
 - (IBAction)switchDidChangedValue:(UISwitch *)sender
 {
-    NSMutableDictionary *notification = [[NSMutableDictionary alloc] initWithDictionary:[_notifications objectAtIndex:sender.tag]];
-    [notification setObject:[NSNumber numberWithBool:sender.isOn] forKey:@"subscribed"];
-    
-    [_notifications replaceObjectAtIndex:sender.tag withObject:notification];
-    
+    NotificationSetting* notiSetting = [self.setting.notifications objectAtIndex:sender.tag];
+    notiSetting.subscribed = sender.isOn;    
 }
 
 - (IBAction)saveSettingData:(id)sender
 {
-    [_preferenceDic setObject:_notifications forKey:@"notifications"];
-    [provider setPreferenceProvider:_preferenceDic];
     [self startLoading:self];
+    
+    __weak typeof(self) weakSelf = self;
+    
+    [provider setPreferenceProvider:self.setting CompleteHandler:^(Response *error) {
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        successPopupCtrl.type = SETTING;
+        [weakSelf showPopup:successPopupCtrl parentViewController:weakSelf parentView:weakSelf.view];
+        
+        [successPopupCtrl getResponse:^(OneButtonPopupType type) {
+            if (type == SETTING) {
+                [weakSelf moveToBack:nil];
+            }
+        }];
+
+        
+    } onError:^(Response *error) {
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        //imagePopupCtrl.delegate = self;
+        imagePopupCtrl.type = REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [weakSelf showPopup:imagePopupCtrl parentViewController:weakSelf parentView:weakSelf.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [weakSelf saveSettingData:nil];
+            }
+        }];
+    }];
+    
+    
 }
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    if (![AuthProvider hasWritePermission:@"DOOR"])
+    if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
     {
         return 3;
     }
@@ -108,7 +207,7 @@
             break;
             
         case 3:
-            rowCount = _notifications.count;
+            rowCount = self.setting.notifications.count;
             break;
             
             
@@ -163,12 +262,12 @@
             if (indexPath.row == 0)
             {
                 customCell.titleLabel.text = NSLocalizedString(@"date", nil);
-                customCell.valueLabel.text = [[_preferenceDic objectForKey:@"date_format"] lowercaseString];
+                customCell.valueLabel.text = [self.setting.date_format lowercaseString];
             }
             else
             {
                 customCell.titleLabel.text = NSLocalizedString(@"time", nil);
-                customCell.valueLabel.text = [[_preferenceDic objectForKey:@"time_format"] lowercaseString];
+                customCell.valueLabel.text = [self.setting.time_format lowercaseString];
             }
             return customCell;
             break;
@@ -179,7 +278,7 @@
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell" forIndexPath:indexPath];
             SwitchCell *customCell = (SwitchCell*)cell;
             
-            [customCell setSwitchCellContent:_notifications index:indexPath.row];
+            [customCell setSwitchCellContent:self.setting.notifications[indexPath.row] index:indexPath.row];
             
             return customCell;
             break;
@@ -259,21 +358,32 @@
             {
                 // 날짜
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = DATE_FORMAT;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                [listSubInfoPopupCtrl setContentList:[PreferenceProvider getDataFormatList]];
+                DateTimeFormatPopupViewController *dateTimeFormatPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"DateTimeFormatPopupViewController"];
+                dateTimeFormatPopupCtrl.type = DATE_FORMAT;
+                [self showPopup:dateTimeFormatPopupCtrl parentViewController:self parentView:self.view];
+                [dateTimeFormatPopupCtrl setDateFormats:[PreferenceProvider getDataFormatList]];
+                
+                [dateTimeFormatPopupCtrl getDateFormatResponse:^(DateFormat *dateformat) {
+                    self.setting.date_format = dateformat.date_format;
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:2];
+                    [settingTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                }];
             }
             else
             {
                 // 시간
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = TIME_FORMAT;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                [listSubInfoPopupCtrl setContentList:[PreferenceProvider getTimeFormatList]];
+                DateTimeFormatPopupViewController *dateTimeFormatPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"DateTimeFormatPopupViewController"];
+                dateTimeFormatPopupCtrl.type = TIME_FORMAT;
+                [self showPopup:dateTimeFormatPopupCtrl parentViewController:self parentView:self.view];
+                [dateTimeFormatPopupCtrl setTimeFormats:[PreferenceProvider getTimeFormatList]];
+                
+                
+                [dateTimeFormatPopupCtrl getTimeFormatResponse:^(TimeFormat *timeformat) {
+                    self.setting.time_format = timeformat.time_format;
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:2];
+                    [settingTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                }];
             }
             break;
         default:
@@ -282,99 +392,5 @@
 
 }
 
-#pragma mark - PreferenceProviderDelegate
 
-- (void)requestGetPreferenceDidFinish:(NSDictionary*)preferenceDic
-{
-    [_preferenceDic setDictionary:preferenceDic];
-    [_notifications addObjectsFromArray:[preferenceDic objectForKey:@"notifications"]];
-    
-    
-    [provider getAppVersions];
-}
-
-- (void)requestSetPreferenceDidFinish:(NSDictionary*)resultdic
-{
-    [self finishLoading];
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-    successPopupCtrl.delegate = self;
-    successPopupCtrl.type = SETTING;
-    [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
-}
-
-- (void)requestAppVersionDidFinish:(NSDictionary*)resultdic
-{
-    [self finishLoading];
-    
-    // 단말 버전 서버 버전 비교
-    NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* deviceVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-    NSString* serverVersion = [resultdic objectForKey:@"latest_version"];
-    
-    if ([serverVersion compare:deviceVersion options:NSNumericSearch] == NSOrderedDescending)
-    {
-        // actualVersion is lower than the requiredVersion
-        hasNewVersion = YES;
-    }
-    
-    [settingTableView reloadData];
-}
-
-- (void)requestPreferenceProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-#pragma mark - ListSubInfoPopupDelegate
-
-- (void)confirmTimezone:(NSInteger)index
-{
-    if (index != NOT_SELECTED)
-    {
-        [_preferenceDic setObject:[NSNumber numberWithInteger:index] forKey:@"time_zone"];
-    }
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:1];
-    [settingTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
-
-- (void)confirmTimeFormat:(NSDictionary*)dic
-{
-    [_preferenceDic setObject:[dic objectForKey:@"name"] forKey:@"time_format"];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:2];
-    [settingTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
-
-- (void)confirmDateFormat:(NSDictionary*)dic
-{
-    [_preferenceDic setObject:[dic objectForKey:@"name"] forKey:@"date_format"];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:2];
-    [settingTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
-
-
-#pragma mark - OneButtonPopupDelegate
-
-- (void)didComplete
-{
-    [self moveToBack:nil];
-}
-
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    [self saveSettingData:nil];
-}
 @end

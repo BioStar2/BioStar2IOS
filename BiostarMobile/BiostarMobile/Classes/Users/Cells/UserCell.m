@@ -21,8 +21,10 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
     provider = [[UserProvider alloc] init];
-    provider.delegate = self;
+    
+    _userImage.isThumbNail = YES;
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -31,10 +33,10 @@
     // Configure the view for the selected state
 }
 
-- (void)setCellDictionary:(NSDictionary*)dic
+
+- (void)setUser:(User*)user
 {
-    userInfo = dic;
-    if ([[dic objectForKey:@"selected"] boolValue])
+    if (user.isSelected)
     {
         [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
         [_checkView setHidden:NO];
@@ -45,64 +47,52 @@
         [_checkView setHidden:YES];
     }
     
-    _FPCount.text = [dic objectForKey:@"fingerprint_count"];
-    if (nil == [dic objectForKey:@"name"] || [[dic objectForKey:@"name"] isEqualToString:@""])
-        _name.text = [dic objectForKey:@"user_id"];
+    if ([PreferenceProvider isUpperVersion])
+        _FPCount.text = user.fingerprint_template_count;
     else
-        _name.text = [dic objectForKey:@"name"];
+        _FPCount.text = [NSString stringWithFormat:@"%ld", (long)user.fingerprint_count];
     
-    _userIDLabel.text = [dic objectForKey:@"user_id"];
-    
-    
-    if ([[dic objectForKey:@"card_count"] integerValue] == 0)
-    {
-        [_pinView setHidden:YES];
-    }
+    if (nil == user.name || [user.name isEqualToString:@""])
+        _name.text = user.user_id;
     else
-    {
-        [_pinView setHidden:NO];
-    }
-    _cardCount.text = [dic objectForKey:@"card_count"];
+        _name.text = user.name;
     
-    if ([[dic objectForKey:@"pin_exist"] boolValue])
+    _userIDLabel.text = user.user_id;
+    
+    _cardCount.text = [NSString stringWithFormat:@"%ld", (long)user.card_count];
+    
+    if (user.pin_exist)
         [_pinView setHidden:NO];
     else
         [_pinView setHidden:YES];
-
+    
     
     // 사진 데이터 가져오기
-    if ([[dic valueForKey:@"photo_exist"] boolValue])
+    if (user.photo_exist)
     {
-        NSString *userID = [dic valueForKey:@"user_id"];
-        
-        NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
-        
-        UIImage *userPhoto = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:userPhotoKey];
-        if (userPhoto)
-        {
-            _userImage.image = userPhoto;
-            
-            _userImage.layer.cornerRadius = _userImage.frame.size.height /2;
-            _userImage.layer.masksToBounds = YES;
-            _userImage.layer.borderWidth = 0;
-        }
-        else
-        {
-            _userImage.image = [UIImage imageNamed:@"user_thumb_default"];
-            [provider getUserPhoto:userID];
-        }
+        [self loadUserPhoto:user.user_id];
     }
     else
     {
         _userImage.image = [UIImage imageNamed:@"user_thumb_default"];
     }
-
 }
 
-- (void)requestDidFinishGettingUserPhoto
+- (void)loadUserPhoto:(NSString*)userID
 {
-    [self setCellDictionary:userInfo];
+    NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+    
+    UIImage *userPhoto = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:userPhotoKey];
+    if (userPhoto)
+    {
+        _userImage.image = userPhoto;
+    }
+    else
+    {
+        _userImage.image = [UIImage imageNamed:@"user_thumb_default"];
+    }
 }
+
 
 
 @end

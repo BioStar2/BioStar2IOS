@@ -24,6 +24,9 @@
 
 @end
 
+#define PIN_MAXLENGTH   16
+#define PASSWORD_MAXLENGTH 32
+
 @interface PinCell : UITableViewCell
 {
     __weak IBOutlet UILabel *titleLabel;

@@ -15,11 +15,13 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "AuthProvider.h"
 
 @interface AlarmDoorDetailAcclCell : UITableViewCell
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UILabel *contentLabel;
+    __weak IBOutlet UIImageView *accessImageView;
     
 }
 

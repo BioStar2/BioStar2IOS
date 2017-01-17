@@ -19,11 +19,11 @@
 #import "AuthProvider.h"
 #import "BaseViewController.h"
 #import "DoorProvider.h"
-#import "ListSubInfoPopupViewController.h"
-#import "ImagePopupViewController.h"
+#import "DoorControlPopupViewController.h"
 #import "MonitoringViewController.h"
 #import "EventProvider.h"
 #import "MonitorFilterViewController.h"
+#import "PreferenceProvider.h"
 
 @protocol DoorDetailViewControllerDelegate <NSObject>
 
@@ -33,7 +33,7 @@
 
 @end
 
-@interface DoorDetailViewController : BaseViewController <DoorProviderDelegate, ListSubInfoPopupDelegate, ImagePopupDelegate>
+@interface DoorDetailViewController : BaseViewController
 {
     
     __weak IBOutlet UILabel *titleLabel;
@@ -46,22 +46,25 @@
     __weak IBOutlet UILabel *logLabel;
     __weak IBOutlet UIButton *logLabelButton;
     
-    NSDictionary *doorDic;
+    ListDoorItem *currentDoor;
     BOOL needToReloadDoorList;
     DoorProvider *doorProvider;
-    BOOL isMainRequest;
     NSInteger menuIndex;
     NSInteger doorID;
 }
 
 @property (assign, nonatomic) id <DoorDetailViewControllerDelegate> delegate;
 
+
 - (IBAction)moveToLog:(id)sender;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
-- (void)setDoorInfo:(NSDictionary*)info;
+- (void)setDoorInfo:(ListDoorItem*)door;
+- (void)getDoor:(NSInteger)searchDoorID;
 - (void)getSelectedDoor:(NSInteger)selectedDoorID;  //도어 메인외에 다른 컨트롤러에서 진입할때
 - (void)controlDoorOperator:(NSInteger)index;
+- (void)requestOpen:(NSInteger)openDoorID phoneNumber:(NSString*)phoneNumber;
 - (NSString*)getToastContent;
 - (NSString*)getErrorToastContent:(NSString *)message;
+- (void)showErrorToast:(NSString*)errorMessage;
 @end

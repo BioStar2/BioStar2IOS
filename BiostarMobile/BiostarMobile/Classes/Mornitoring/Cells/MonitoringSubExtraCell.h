@@ -15,6 +15,9 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "EventProvider.h"
+#import "NSString+EnumParser.h"
+#import "AuthProvider.h"
 
 @interface MonitoringSubExtraCell : UITableViewCell
 
@@ -26,10 +29,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *deviceLabel;
 
 
-- (void)setContent:(NSDictionary*)eventInfo doorInfo:(NSDictionary*)doorInfo canMoveDetail:(BOOL)canMoveDetail;
+- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo canMoveDetail:(BOOL)canMoveDetail;
 - (void)setIcon:(NSDictionary*)eventInfo;
 - (BOOL)isInCondition:(NSInteger)min max:(NSInteger)max code:(NSInteger)code imageName:(NSString*)imageName;
-- (void)setGreen:(NSString*)type;
-- (void)setRed:(NSString*)type;
-- (void)setYellow:(NSString*)type;
+- (void)setEventImage:(EventLogResult*)logResult;
 @end

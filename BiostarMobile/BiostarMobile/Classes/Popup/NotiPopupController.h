@@ -23,6 +23,8 @@
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UILabel *contentLabel;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
 }
 

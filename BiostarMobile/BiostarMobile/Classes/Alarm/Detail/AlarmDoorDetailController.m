@@ -24,74 +24,171 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self setSharedViewController:self];
     // Do any additional setup after loading the view.
     
     doorProvider = [[DoorProvider alloc] init];
-    doorProvider.delegate = self;
     menuIndex = NOT_SELECTED;
     
-    isFoundDoor = NO;
     
     // 알림시간 가져오기 위해서 필요함.
     eventProvider = [[EventProvider alloc] init];
-    eventProvider.delegate = self;
-    condition = [[NSMutableDictionary alloc] init];
+    searchQuery = [[EventQuery alloc] init];
+    
+    if ([AuthProvider hasWritePermission:DOOR_PERMISSION])
+    {
+        [doorControlButton setEnabled:YES];
+    }
+    else
+    {
+        if ([AuthProvider hasWritePermission:MONITORING_PERMISSION] &&
+            [AuthProvider hasReadPermission:DOOR_PERMISSION])
+        {
+            [doorControlButton setEnabled:YES];
+        }
+        else
+        {
+            [doorControlButton setEnabled:NO];
+        }
+    }
     
     if (self.detailInfo)
     {
         // 출입문 열림 시간 가져오기
-        NSDictionary *tempDoorDic = [[NSMutableDictionary alloc] initWithDictionary:[[[self.detailInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"door"]];
-        doorID = [[tempDoorDic objectForKey:@"id"] integerValue];
-        [doorProvider getDoor:doorID];
-        isMainRequest = YES;
-        [self startLoading:self];
+        SimpleModel * door = self.detailInfo.event.door_open_request.door;
+        doorID = [door.id integerValue];
         
-        titleLabel.text = [[[self.detailInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"title"];
-        doorDescription.text = [[[self.detailInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"message"];
-        
-        userDic = [[NSMutableDictionary alloc] initWithDictionary:[[[self.detailInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"request_user"]];
-        NSString *phoneNumber = [[[self.detailInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"contact_phone_number"];
-        if (nil != phoneNumber)
+        if ([PreferenceProvider isUpperVersion])
         {
-            [userDic setObject:phoneNumber forKey:@"contact_phone_number"];
+            if (nil == door)
+            {
+                [logImageButton setHidden:YES];
+                [logButton setHidden:YES];
+                [logLabel setHidden:YES];
+                [doorControlButton setEnabled:NO];
+            }
+            else
+            {
+                if ([AuthProvider hasReadPermission:DOOR_PERMISSION])
+                {
+                    [self getDoor:doorID];
+                }
+                else
+                {
+                    [logImageButton setHidden:YES];
+                    [logButton setHidden:YES];
+                    [logLabel setHidden:YES];
+                    [doorControlButton setEnabled:NO];
+                }
+            }
+            
+        }
+        else
+        {
+            [self getDoor:doorID];
         }
         
-        doorNameLabel.text = [tempDoorDic objectForKey:@"name"];
+        
+        titleLabel.text = NSLocalizedString(self.detailInfo.event.door_open_request.title_loc_key, nil);
+        
+        NSArray *args = self.detailInfo.event.door_open_request.loc_args;
+        
+        if (nil != args)
+        {
+            NSRange range = NSMakeRange(0, [args count]);
+            NSMutableData* data = [NSMutableData dataWithLength: sizeof(id) * [args count]];
+            [args getObjects: (__unsafe_unretained id *)data.mutableBytes range:range];
+            
+            NSString *content = [[NSString alloc] initWithFormat:NSLocalizedString(@"notificationType.message.doorOpenRequest", nil) arguments:data.mutableBytes];
+            doorDescription.text = content;
+        }
+        else
+            doorDescription.text = self.detailInfo.event.door_open_request.message;
+        
+        
+        user = self.detailInfo.event.door_open_request.request_user;
+        
+        phoneNumber = self.detailInfo.event.door_open_request.contact_phone_number;
+        
+    }
+    else
+    {
+        // 디테일 인포 없을때
+        [logImageButton setHidden:YES];
+        [logButton setHidden:YES];
+        [logLabel setHidden:YES];
+        [doorControlButton setEnabled:NO];
     }
 }
 
-//- (void)searchEventForNotiTime
-//{
-//    [self setDefaultPeriod];
-//    [self setDefaultEventType];
-//    [self setDefaultDevice];
-//    
-//    [eventProvider searchEvent:condition offset:0 limit:1000];
-//}
+- (void)getDoor:(NSInteger)searchDoorID
+{
+    
+    [self startLoading:self];
+    [doorProvider getDoor:searchDoorID completeBlock:^(ListDoorItem *door) {
+        [self finishLoading];
+        
+        searchedDoor = door;
+        doorNameLabel.text = door.name;
+        [self setDefaultPeriod];
+        [self setDefaultEventType];
+        [self setDefaultDevice];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        if ([error.status_code isEqualToString:@"DOOR_NOT_FOUND"])
+        {
+            // 도어 찾지 못했을때
+            [logImageButton setHidden:YES];
+            [logButton setHidden:YES];
+            [logLabel setHidden:YES];
+            [doorControlButton setEnabled:NO];
+        }
+        else
+        {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:error.message];
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self getDoor:doorID];
+                }
+                
+            }];
+        }
+        
+    }];
+}
 
 - (void)setDefaultEventType
 {
-    NSArray *eventMessages = [eventProvider getEventMessages];
+    NSArray <EventType *>*eventTypes = [eventProvider getEventTypes];
     
-    NSDictionary *doorOpenEvent = nil;
+    EventType *doorOpenEvent = nil;
     
-    for (NSDictionary *event in eventMessages)
+    for (EventType *eventType in eventTypes)
     {
-        NSString *name = [event objectForKey:@"name"];
+        NSString *name = eventType.name;
         if ([name isEqualToString:@"OPEN"])
         {
-            doorOpenEvent = event;
+            doorOpenEvent = eventType;
         }
     }
     
-    NSArray *values = @[[NSString stringWithFormat:@"%ld", (long)[[doorOpenEvent objectForKey:@"code"] integerValue]]];
-    [condition setObject:values forKey:@"event_type_code"];
+    NSArray *values = @[[NSString stringWithFormat:@"%ld", (long)doorOpenEvent.code]];
+    searchQuery.event_type_code = values;
 }
 
 - (void)setDefaultPeriod
 {
     //NSDate *date = [NSDate date];
-    NSDate *date = [CommonUtil dateFromString:[_detailInfo objectForKey:@"event_datetime"]  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    NSDate *date = [CommonUtil dateFromString:self.detailInfo.event_datetime  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
     NSCalendarUnit unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth |  NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond;
     NSDateComponents *dateComponents = [calendar components:unitFlags fromDate:date];
@@ -121,63 +218,57 @@
     
     NSString *expireDateString = [CommonUtil stringFromUTCDateToCurrentDateString:expireDateStr originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
-    [condition setObject:@[startDateString, expireDateString] forKey:@"datetime"];
+    searchQuery.datetime = @[startDateString, expireDateString];
 }
 
 - (void)setDefaultDevice
 {
-    NSDictionary *entryDevice = [doorDic objectForKey:@"entry_device"];
-    NSDictionary *exitDevice = [doorDic objectForKey:@"exit_device"];
-    NSDictionary *doorRelay = [[doorDic objectForKey:@"door_relay"] objectForKey:@"device"];
-    NSDictionary *doorSensor = [[doorDic objectForKey:@"door_sensor"] objectForKey:@"device"];
-    NSDictionary *exitButton = [[doorDic objectForKey:@"exit_button"] objectForKey:@"device"];
+    SimpleModel *entryDevice = searchedDoor.entry_device;;
+    SimpleModel *exitDevice = searchedDoor.exit_device;
+    SimpleModel *doorRelay = searchedDoor.door_relay.device;
+    SimpleModel *doorSensor = searchedDoor.door_sensor.device;
+    SimpleModel *exitButton = searchedDoor.exit_button.device;
     
-    NSMutableArray *deviceIDs = [[NSMutableArray alloc] init];
-    NSMutableArray *devices = [[NSMutableArray alloc] init];
+    NSMutableArray <NSString*> *deviceIDs = [[NSMutableArray alloc] init];
     
     if (entryDevice)
     {
-        [deviceIDs addObject:[entryDevice objectForKey:@"id"]];
-        [devices addObject:entryDevice];
+        [deviceIDs addObject:entryDevice.id];
     }
     
     if (exitDevice)
     {
-        if (![deviceIDs containsObject:[exitDevice objectForKey:@"id"]])
+        if (![deviceIDs containsObject:exitDevice.id])
         {
-            [deviceIDs addObject:[exitDevice objectForKey:@"id"]];
-            [devices addObject:exitDevice];
+            [deviceIDs addObject:exitDevice.id];
         }
     }
     
     if (doorRelay)
     {
-        if (![deviceIDs containsObject:[doorRelay objectForKey:@"id"]])
+        if (![deviceIDs containsObject:doorRelay.id])
         {
-            [deviceIDs addObject:[doorRelay objectForKey:@"id"]];
-            [devices addObject:doorRelay];
+            [deviceIDs addObject:doorRelay.id];
         }
     }
     
     if (doorSensor)
     {
-        if (![deviceIDs containsObject:[doorSensor objectForKey:@"id"]])
+        if (![deviceIDs containsObject:doorSensor.id])
         {
-            [deviceIDs addObject:[doorSensor objectForKey:@"id"]];
-            [devices addObject:doorSensor];
+            [deviceIDs addObject:doorSensor.id];
         }
     }
     
     if (exitButton)
     {
-        if (![deviceIDs containsObject:[exitButton objectForKey:@"id"]])
+        if (![deviceIDs containsObject:exitButton.id])
         {
-            [deviceIDs addObject:[exitButton objectForKey:@"id"]];
-            [devices addObject:exitButton];
+            [deviceIDs addObject:exitButton.id];
         }
     }
+    searchQuery.device_id = deviceIDs;
     
-    [condition setObject:deviceIDs forKey:@"device_id"];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -203,10 +294,13 @@
 - (IBAction)showDoorController:(id)sender
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-    listSubInfoPopupCtrl.delegate = self;
-    listSubInfoPopupCtrl.type = DOOR_CONTROL;
-    [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
+    DoorControlPopupViewController *doorControlPopup = [storyboard instantiateViewControllerWithIdentifier:@"DoorControlPopupViewController"];
+    [self showPopup:doorControlPopup parentViewController:self parentView:self.view];
+    
+    [doorControlPopup getIndexResponse:^(NSInteger index) {
+        [self controlDoorOperator:index];
+    }];
+
 }
 
 - (IBAction)moveToLog:(id)sender
@@ -215,26 +309,22 @@
     MonitoringViewController *mornitorViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitoringViewController"];
     mornitorViewController.requestType = EVENT_DOOR;
     
-    NSDictionary *doorRelay = [[doorDic objectForKey:@"door_relay"] objectForKey:@"device"];
+    SimpleModel *doorRelay = searchedDoor.door_relay.device;
 
+    SearchResultDevice *device = [[SearchResultDevice alloc] init];
+    device.id = doorRelay.id;
+    device.name = doorRelay.name;
     
-    NSMutableArray *deviceIDs = [[NSMutableArray alloc] init];
-    NSMutableArray *devices = [[NSMutableArray alloc] init];
-    
-
+    NSMutableArray <NSString*> *deviceIDs = [[NSMutableArray alloc] init];
+    NSMutableArray <SearchResultDevice*> *devices = [[NSMutableArray alloc] init];
     
     if (doorRelay)
     {
-        if (![deviceIDs containsObject:[doorRelay objectForKey:@"id"]])
-        {
-            [deviceIDs addObject:[doorRelay objectForKey:@"id"]];
-            [devices addObject:doorRelay];
-        }
+        [deviceIDs addObject:doorRelay.id];
+        [devices addObject:device];
     }
 
-    
-    NSDictionary *deviceCondition = @{@"device_id" : deviceIDs};
-    [mornitorViewController setDeviceCondition:deviceCondition];
+    [mornitorViewController setDeviceCondition:deviceIDs];
     [MonitorFilterViewController setFilterDevices:devices];
     
     [self pushChildViewController:mornitorViewController parentViewController:self contentView:self.view animated:YES];
@@ -242,52 +332,182 @@
 
 - (void)controlDoorOperator:(NSInteger)index
 {
+    
     if (index == NOT_SELECTED)
     {
         return;
     }
     
     [self startLoading:self];
-    isMainRequest = NO;
+    
     menuIndex = index;
     switch (index)
     {
         case 0:
+        {
             // open
-            [doorProvider openDoor:doorID];
+            [doorProvider openDoor:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                
+                [self finishLoading];
+                
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"door_is_open", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+                
+            } onError:^(Response *error) {
+                
+                [self finishLoading];
+                
+                [self showErrorToast:error.message];
+            }];
+        }
             break;
         case 1:
+        {
             // lock
-            [doorProvider lockDoor:doorID];
+            [doorProvider lockDoor:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                [self finishLoading];
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"manual_lock", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            } onError:^(Response *error) {
+                [self finishLoading];
+                [self showErrorToast:error.message];
+                
+            }];
+        }
             break;
         case 2:
+        {
             // unlock
-            [doorProvider unlockDoor:doorID];
+            [doorProvider unlockDoor:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                [self finishLoading];
+                
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"manual_unlock", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            } onError:^(Response *error) {
+                [self finishLoading];
+                
+                [self showErrorToast:error.message];
+            }];
+            
+        }
             break;
         case 3:
+        {
             // release
-            [doorProvider releaseDoor:doorID];
+            [doorProvider releaseDoor:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                [self finishLoading];
+                
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"release", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            } onError:^(Response *error) {
+                [self finishLoading];
+                
+                [self showErrorToast:error.message];
+            }];
+            
+        }
             break;
         case 4:
+        {
             // clear APB
-            [doorProvider clearAntiPassback:doorID];
+            [doorProvider clearAntiPassback:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                [self finishLoading];
+                
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"clear_apb", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            } onError:^(Response *error) {
+                [self finishLoading];
+                
+                [self showErrorToast:error.message];
+            }];
+            
+        }
             break;
         case 5:
+        {
             // clear alarm
-            [doorProvider clearAlarm:doorID];
-            break;
+            [doorProvider clearAlarm:[searchedDoor.id integerValue] onComplete:^(Response *error) {
+                [self finishLoading];
+                
+                [self.view makeToast:[self getToastContent]
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"clear_alarm", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            } onError:^(Response *error) {
+                [self finishLoading];
+                
+                [self showErrorToast:error.message];
+            }];
             
-        default:
+        }
             break;
     }
 }
 
+- (void)showErrorToast:(NSString*)errorMessage
+{
+    [self finishLoading];
+    
+   
+    NSString *title = nil;
+    switch (menuIndex)
+    {
+        case 0:
+            // open
+            title = NSLocalizedString(@"request_open_fail", nil);
+            break;
+        case 1:
+            // lock
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_lock", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 2:
+            // unlock
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_unlock", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 3:
+            // release
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"release", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 4:
+            // clear APB
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_apb", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+        case 5:
+            // clear alarm
+            title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_alarm", nil) ,NSLocalizedString(@"fail", nil)];
+            break;
+            
+        default:
+            [self.view makeToast:NSLocalizedString(@"fail", nil)
+                        duration:2.0
+                        position:CSToastPositionBottom
+                           image:[UIImage imageNamed:@"toast_popup_i_02"]];
+            break;
+    }
+    
+    [self.view makeToast:[self getErrorToastContent:errorMessage]
+                duration:2.0 position:CSToastPositionBottom
+                   title:title
+                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
+    
+}
+
 - (NSString*)getToastContent
 {
-    NSString *doorName = [doorDic objectForKey:@"name"];
-    if ([doorName isEqualToString:@""] || nil == doorName)
+    NSString *doorName = searchedDoor.name;
+    if (nil == doorName)
     {
-        doorName = [doorDic objectForKey:@"id"];
+        doorName = searchedDoor.id;
     }
     
     NSString *timeFormat;
@@ -310,10 +530,10 @@
 
 - (NSString*)getErrorToastContent:(NSString *)message
 {
-    NSString *doorName = [doorDic objectForKey:@"name"];
-    if ([doorName isEqualToString:@""] || nil == doorName)
+    NSString *doorName = searchedDoor.name;
+    if (nil == doorName)
     {
-        doorName = [doorDic objectForKey:@"id"];
+        doorName = searchedDoor.id;
     }
     
     NSString *timeFormat;
@@ -356,7 +576,7 @@
             // 알림 시간
             AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
             
-            NSDate *calculatedDate = [CommonUtil dateFromString:[self.detailInfo objectForKey:@"event_datetime"]  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+            NSDate *calculatedDate = [CommonUtil dateFromString:self.detailInfo.event_datetime  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
             
             NSString *timeFormat;
             
@@ -384,8 +604,8 @@
             // 사용자
             AlarmDoorDetailAcclCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailAcclCell" forIndexPath:indexPath];
             NSString *content = [NSString stringWithFormat:@"%@ / %@"
-                                 ,[userDic objectForKey:@"user_id"]
-                                 ,[userDic objectForKey:@"name"]];
+                                 ,user.user_id
+                                 ,user.name];
             [cell setContent:NSLocalizedString(@"user", nil) content:content];
             return cell;
         }
@@ -393,7 +613,7 @@
         case 2:
         {
             // 전화번호
-            if (nil == [userDic objectForKey:@"contact_phone_number"] || [[userDic objectForKey:@"contact_phone_number"] isEqualToString:@""])
+            if (nil == phoneNumber || [phoneNumber isEqualToString:@""])
             {
                 AlarmDoorDetailNormalCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailNormalCell" forIndexPath:indexPath];
                 [cell setContent:NSLocalizedString(@"telephone", nil) content:NSLocalizedString(@"none", nil)];
@@ -402,7 +622,7 @@
             else
             {
                 AlarmDoorDetailAcclCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmDoorDetailAcclCell" forIndexPath:indexPath];
-                NSString *content = [userDic objectForKey:@"contact_phone_number"];
+                NSString *content = phoneNumber;
                 [cell setContent:NSLocalizedString(@"telephone", nil) content:content];
                 return cell;
             }
@@ -424,236 +644,25 @@
 {
     if (indexPath.row == 1)
     {
-//        if (openTimeArray.count > 1)
-//        {
-//            // 열림 시간이 1개 이상일때만 동작
-//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-//            AlarmTimeTablePopupController __weak *alarmTablePopupController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmTimeTablePopupController"];
-//            [alarmTablePopupController setTimeArray:openTimeArray];
-//            [self showPopup:alarmTablePopupController parentViewController:self parentView:self.view];
-//        }
-        
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-        UserNewDetailViewController __weak *userDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
-        [userDetailViewController getUserInfo:[userDic valueForKey:@"user_id"]];
-        [userDetailViewController setType:VIEW_MODE];
-        [self pushChildViewController:userDetailViewController parentViewController:self contentView:self.view animated:YES];
-        
+
+        if ([AuthProvider hasReadPermission:USER_PERMISSION])
+        {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+            UserNewDetailViewController __weak *userDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
+            [userDetailViewController getUserInfo:user.user_id];
+            [userDetailViewController setType:VIEW_MODE];
+            [self pushChildViewController:userDetailViewController parentViewController:self contentView:self.view animated:YES];
+        }
     }
     else if (indexPath.row == 2)
     {
-        if ([userDic objectForKey:@"contact_phone_number"] && ![[userDic objectForKey:@"contact_phone_number"] isEqualToString:@""])
+        if (phoneNumber && ![phoneNumber isEqualToString:@""])
         {
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", [userDic objectForKey:@"contact_phone_number"]]]];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", phoneNumber]]];
         }
     }
     
 }
 
-#pragma mark - ListSubInfoPopupDelegate
-
-- (void)confirmDoorControl:(NSInteger)index
-{
-    [self controlDoorOperator:index];
-}
-
-#pragma mark - DoorProviderDelegate
-
-- (void)requestGetDoorDidFinish:(NSDictionary*)door
-{
-    isFoundDoor = YES;
-    doorDic = [[NSMutableDictionary alloc] initWithDictionary:door];
-    
-    [self setDefaultPeriod];
-    [self setDefaultEventType];
-    [self setDefaultDevice];
-    
-    [self finishLoading];
-    //[self searchEventForNotiTime];
-}
-
-- (void)requestOpenDoorDidFinish:(NSDictionary*)result
-{
-    
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"door_is_open", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestLockDoorDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"manual_lock", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestUnlockDoorDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"manual_unlock", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestReleaseDoorDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"release", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestClearArarmDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"clear_alarm", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestClearAntiPassBackDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"clear_apb", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestAskOpenDoorDidFinish:(NSDictionary *)result
-{
-    [self finishLoading];
-    [self.view makeToast:[self getToastContent]
-                duration:2.0 position:CSToastPositionBottom
-                   title:NSLocalizedString(@"request_open_sent", nil)
-                   image:[UIImage imageNamed:@"toast_popup_i_02"]];
-}
-
-- (void)requestDoorProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    
-    if (isMainRequest)
-    {
-        isFoundDoor = NO;
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-        imagePopupCtrl.delegate = self;
-        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-    }
-    else
-    {
-        NSString *title = nil;
-        switch (menuIndex)
-        {
-            case 0:
-                // open
-                title = NSLocalizedString(@"request_open_fail", nil);
-                break;
-            case 1:
-                // lock
-                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_lock", nil) ,NSLocalizedString(@"fail", nil)];
-                break;
-            case 2:
-                // unlock
-                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"manual_unlock", nil) ,NSLocalizedString(@"fail", nil)];
-                break;
-            case 3:
-                // release
-                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"release", nil) ,NSLocalizedString(@"fail", nil)];
-                break;
-            case 4:
-                // clear APB
-                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_apb", nil) ,NSLocalizedString(@"fail", nil)];
-                break;
-            case 5:
-                // clear alarm
-                title = [NSString stringWithFormat:@"%@ %@",NSLocalizedString(@"clear_alarm", nil) ,NSLocalizedString(@"fail", nil)];
-                break;
-                
-            default:
-                [self.view makeToast:NSLocalizedString(@"fail", nil)
-                            duration:2.0
-                            position:CSToastPositionBottom
-                               image:[UIImage imageNamed:@"toast_popup_i_02"]];
-                break;
-        }
-        
-        [self.view makeToast:[self getErrorToastContent:[errDic objectForKey:@"message"]]
-                    duration:2.0 position:CSToastPositionBottom
-                       title:title
-                       image:[UIImage imageNamed:@"toast_popup_i_02"]];
-    }
-    
-}
-
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    isMainRequest = YES;
-    
-    [doorProvider getDoor:doorID];
-    
-    [self startLoading:self];
-}
-
-- (void)cancelImagePopup
-{
-    if (isMainRequest)
-    {
-        if (isFoundDoor)
-        {
-            [self moveToBack:nil];
-        }
-        else
-        {
-            // 도어 찾지 못했을때
-            [logImageButton setHidden:YES];
-            [logButton setHidden:YES];
-            [logLabel setHidden:YES];
-            [doorControlButton setEnabled:NO];
-        }
-        
-    }
-}
-
-#pragma mark - EventProviderDelegate
-
-//- (void)requestSearchEventDidFinish:(NSArray*)eventArray isNextPage:(BOOL)isNext
-//{
-//    [self finishLoading];
-//    [openTimeArray addObjectsFromArray:eventArray];
-//    [detailTableView reloadData];
-//}
-//
-//- (void)requestSearchEventDidFinish:(NSArray*)eventArray totalCount:(NSInteger)count
-//{
-//    [self finishLoading];
-//    [openTimeArray addObjectsFromArray:eventArray];
-//    [detailTableView reloadData];
-//}
-//
-//- (void)requestEventProviderDidFail:(NSDictionary*)errDic
-//{
-//    [self finishLoading];
-//    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-//    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-//    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-//    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-//    imagePopupCtrl.delegate = self;
-//    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-//    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-//}
 
 @end

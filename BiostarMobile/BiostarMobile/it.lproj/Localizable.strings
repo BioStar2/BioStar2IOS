@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Min %ld sec";
 "%ld minute" = "%ld Min";
 "%ld sec" = "%ld sec";
@@ -29,10 +28,40 @@
 "status_active" = "Stato Attivo";
 "status_inactive" = "Stato Deattiva";
 "time_format" = "Ora Formato";
-"email_not_setted" = "Please set email on device setting app.";
+"email_not_setted" = "Impostare la posta elettronica sul app in impostazione del dispositivo.";
 "AC" = "Attivo";
 "IN" = "Deattiva";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ è stato riavviato.";
+"notificationType.message.deviceRs485Disconnect"      = "%@ è stato disconnesso.";
+"notificationType.message.deviceTampering"            = "%@ è stato manomesso.";
+"notificationType.message.doorApb"                    = "allarme APB è stato rilevato da %@.";
+"notificationType.message.doorForcedOpen"             = "Apertura porta forzata rilevata da %@";
+"notificationType.message.doorHeldOpen"               = "Apertura porta rilevata da %@";
+"notificationType.message.doorOpenRequest"            = "(%1$@)Richiesta apertura porta da parte di un utente(%2$@).";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "allarme APB è stata rilevata da %@.";
+"notificationType.message.zoneFire"                   = "allarme antincendio è stato rilevato da %@.";
+
+"notificationType.title.deviceReboot"                 = "Reboot dispositivo";
+"notificationType.title.deviceRs485Disconnect"        = "La connssione RS485 del dispositivo è disconnesso";
+"notificationType.title.deviceTampering"              = "Manomissione dispositivo";
+"notificationType.title.doorApb"                      = "Porta APB";
+"notificationType.title.doorForcedOpen"               = "Porta forzata";
+"notificationType.title.doorHeldOpen"                 = "Porta tenuta aperta";
+"notificationType.title.doorOpenRequest"              = "Aprire la porta richiesta";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "Zona APB";
+"notificationType.title.zoneFire"                     = "Zona allarme incendio";
+// push
+
 
 "access_group" = "Gruppo Accesso";
 "active" = "Attivo";
@@ -44,6 +73,7 @@
 "all_events" = "Tutti gli Eventi";
 "all_users" = "Tutti gli Utenti";
 "already_assigned" = "Lista gia\' assegnata";
+"allow_permission" = "Autorizzo";
 "app_name" = "BioStar 2";
 "applied_filter" = "Filtro Applicato";
 "biostar2" = "BioStar 2";
@@ -101,6 +131,7 @@
 "format" = "Formato";
 "from_gallery" = "Da Galleria";
 "group" = "Gruppo";
+"guide_feature_permission" = "E' necessario l'autorizzazione per poter utilizzare questa funzione";
 "held_opened" = "Tieni Aperto";
 "id" = "ID";
 "inactive" = "Deattiva";
@@ -174,6 +205,7 @@
 "registeration_option_assign_card" = "Assegna Carta";
 "registeration_option_card_reader" = "Registra via Lettore Carte";
 "relay" = "Rele\'";
+"release" = "release";
 "request_open" = "Richiesta apertura porta";
 "request_open_fail" = "Richiesta apertura porta negata";
 "request_open_sent" = "Richiesta apertura porta inviata";
@@ -221,3 +253,46 @@
 "version_mobile" = "Versione mobile BioStar 2";
 "view_log" = "Visualizza Log";
 "wait" = "Attendere…";
+
+
+/////
+"mobile_card" = "Mobile Smart Card";
+"myprofile_upper" = "Il mio profilo";
+"mobile_card_upper" = "Mobile Smart Card";
+"access_on_card" = "Accesso tramite carta";
+"secure_card" = "Carta sicura";
+"donot_again" = "Non visualizzare di nuovo.";
+"guide_register_mobile_card1" = "Controllare il rilascio mobile smart cards.";
+"guide_register_mobile_card2" = "Utilizza mobile smart card dopo la registrazione.";
+"guide_register_mobile_card3" = "Tocca il mobile smart card per registrare.";
+"guide_register_mobile_card4" = "Le impronte sono salvate sul dispotivo mobile.";
+"guide_register_mobile_card5" = "Quando si desidera disattivare un mobile smart card,\nscorrere verso sinistra.";
+"register_mobile_card" = "La carta selezionata è registrata.";
+"stop_mobile_card" = "La carta selezionata è disattivata.";
+"user_other_device_mobile_card" = "TQuesta carta è utilizzata da un altro dispositivo mobile.";
+"issue_card_count" = "Emissione carta";
+"block" = "Blocco";
+"unblock" = "Sblocco";
+"register_card" = "Registrazione carta";
+"card_type" = "Tipo di carta";
+"register_method" = "Metodo di registrazione";
+"card_data_format" = "Formato dati carta";
+"card_layout_format" = "Formato Layout carta";
+"smartcard_type" = "Tipologia di carta";
+"id_code" = "Codice impianto";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "Smart Card";
+"read_card" = "Leggi carta";
+"registeration_option_direct_input" = "Inserisci manualmente";
+"none_wigand" = "Il formato Wiegand selezionato non è impostato sul dispositivo. Impostare il formato Wiegand con il software BioStar da pc.";
+"csn_format_wigand_scan" = "La carta CSN non può essere acquisita in quanto il tipo di formato CSN è Wiegand.";
+"none_registered_fingerprint" = "Non ci sono impronte registrate.";
+"none_select_card" = "Nessun ingresso carta (selezione) è stato creato.";
+"rescan" = "Metodo riscansione";
+"rescan_default" = "Punteggio scansione di qualità: 80 (consigliata)";
+"rescan_change" = "Cambiare qualità di scansione";
+"question_block_card" = "Vuoi bloccare una carta selezionata?";
+"question_unblock_card" = "Vuoi sbloccare una carta selezionata?";
+"question_reregister_card" = "Vuoi consentire una nuova registrazione con mobile smart card selezionata?";
+////

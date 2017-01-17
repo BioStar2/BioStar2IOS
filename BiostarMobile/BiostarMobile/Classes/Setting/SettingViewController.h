@@ -22,23 +22,25 @@
 #import "DateTimeCell.h"
 #import "SwitchCell.h"
 #import "PreferenceProvider.h"
-#import "ListSubInfoPopupViewController.h"
+#import "AuthProvider.h"
+#import "DateTimeFormatPopupViewController.h"
 #import "OneButtonPopupViewController.h"
 #import "ImagePopupViewController.h"
 
-@interface SettingViewController : BaseViewController <PreferenceProviderDelegate, ListSubInfoPopupDelegate, OneButtonPopupDelegate, ImagePopupDelegate>
+@interface SettingViewController : BaseViewController
 {
-    
     __weak IBOutlet UITableView *settingTableView;
+    __weak IBOutlet UILabel *titleLabel;
     PreferenceProvider *provider;
     BOOL hasNewVersion;
     
 }
 
-@property (strong, nonatomic) NSMutableDictionary *preferenceDic;
-@property (strong, nonatomic) NSMutableArray *notifications;
+@property (strong, nonatomic) Setting *setting;
 @property (strong, nonatomic) NSString *userID;
 
+- (void)getPreferencd;
+- (void)getAppVersions;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)switchDidChangedValue:(UISwitch *)sender;
 - (IBAction)saveSettingData:(id)sender;

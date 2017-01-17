@@ -26,19 +26,10 @@ typedef enum{
     LOGIN_INFO_LACK,
     FORCE_UPDATE_NEED,
     SETTING,
-} Popup_Type;
+    CARD_CHANGED,
+    PERMISSION_DENIED
+} OneButtonPopupType;
 
-@protocol OneButtonPopupDelegate <NSObject>
-
-@optional
-
-- (void)didComplete;
-- (void)updateComplete;
-- (void)createComplete;
-- (void)moveToAppstore;
-- (void)fingerprintVarificationFailed;
-
-@end
 
 @interface OneButtonPopupViewController : BaseViewController
 {
@@ -47,14 +38,18 @@ typedef enum{
     __weak IBOutlet UIView *containerView;
     __weak IBOutlet UIImageView *notiImage;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *confirmBtn;
     
 
 }
 
-@property (assign, nonatomic) id <OneButtonPopupDelegate> delegate;
-@property (assign, nonatomic) Popup_Type type;
+typedef void (^ResponseBlock)(OneButtonPopupType type);
+
+@property (assign, nonatomic) OneButtonPopupType type;
 @property (strong, nonatomic) NSString *popupContent;
+@property (nonatomic, strong) ResponseBlock responseBlock;
 
 - (IBAction)closePopup:(id)sender;
+- (void)getResponse:(ResponseBlock)responseBlock;
 
 @end

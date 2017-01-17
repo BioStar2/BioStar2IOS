@@ -25,6 +25,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     datePicker.timeZone = [NSTimeZone timeZoneWithName:@"GMT"];
     _isLocalTime = NO;
 }
@@ -50,6 +52,10 @@
 }
 */
 
+- (void)getResponse:(DatePickerPopupResponseBlock)responseBlock
+{
+    self.responseBlock = responseBlock;
+}
 
 - (IBAction)cancelDateFilter:(id)sender
 {
@@ -58,9 +64,10 @@
 
 - (IBAction)confirmDateFilter:(id)sender
 {
-    if ([self.delegate respondsToSelector:@selector(confirmDateFilter:isStartDate:)])
+    if (self.responseBlock)
     {
-        [self.delegate confirmDateFilter:[datePicker.date debugDescription] isStartDate:_isStartDate];
+        self.responseBlock([datePicker.date debugDescription]);
+        self.responseBlock = nil;
     }
     
     [self closePopup:self parentViewController:self.parentViewController];

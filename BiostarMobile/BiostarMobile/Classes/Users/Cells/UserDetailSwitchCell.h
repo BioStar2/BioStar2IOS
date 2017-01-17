@@ -38,4 +38,6 @@
 - (void)setCellPinContent:(BOOL)flag;
 - (IBAction)cellSwitchValueDidChange:(UISwitch *)sender;
 
+- (NSString*)getTitle;
+
 @end

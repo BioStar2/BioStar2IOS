@@ -16,35 +16,28 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
-#import "DeviceProvider.h"
-#import "ListPopupViewController.h"
+#import "AuthProvider.h"
+#import "UserProvider.h"
 #import "ScanPopupViewController.h"
 #import "VerificationCell.h"
 #import "ListSubInfoPopupViewController.h"
+#import "AccessGroupPopupViewController.h"
 #import "ImagePopupViewController.h"
-#import "OneButtonPopupViewController.h"
-
-typedef enum
-{
-    FINGERPRINT,
-    CARD,
-    ACCESS_GROUPS,
-    OPERATOR,
-    
-} VerificationType;
-
+#import "DevicePopupViewController.h"
+#import "CardPopupViewController.h"
+#import "ScanQualityPopupViewController.h"
+#import "ScanCardPopupViewController.h"
 
 @protocol UserVerificationAddViewControllerDelegate <NSObject>
 
 @optional
 
-- (void)fingerprintDidAdd:(NSArray*)fingerprintTemplates;
-- (void)cardDidAdd:(NSArray*)cards;
-- (void)accessGroupDidChange:(NSArray*)groups;
-- (void)operatorValueDidChange:(NSArray*)operators;
+- (void)fingerprintWasChanged:(NSArray<FingerprintTemplate*>*)fingerprintTemplates;
+- (void)accessGroupDidChange:(NSArray<UserItemAccessGroup*>*)groups;
+- (void)cardWasChanged:(NSArray<Card*>*)cards;
 @end
 
-@interface UserVerificationAddViewController : BaseViewController <ListPopupViewControllerDelegate, ScanPopupViewControllerDelegate, DeviceProviderDelegate, ListSubInfoPopupDelegate, ImagePopupDelegate>
+@interface UserVerificationAddViewController : BaseViewController
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UITableView *contentTableView;
@@ -55,20 +48,38 @@ typedef enum
     __weak IBOutlet UIView *editButtonView;
     __weak IBOutlet UIView *doneButtonView;
     __weak IBOutlet UIButton *selectAllButton;
+    __weak IBOutlet UILabel *totalDecLabel;
     
-    NSMutableDictionary *infoDic;
-    NSMutableDictionary *fingerPrintDic;    // 지문 정보 딕션어리
-    NSMutableArray *verificationInfos;      // 카드, 지문 정보들(화면에 테이블로 뿌려주기 위한)
+    NSMutableArray <FingerprintTemplate *>*fingerPrintTemplates;        // 지문 정보들(화면에 테이블로 뿌려주기 위한)
+    NSMutableArray <UserItemAccessGroup*> *userAccessGroups;            // access groups
+    NSMutableArray <Card*> *userCards;                                  // user cards
+    
+    FingerprintTemplate *userFingerPrintTemplate;                       // 스캔 후에 verify 까지 끝난 정보
+    FingerprintTemplate *fingerPrintResult;                           // 성공한 첫번째 스캔정보
     NSMutableArray *toDeleteArray;
-    DeviceProvider *deviceProvider;
-    NSInteger fingerPrintScanCount;                    // 지문 스캔 카운트 (실패했을때 저장하기 위한 용도)
-    NSInteger scanIndex;                    // 스캔 팝업에 몇번째인지 노출될 변수
-    NSInteger maxFingerprintIndex;          // 지문 인덱스 중복을 막기위해 제일 높은 인덱스 + 1
-    NSInteger toBeSwitchedIndex;            // 지문 인덱스 선택으로 바뀔 인덱스
+    UserProvider *userProvider;
+    User *currentUser;
+    
+    NSInteger fingerPrintScanCount;                                     // 지문 스캔 카운트 (실패했을때 저장하기 위한 용도)
+    NSInteger scanIndex;                                                // 스캔 팝업에 몇번째인지 노출될 변수
+    NSInteger maxFingerprintIndex;                                      // 지문 인덱스 중복을 막기위해 제일 높은 인덱스 + 1
+    NSInteger toBeSwitchedIndex;                                        // 지문 인덱스 선택으로 바뀔 인덱스
     BOOL isSelectedAll;
     BOOL isForSwitchIndex;
-    BOOL isForAPIRetry;
+    
+    NSUInteger scanQuality;
+    
+    SearchResultDevice *selectedDevice;                                 // 지문 카드스캔을 위한 선택한 디바이스
+    
 }
+
+typedef enum
+{
+    FINGERPRINT,
+    ACCESS_GROUPS,
+    CARD
+    
+} VerificationType;
 
 @property (assign, nonatomic) BOOL isProfileMode;
 @property (assign, nonatomic) VerificationType type;
@@ -79,8 +90,22 @@ typedef enum
 - (IBAction)deleteVerification:(id)sender;
 - (IBAction)done:(id)sender;
 - (IBAction)selectAll:(UIButton *)sender;
-- (void)setVerificationInfo:(NSArray*)infos;
-- (void)setAccessGroup:(NSArray*)accessGroup withUserGroup:(NSArray*)userGroup;
-- (void)showScanPopup:(VerificationType)type;
-- (void)setOperators:(NSArray*)operators;
+
+- (void)setUserInfo:(User*)user;
+- (void)deleteFingerprintTemplates;
+- (void)getUserFingerprintTemplates;
+- (void)updateFingerprintTemplages:(FingerprintTemplate*)fingerprintTemplate;
+- (void)addFingerprint;
+- (void)replaceFingerprint:(NSIndexPath*)indexPath;
+- (void)addCard;
+- (void)replaceCard:(NSIndexPath*)indexPath;
+- (void)addAccessGroup;
+- (void)replaceAccessGroup:(NSIndexPath*)indexPath;
+- (BOOL)hasEqualCard:(Card*)card;
+- (void)setFingerPrintTemplates:(NSArray<FingerprintTemplate*>*)templates;
+- (void)setCards:(NSArray<Card*>*)cards;
+- (void)setAccessGroup:(NSArray*)accessGroups withUserGroup:(NSArray*)userGroups;
+- (void)showFingerprintScanPopup;
+
+
 @end

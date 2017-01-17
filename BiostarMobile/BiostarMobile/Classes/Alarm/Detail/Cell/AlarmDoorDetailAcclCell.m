@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -32,6 +33,15 @@
 {
     titleLabel.text = title;
     contentLabel.text = content;
+    
+    if ([AuthProvider hasReadPermission:USER_PERMISSION])
+    {
+        [accessImageView setHidden:NO];
+    }
+    else
+    {
+        [accessImageView setHidden:YES];
+    }
 }
 
 @end

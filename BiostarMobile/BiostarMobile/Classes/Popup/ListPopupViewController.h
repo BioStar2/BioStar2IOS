@@ -16,56 +16,54 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
-#import "UserProvider.h"
-#import "PermissionProvider.h"
 #import "RadioCell.h"
-#import "DeviceProvider.h"
+#import "CardProvider.h"
 #import "ImagePopupViewController.h"
+#import "SelectModel.h"
 
-
-@protocol ListPopupViewControllerDelegate <NSObject>
-
-@optional
-
-- (void)didSelectContent:(NSDictionary*)dic;
-
-// 지문추가시 단말 선택 팝업에서 단말을 선택했을때 호출
-- (void)didSelectCardOption:(NSInteger)optionIndex;
-- (void)didSelectDateOption:(NSInteger)optionIndex;
-- (void)didSelectCard:(NSDictionary*)cardInfo;
-
-- (void)cancelListPopupWithError:(NSDictionary*)errDic;
-@end
-
-
-@interface ListPopupViewController :BaseViewController <UserProviderDelegate, PermissionProviderDelegate, DeviceProviderDelegate, ImagePopupDelegate>
+@interface ListPopupViewController :BaseViewController
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UITableView *contentTableView;
     __weak IBOutlet UIView *containerView;
     __weak IBOutlet NSLayoutConstraint *heightConstraint;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
-    UserProvider *userProvider;
-    PermissionProvider *permissionProvider;
-    DeviceProvider *deviceProvider;
-    
+    CardProvider *cardProvider;
     NSInteger selectedIndex;
-    NSMutableDictionary *contentDic;
-    NSMutableArray *contentListArray;
-    NSInteger offset;
-    NSInteger limit;
-    NSString *query;
+    NSMutableArray <SelectModel*>*contentListArray;
     
 }
 
-@property (assign, nonatomic) BOOL isRadioStyle;
-@property (assign, nonatomic) ListType type;
-@property (assign, nonatomic) id <ListPopupViewControllerDelegate>delegate;
+typedef enum{
+    
+    CARD_OPTION,                    // 사용자 편집에서 카드 선택 옵션
+    PEROID,                         // 사용자 편집에서 시작 만료 시간
+    CARD_TYPE,
+    SCAN_METHOD,
+    REGISTRATION_POPUP,
+    SMART_CARD_POPUP,
+    WIGAND_CARD_POPUP
+    
+} PopupType;
+
+typedef void (^ListPopupIndexResponseBlock)(NSInteger index);
+typedef void (^ListPopupModelResponseBlock)(SelectModel *model);
+typedef void (^ListPopupCancelBlock)();
+
+@property (assign, nonatomic) PopupType type;
+@property (nonatomic, strong) ListPopupIndexResponseBlock indexResponseBlock;
+@property (nonatomic, strong) ListPopupModelResponseBlock modelResponseBlock;
+@property (nonatomic, strong) ListPopupCancelBlock cancelBlock;
 
 - (IBAction)cancelCurrentPopup:(id)sender;
 - (IBAction)confirmCurrentPopup:(id)sender;
-- (void)addOptions:(NSArray*)options;
+- (void)addOptions:(NSArray <NSString*> *)names;
 - (void)adjustHeight:(NSInteger)count;
-
+- (void)getIndexResponseBlock:(ListPopupIndexResponseBlock)responseBlock;
+- (void)getModelResponseBlock:(ListPopupModelResponseBlock)responseBlock;
+- (void)getCancelBlock:(ListPopupCancelBlock)cancelBlock;
+- (void)getWiegandCardFormats;
 @end

@@ -25,6 +25,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     [containerView setHidden:YES];
     switch (_type)
     {
@@ -65,6 +66,15 @@
             titleLabel.text = NSLocalizedString(@"info", nil);
             contentLabel.text = NSLocalizedString(@"success", nil);
             break;
+        case CARD_CHANGED:
+            titleLabel.text = NSLocalizedString(@"info", nil);
+            contentLabel.text = NSLocalizedString(@"success", nil);
+            break;
+        case PERMISSION_DENIED:
+            titleLabel.text = NSLocalizedString(@"info", nil);
+            notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
+            contentLabel.text = _popupContent;
+            break;
     }
 }
 
@@ -91,50 +101,18 @@
 }
 */
 
+- (void)getResponse:(ResponseBlock)responseBlock
+{
+    self.responseBlock = responseBlock;
+}
+
 - (IBAction)closePopup:(id)sender
 {
-    switch (_type)
+    if (self.responseBlock)
     {
-        case FORCE_UPDATE_NEED:
-            if ([self.delegate respondsToSelector:@selector(moveToAppstore)])
-            {
-                [self.delegate moveToAppstore];
-            }
-            break;
-        case UPDATE_USER:
-            if ([self.delegate respondsToSelector:@selector(updateComplete)])
-            {
-                [self.delegate updateComplete];
-            }
-            [self closePopup:self parentViewController:self.parentViewController];
-            break;
-        case SETTING:
-            if ([self.delegate respondsToSelector:@selector(didComplete)])
-            {
-                [self.delegate didComplete];
-            }
-            [self closePopup:self parentViewController:self.parentViewController];
-        case CREATE_USER:
-            if ([self.delegate respondsToSelector:@selector(createComplete)])
-            {
-                [self.delegate createComplete];
-            }
-            [self closePopup:self parentViewController:self.parentViewController];
-            break;
-        case FINGERPRINT_VERIFICATION_FAIL:
-            if ([self.delegate respondsToSelector:@selector(fingerprintVarificationFailed)])
-            {
-                [self.delegate fingerprintVarificationFailed];
-            }
-            [self closePopup:self parentViewController:self.parentViewController];
-            break;
-        default:
-            if ([self.delegate respondsToSelector:@selector(didComplete)])
-            {
-                [self.delegate didComplete];
-            }
-            [self closePopup:self parentViewController:self.parentViewController];
-            break;
+        self.responseBlock(_type);
+        self.responseBlock = nil;
     }
+    [self closePopup:self parentViewController:self.parentViewController];
 }
 @end

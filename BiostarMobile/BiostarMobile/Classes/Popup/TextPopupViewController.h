@@ -22,17 +22,8 @@ typedef enum
     USER_DELETE,
     ALARM_DELETE,
     
-} TextType;
+} TextPopupType;
 
-@protocol TextPopupDelegate <NSObject>
-
-@optional
-
-- (void)cancelModify;
-- (void)confirmDeleteUser;
-- (void)confirmDeleteAlarm;
-
-@end
 
 @interface TextPopupViewController : BaseViewController
 {
@@ -41,14 +32,20 @@ typedef enum
     __weak IBOutlet UILabel *contentLabel;
     __weak IBOutlet NSLayoutConstraint *heightConstraint;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
     NSString *contentText;
 }
 
-@property (assign, nonatomic) TextType type;
-@property (assign, nonatomic) id <TextPopupDelegate> delegate;
+typedef void (^TextPopupResponseBlock)(TextPopupType type, BOOL isConfirm);
+
+@property (nonatomic, strong) TextPopupResponseBlock responseBlock;
+@property (assign, nonatomic) TextPopupType type;
+
 
 - (IBAction)cancelCurrentPopup:(id)sender;
 - (IBAction)confirmCurrentPopup:(id)sender;
 - (void)setContent:(NSString*)content;
+- (void)getResponse:(TextPopupResponseBlock)responseBlock;
 @end

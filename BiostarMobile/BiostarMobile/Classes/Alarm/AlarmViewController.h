@@ -17,6 +17,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 #import "AlarmCell.h"
+#import "NSString+EnumParser.h"
 #import "PreferenceProvider.h"
 #import "ImagePopupViewController.h"
 #import "TextPopupViewController.h"
@@ -25,7 +26,7 @@
 #import "AlarmForcedOpenDetailController.h"
 
 
-@interface AlarmViewController : BaseViewController <PreferenceProviderDelegate, ImagePopupDelegate, TextPopupDelegate>
+@interface AlarmViewController : BaseViewController
 {
     __weak IBOutlet UITableView *alarmTableView;
     __weak IBOutlet UILabel *titleLabel;
@@ -37,6 +38,8 @@
     __weak IBOutlet UILabel *totalCountLabel;
     __weak IBOutlet UILabel *deleteTotalCount;
     __weak IBOutlet UIButton *selectAllButton;
+    __weak IBOutlet UILabel *totalDecLabel;
+    __weak IBOutlet UILabel *selectTotalDecLabel;
     
     BOOL isDeleteMode;
     BOOL hasNextPage;
@@ -49,20 +52,23 @@
     NSInteger offset;
     NSInteger limit;
     NSInteger toDeletedNewAlarmCount;
-    NSMutableArray *alarmArray;
-    NSMutableArray *toDeleteArray;
+    NSMutableArray <GetNotification*> *notifications;
+    NSMutableArray <NSString*> *toDeleteArray;
     CGFloat firstYPosition;
     float secondYPosition;
     
     PreferenceProvider *provider;
 }
 
+- (void)getNotifications:(NSInteger)notiLimit offset:(NSInteger)notiOffset;
+- (void)readNotification:(NSString*)notiID;
+- (void)deleteNotifications:(NSArray*)notiIDs;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)changeToDeleteMode:(id)sender;
 - (IBAction)scrollTopOrBottom:(id)sender;
 - (IBAction)deleteAlarm:(id)sender;
 - (IBAction)selectAll:(id)sender;
 - (void)readAlarm:(NSInteger)index;
-- (void)moveToAlarmDetail:(NSDictionary*)notiInfo;
+- (void)moveToAlarmDetail:(GetNotification*)notiInfo;
 
 @end

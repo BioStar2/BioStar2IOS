@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -41,6 +42,27 @@
         [_checkImage setHidden:YES];
     }
     
+}
+
+- (void)checkSelected:(BOOL)isSelected isLimited:(BOOL)isLimited
+{
+    if (!isLimited)
+    {
+        [self checkSelected:isSelected];
+    }
+    else
+    {
+        if (isSelected)
+        {
+            [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
+            [_checkImage setHidden:NO];
+        }
+        else
+        {
+            [self.contentView setBackgroundColor:[UIColor grayColor]];
+            [_checkImage setHidden:YES];
+        }
+    }
 }
 
 @end

@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld 分 %ld 秒";
 "%ld minute" = "%ld 分";
 "%ld sec" = "%ld 秒";
@@ -33,6 +32,35 @@
 "AC" = "有効";
 "IN" = "無効";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ 端末が再起動されました。";
+"notificationType.message.deviceRs485Disconnect"      = "%@ の接続が切断されました。";
+"notificationType.message.deviceTampering"            = "%@ のタンパーが動作しました。";
+"notificationType.message.doorApb"                    = "アンチパスバックアラームが %@ エリアで発生しました。";
+"notificationType.message.doorForcedOpen"             = "ドア %@ がこじ開けられました。";
+"notificationType.message.doorHeldOpen"               = "ドア %@ が開放されています。";
+"notificationType.message.doorOpenRequest"            = "ユーザー(%2$@)によって、ドア(%1$@)の開放要求がありました。";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "アンチパスバックアラームが%@エリアで発生しました。";
+"notificationType.message.zoneFire"                   = "火災警報が%@エリアで発生しました。";
+
+"notificationType.title.deviceReboot"                 = "端末再起動";
+"notificationType.title.deviceRs485Disconnect"        = "RS-485接続が切断されました。";
+"notificationType.title.deviceTampering"              = "端末タンパー動作";
+"notificationType.title.doorApb"                      = "ドア アンチパスバック";
+"notificationType.title.doorForcedOpen"               = "ドア こじ開け";
+"notificationType.title.doorHeldOpen"                 = "ドア 開放異常";
+"notificationType.title.doorOpenRequest"              = "ドア 開放要求";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "APBゾーン";
+"notificationType.title.zoneFire"                     = "火災警報ゾーン";
+// push
 
 
 "access_group" = "アクセスグループ";
@@ -225,3 +253,46 @@
 "version_mobile" = "BioStar2 モバイル バージョン";
 "view_log" = "ログ表示";
 "wait" = "しばらくお待ちください。";
+
+
+/////
+"mobile_card" = "モバイルスマートカード";
+"myprofile_upper" = "プロファイル";
+"mobile_card_upper" = "モバイルスマートカード";
+"access_on_card" = "アクセス オン カード";
+"secure_card" = "セキュアカード";
+"donot_again" = "再表示なし";
+"guide_register_mobile_card1" = "モバイルスマートカードの発行確認。";
+"guide_register_mobile_card2" = "登録の後、モバイルスマートカードが利用可能です。";
+"guide_register_mobile_card3" = "登録のために、モバイルスマートカードを かざしてください。";
+"guide_register_mobile_card4" = "スマートフォンに指紋が登録されます。";
+"guide_register_mobile_card5" = "モバイルスマートカードを停止したい場合は、\n左にスワイプしてください。";
+"register_mobile_card" = "カードが登録されました。";
+"stop_mobile_card" = "カードの利用が停止されました。";
+"user_other_device_mobile_card" = "他のスマートフォンで利用されているカードです。";
+"issue_card_count" = "発行回数";
+"block" = "ブロック";
+"unblock" = "ブロック解除";
+"register_card" = "カードの登録";
+"card_type" = "カードの種類";
+"register_method" = "登録方法";
+"card_data_format" = "カードのデータ形式";
+"card_layout_format" = "カードのレイアウト形式";
+"smartcard_type" = "スマートカードの種類";
+"id_code" = "ファシリティコード";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "スマートカード";
+"read_card" = "カード読込み";
+"registeration_option_direct_input" = "直接入力";
+"none_wigand" = "Wiegandを設定できません。PC版のBioStarを利用して設定してください。";
+"csn_format_wigand_scan" = "カードの形式がWiegandに設定されているため、CSNが読取れません。";
+"none_registered_fingerprint" = "指紋データが登録されていません。";
+"none_select_card" = "カード入力（選択）なし";
+"rescan" = "再スキャン方法";
+"rescan_default" = "スキャン品質スコア：80（推奨）";
+"rescan_change" = "スキャン品質の変更";
+"question_block_card" = "選択したカードをブロックしますか？";
+"question_unblock_card" = "選択したカードのブロックを解除しますか？";
+"question_reregister_card" = "選択したモバイルスマートカードの再登録を許可しますか？";
+////

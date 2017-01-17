@@ -20,6 +20,7 @@
 @interface RadioCell : UITableViewCell
 
 - (void)checkSelected:(BOOL)isSelected;
+- (void)checkSelected:(BOOL)isSelected isLimited:(BOOL)isLimited;
 
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *checkImage;

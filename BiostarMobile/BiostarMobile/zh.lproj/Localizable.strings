@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld 分钟 %ld 秒";
 "%ld minute" = "%ld 分钟";
 "%ld sec" = "%ld 秒";
@@ -33,6 +32,35 @@
 "AC" = "有效";
 "IN" = "无效";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ 被重启";
+"notificationType.message.deviceRs485Disconnect"      = "%@ 断开";
+"notificationType.message.deviceTampering"            = "%@ 被强拆";
+"notificationType.message.doorApb"                    = "从%@上检测到反潜返警报";
+"notificationType.message.doorForcedOpen"             = "从%@上检测到强制破门";
+"notificationType.message.doorHeldOpen"               = "从%@上检测到门长开未关";
+"notificationType.message.doorOpenRequest"            = "(%1$@)门收到用户(%2$@)开门请求";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "%@ 上检测到反潜返警报";
+"notificationType.message.zoneFire"                   = "%@ 上检测到火警警报";
+
+"notificationType.title.deviceReboot"                 = "重启设备";
+"notificationType.title.deviceRs485Disconnect"        = "设备RS485连接断开";
+"notificationType.title.deviceTampering"              = "设备被强拆";
+"notificationType.title.doorApb"                      = "反潜返门";
+"notificationType.title.doorForcedOpen"               = "强制破门";
+"notificationType.title.doorHeldOpen"                 = "门长开未关";
+"notificationType.title.doorOpenRequest"              = "开门请求";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "反潜返区域";
+"notificationType.title.zoneFire"                     = "火警区域";
+// push
 
 
 "access_group" = "访问权限分组";
@@ -226,3 +254,56 @@
 "version_mobile" = "BioStar 2 移动版";
 "view_log" = "查看日志";
 "wait" = "请稍等";
+
+
+/////
+"mobile_card" = "移动端智能卡";
+"myprofile_upper" = "我的文档";
+"mobile_card_upper" = "移动端智能卡";
+"access_on_card" = "卡片访问";
+"secure_card" = "安全卡片";
+"donot_again" = "不再显示";
+"guide_register_mobile_card1" = "查看已派发的移动端智能卡";
+"guide_register_mobile_card2" = "在注册后使用移动端智能卡";
+"guide_register_mobile_card3" = "接触智能卡来注册";
+"guide_register_mobile_card4" = "指纹数据被存储在移动设备中";
+"guide_register_mobile_card5" = "若你想停用智能卡\n向左滑动 ";
+"register_mobile_card" = "选定的卡片已注册";
+"stop_mobile_card" = "选定的卡片已停用";
+"user_other_device_mobile_card" = "此卡片由另一个移动端设备使用";
+"issue_card_count" = "派发计数";
+"block" = "限制";
+"unblock" = "解除限制";
+"register_card" = "卡片注册";
+"card_type" = "卡片类型";
+"register_method" = "注册方法";
+"card_data_format" = "卡片数据格式";
+"card_layout_format" = "卡片布局格式";
+"smartcard_type" = "智能卡类型";
+"id_code" = "设备码";
+"csn" = "卡片序列号";
+"wiegand" = "韦根";
+"smartcard" = "智能卡 ";
+"read_card" = "读卡";
+"registeration_option_direct_input" = "手动输入";
+"none_wigand" = "选定的韦根格式未在设备内设置，请使用PC版本BioStar设置设备韦根格式";
+"csn_format_wigand_scan" = "无法读取卡号，由于卡号格式类型被设置为韦根";
+"none_registered_fingerprint" = "无注册指纹数据";
+"none_select_card" = "没有(选择)卡片输入";
+"rescan" = "重新读取方法";
+"rescan_default" = "读取质量分数:80(推荐)";
+"rescan_change" = "更改读取质量";
+"question_block_card" = "是否想要限制选定卡片";
+"question_unblock_card" = "是否想要解除限制选定卡片";
+"question_reregister_card" = "是否允许使用选定移动端智能卡重新注册";
+
+"over_value" = "超出最大值";
+"discern_empty" = "未应用设备编号（FC）";
+"none_card_layout_format" = "未应用智能卡布局";
+"invalid_card_type" = "卡片格式不匹配";
+"wiegand_format_empty" = "未应用韦根格式";
+"write_card" = "写卡片";
+"invalid_card_id" = "不允许卡片ID首位为0";
+"non_blocked" = "访问卡片可在限制后删除";
+"add_credential" = "Do you want to add credentials?";
+////

@@ -35,5 +35,6 @@
 @property (assign, nonatomic) id <UserDetailNormalCellDelegate> delegate;
 
 - (void)setStartDate:(NSString*)_startDate andExpireDate:(NSString*)_expireDate;
+- (NSString*)getTitle;
 
 @end

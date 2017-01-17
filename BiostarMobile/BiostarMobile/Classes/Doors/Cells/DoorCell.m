@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -28,27 +29,25 @@
     // Configure the view for the selected state
 }
 
-- (void)setDoorStatus:(NSDictionary*)doorDic
+- (void)setDoorStatus:(ListDoorItem*)door
 {
-    NSDictionary *status = [doorDic objectForKey:@"status"];
+    DoorStatus *status = door.status;
     
-    if ([[status objectForKey:@"normal"] boolValue] || [[status objectForKey:@"apb_failed"] boolValue])
+    if (status.normal || status.apb_failed)
     {
         // 초록
         self.doorImage.image = [UIImage imageNamed:@"ic_event_door_01"];
     }
     
-    if ([[status objectForKey:@"locked"] boolValue] || [[status objectForKey:@"unlocked"] boolValue] ||
-        [[status objectForKey:@"held_opened"] boolValue] || [[status objectForKey:@"scheduleLocked"] boolValue] ||
-        [[status objectForKey:@"scheduleUnlocked"] boolValue] || [[status objectForKey:@"operatorLocked"] boolValue] ||
-        [[status objectForKey:@"operatorUnlocked"] boolValue])
+    if (status.locked || status.unlocked || status.held_opened || status.scheduleLocked ||
+        status.scheduleUnlocked || status.operatorLocked || status.operatorUnlocked)
     {
         // 노란
         self.doorImage.image = [UIImage imageNamed:@"ic_event_door_03"];
     }
     
-    if ([[status objectForKey:@"disconnected"] boolValue] || [[status objectForKey:@"forced_open"] boolValue] ||
-        [[status objectForKey:@"emergencyLocked"] boolValue] || [[status objectForKey:@"emergencyUnlocked"] boolValue])
+    if (status.disconnected || status.forced_open ||
+        status.emergencyLocked || status.emergencyUnlocked)
     {
         // 빨간
         self.doorImage.image = [UIImage imageNamed:@"ic_event_door_02"];

@@ -16,7 +16,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
-#import "ListSubInfoPopupViewController.h"
+#import "DoorControlPopupViewController.h"
 #import "DoorProvider.h"
 #import "EventProvider.h"
 #import "AlarmDoorDetailNormalCell.h"
@@ -24,8 +24,9 @@
 #import "ImagePopupViewController.h"
 #import "MonitoringViewController.h"
 #import "AlarmTimeTablePopupController.h"
+#import "NSString+EnumParser.h"
 
-@interface AlarmForcedOpenDetailController : BaseViewController <ListSubInfoPopupDelegate, DoorProviderDelegate, EventProviderDelegate, ImagePopupDelegate>
+@interface AlarmForcedOpenDetailController : BaseViewController
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UILabel *doorNameLabel;
@@ -39,30 +40,29 @@
     
     DoorProvider *doorProvider;
     EventProvider *eventProvider;
-    NSMutableDictionary *doorDic;
-    NSMutableDictionary *condition;
+    ListDoorItem *searchedDoor;
+    EventQuery *searchQuery;
     NSMutableArray *openTimeArray;
-    BOOL isFoundDoor;
+    
     BOOL isMainRequest;
     
     NSInteger doorID;
     NSInteger menuIndex;
 }
 
-@property (strong, nonatomic) NSDictionary *detailInfo;
-@property (assign, nonatomic) AlarmType alarmType;
+@property (strong, nonatomic) GetNotification *detailInfo;
+@property (assign, nonatomic) NotificationType notiType;
 
+- (void)getDoor:(NSInteger)searchDoorID;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
 - (IBAction)moveToLog:(id)sender;
 - (void)controlDoorOperator:(NSInteger)index;
 - (NSString*)getToastContent;
 - (NSString*)getErrorToastContent:(NSString *)message;
-- (void)setDoorInfo:(NSDictionary*)info;
-//- (void)searchEventForNotiTime;
 - (void)setDefaultPeriod;
 - (void)setDefaultEventType;
 - (void)setDefaultDevice;
-- (void)setAlarmInfo:(NSString*)alarmname;
-
+- (void)showErrorToast:(NSString*)errorMessage;
+- (NSString*)getLocalizedDecription:(NSString*)key args:(NSArray*)args;
 @end

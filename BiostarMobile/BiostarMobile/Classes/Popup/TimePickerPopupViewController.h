@@ -17,24 +17,25 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 
-@protocol TimePickerDelegate <NSObject>
 
-- (void)confirmTimeFilter:(NSString*)date isStartDate:(BOOL)isStartDate;
-
-@end
 
 @interface TimePickerPopupViewController : BaseViewController
 {
     __weak IBOutlet UIDatePicker *timePicker;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
 }
 
-@property (assign, nonatomic) id <TimePickerDelegate> delegate;
+typedef void (^TimePickerPopupResponseBlock)(NSString *dateString);
+
 @property (assign, nonatomic) BOOL isStartDate;
+@property (nonatomic, strong) TimePickerPopupResponseBlock responseBlock;
 
 - (IBAction)cancelTimeFilter:(id)sender;
 - (IBAction)confirmTimePicker:(id)sender;
 - (void)setDate:(NSDate*)date;
+- (void)getResponse:(TimePickerPopupResponseBlock)responseBlock;
 
 @end

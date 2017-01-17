@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -31,20 +32,24 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    [self adjustPhotoViewFrame];
 }
 
-- (void)adjustPhotoViewFrame
+- (UIImage*)getScaledImage:(NSString*)photoString
 {
-    _userImageBackground.layer.cornerRadius = _userImageBackground.frame.size.height /2;
-    _userImageBackground.layer.masksToBounds = YES;
-    _userImageBackground.layer.borderWidth = 3;
-    _userImageBackground.layer.borderColor = [[UIColor whiteColor] CGColor];
+    NSData *imageData = [[NSData alloc] initWithBase64EncodedString:photoString options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    UIImage *serverImage = [UIImage imageWithData:imageData];
+    UIImage* scaledImage = [CommonUtil imageCompress:serverImage fileSize:MAX_IMAGE_FILE_SIZE];
+    
+    return scaledImage;
 }
 
-- (void)setTopCell:(NSDictionary*)infoDic mode:(DetailType)mode
+- (void)setTopCell:(User*)user mode:(DetailType)mode
 {
-    if ([[infoDic objectForKey:@"pin_exist"] boolValue])
+    if (nil == user) {
+        return;
+    }
+    
+    if (user.pin_exist)
     {
         [_pinView setHidden:NO];
     }
@@ -53,12 +58,10 @@
         [_pinView setHidden:YES];
     }
     
-    id userPhoto = [infoDic objectForKey:@"photo"];
-    
     switch (mode)
     {
         case VIEW_MODE:
-            if ([AuthProvider hasReadPermission:@"MONITORING"])
+            if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
             {
                 [_logImageButton setHidden:NO];
                 [_logLabel setHidden:NO];
@@ -71,18 +74,22 @@
                 [_logLabelButton setHidden:YES];
             }
             
-            
-            
             [_cameraButton setImage:nil forState:UIControlStateNormal];
             [_cameraButton setImage:nil forState:UIControlStateHighlighted];
             [_cameraButton setHidden:YES];
             [_defaultImageView setHidden:NO];
             
-            //if (nil != userPhoto)
-            if ([userPhoto isKindOfClass:[UIImage class]])
+            if (nil != user.photo && ![user.photo isEqualToString:@""])
             {
+                UIImage *userPhotoImage = [self getScaledImage:user.photo];
+                NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, user.user_id]];
+                [[SDImageCache sharedImageCache] storeImage:userPhotoImage forKey:userPhotoKey toDisk:YES];
+    
+                _defaultImageView.image = userPhotoImage;
+                [_defaultImageView setHidden:NO];
                 [_blurView setHidden:NO];
-                _defaultImageView.image = userPhoto;
+                _backgroundImage.image = _defaultImageView.image;
+                
             }
             else
             {
@@ -91,6 +98,7 @@
             }
             
             [_userImageBackground setBackgroundColor:[UIColor clearColor]];
+            _backgroundImage.image = [UIImage imageNamed:@"background1"];
             break;
             
         case MODIFY_MODE:
@@ -104,19 +112,21 @@
             [_cameraButton setHidden:NO];
             
             
-            if ([userPhoto isKindOfClass:[UIImage class]])
+            if (nil != user.photo && ![user.photo isEqualToString:@""])
             {
-                [_blurView setHidden:NO];
-                UIImage *userImage = userPhoto;
-                NSData *imgData = UIImageJPEGRepresentation(userImage, 1);
-                NSLog(@"user picture Size of Image(bytes):%lu",(unsigned long)[imgData length]);
-                _defaultImageView.image = userImage;
+                UIImage *userPhotoImage = [self getScaledImage:user.photo];
+                NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, user.user_id]];
+                [[SDImageCache sharedImageCache] storeImage:userPhotoImage forKey:userPhotoKey toDisk:YES];
+                
+                _defaultImageView.image = userPhotoImage;
                 [_defaultImageView setHidden:NO];
+                [_blurView setHidden:NO];
                 
                 [_userImageBackground setBackgroundColor:[UIColor clearColor]];
                 
                 [_cameraButton setImage:nil forState:UIControlStateNormal];
                 [_cameraButton setImage:nil forState:UIControlStateHighlighted];
+                _backgroundImage.image = _defaultImageView.image;
             }
             else
             {
@@ -125,85 +135,50 @@
                 [_defaultImageView setHidden:YES];
                 
                 [_userImageBackground setBackgroundColor:[UIColor clearColor]];
+                _backgroundImage.image = [UIImage imageNamed:@"background1"];
             }
-            [_userImageBackground setNeedsLayout];
-            [_userImageBackground layoutIfNeeded];
+            
             break;
         
     }
     
+    _userName.text = user.name ? user.name : @"";
+    _userID.text = user.user_id ? user.user_id : @"";
     
     
-    
-    _defaultImageView.layer.cornerRadius = _defaultImageView.frame.size.height /2;
-    _defaultImageView.layer.masksToBounds = YES;
-    _defaultImageView.layer.borderWidth = 0;
-    _defaultImageView.layer.borderWidth = 3;
-    _defaultImageView.layer.borderColor = [[UIColor whiteColor] CGColor];
-    
-    
-    if (nil != [infoDic objectForKey:@"name"])
+    if ([PreferenceProvider isUpperVersion])
     {
-        _userName.text = [infoDic objectForKey:@"name"];
-    }
-    
-    if (nil != [infoDic objectForKey:@"user_id"])
-    {
-        _userID.text = [infoDic objectForKey:@"user_id"];
-    }
-    
-    if ([userPhoto isKindOfClass:[UIImage class]])
-    {
-        _backgroundImage.image = userPhoto;
+        if ([user.fingerprint_template_count integerValue]== 0)
+        {
+            _fingerCount.text = @"";
+        }
+        else
+        {
+            _fingerCount.text = user.fingerprint_template_count;
+        }
     }
     else
     {
-        _backgroundImage.image = [UIImage imageNamed:@"background1"];
+        if (user.fingerprint_count == 0)
+        {
+            _fingerCount.text = @"";
+        }
+        else
+        {
+            _fingerCount.text = [NSString stringWithFormat:@"%ld", (long)user.fingerprint_count];
+        }
     }
     
-    NSArray *fingerprintTemplates = [infoDic objectForKey:@"fingerprint_templates"];
-    NSInteger fingerprintCount;
-    if (nil == fingerprintTemplates)
-    {
-        fingerprintCount = 0;
-    }
-    else
-    {
-        fingerprintCount = fingerprintTemplates.count;
-    }
-    
-    if (fingerprintCount == 0)
-    {
-        _fingerCount.text = @"";
-    }
-    else
-    {
-        _fingerCount.text = [NSString stringWithFormat:@"%ld", (long)fingerprintCount];
-    }
-    
-    
-    NSArray *cards = [infoDic objectForKey:@"cards"];
-    NSInteger cardsCount;
-    
-    if (nil == cards)
-    {
-        cardsCount = 0;
-    }
-    else
-    {
-        cardsCount = cards.count;
-    }
-    
-    if (cardsCount == 0)
+    if (user.card_count == 0)
     {
         _cardCount.text = @"";
     }
     else
     {
-        _cardCount.text = [NSString stringWithFormat:@"%ld", (long)cardsCount];
+        _cardCount.text = [NSString stringWithFormat:@"%ld", (long)user.card_count];
     }
     
-    if ([[infoDic objectForKey:@"pin_exist"] boolValue])
+    if (user.pin_exist)
     {
         [_pinView setHidden:NO];
         [_pinDevideView setHidden:NO];
@@ -213,6 +188,7 @@
         [_pinView setHidden:YES];
         [_pinDevideView setHidden:YES];
     }
+    
 }
 
 - (IBAction)logButtonTouchTown:(id)sender {
@@ -226,4 +202,6 @@
 - (IBAction)logButtonTouchUpOutside:(id)sender {
     [_logButtonImage setImage:[UIImage imageNamed:@"ic_viewlog_nor"]];
 }
+
+
 @end

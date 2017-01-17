@@ -15,11 +15,12 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "NotificationSetting.h"
 
 @interface SwitchCell : UITableViewCell
 
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UISwitch *settingSwitch;
 
-- (void)setSwitchCellContent:(NSMutableArray*)notifications index:(NSInteger)index;
+- (void)setSwitchCellContent:(NotificationSetting*)notification index:(NSInteger)index;
 @end

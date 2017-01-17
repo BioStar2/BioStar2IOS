@@ -19,14 +19,8 @@
 #import "PinCell.h"
 #import "PasswordDecCell.h"
 #import "UserProvider.h"
-
-@protocol PinPopupDelegate <NSObject>
-
-@optional
-
-- (void)confirmPin:(NSString*)pin;
-- (void)confirmPassword:(NSString*)password;
-@end
+#import "PreferenceProvider.h"
+#import "AuthProvider.h"
 
 typedef enum{
     PIN,
@@ -40,14 +34,21 @@ typedef enum{
     __weak IBOutlet UITableView *pinTableView;
     __weak IBOutlet NSLayoutConstraint *contentViewHeightConstraint;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *confirmBtn;
+    __weak IBOutlet UIButton *cancelBtn;
     
     NSString *pin;
     NSString *comparisonPin;
 }
 
-@property (assign, nonatomic) id <PinPopupDelegate> delegate;
+typedef void (^PinPopupResponseBlock)(PinPopupType type, NSString* pin);
+
+@property (nonatomic, strong) PinPopupResponseBlock responseBlock;
 @property (assign, nonatomic) PinPopupType type;
+
 - (IBAction)cancelCurrentPopup:(id)sender;
 - (IBAction)confirmCurrentPopup:(id)sender;
+- (void)getResponse:(PinPopupResponseBlock)responseBlock;
+- (BOOL)checkPasswordStrengthLevel;
 
 @end

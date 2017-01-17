@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Min %ld sec";
 "%ld minute" = "%ld Min";
 "%ld sec" = "%ld sec";
@@ -33,6 +32,35 @@
 "AC" = "Activo";
 "IN" = "Inactivo";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ fue reiniciado";
+"notificationType.message.deviceRs485Disconnect"      = "%@ fue desconectado";
+"notificationType.message.deviceTampering"            = "%@ fue saboteado";
+"notificationType.message.doorApb"                    = "Alarma APB detectada en %@.";
+"notificationType.message.doorForcedOpen"             = "Apertura forzada puerta detectda en %@.";
+"notificationType.message.doorHeldOpen"               = "Apertura mantenida puerta detectada en %@.";
+"notificationType.message.doorOpenRequest"            = "(%1$@) petición apertura apuerta por usuario (%2$@).";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "Alarma APB detectada en %@.";
+"notificationType.message.zoneFire"                   = "Alarma Incendios detectada en %@.";
+
+"notificationType.title.deviceReboot"                 = "Reiniciar Dispositivo";
+"notificationType.title.deviceRs485Disconnect"        = "Conexión RS485 dispositivo desconectada";
+"notificationType.title.deviceTampering"              = "Sabotaje Dispositivo";
+"notificationType.title.doorApb"                      = "Puerta APB";
+"notificationType.title.doorForcedOpen"               = "Apertura Forzada Puerta";
+"notificationType.title.doorHeldOpen"                 = "Apertura Mantenida Puerta";
+"notificationType.title.doorOpenRequest"              = "Petición Apertura Puerta";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "Zona APB";
+"notificationType.title.zoneFire"                     = "Zona Incendios";
+// push
 
 
 "access_group" = "Grupo de Acceso";
@@ -224,3 +252,45 @@
 "view_log" = "Ver Eventos";
 "wait" = "Esperar…";
 
+
+/////
+"mobile_card" = "Tarjeta inteligente móvil";
+"myprofile_upper" = "MI PERFIL";
+"mobile_card_upper" = "TARJETA INTELIGENTE MÓVIL";
+"access_on_card" = "Tarjeta AccessOnCard";
+"secure_card" = "Tarjeta SecureCard";
+"donot_again" = "No visualizar de nuevo.";
+"guide_register_mobile_card1" = "Verificar tarjeta inteligente móvil emitida.";
+"guide_register_mobile_card2" = "Usar tarjeta inteligente móvil tras registro.";
+"guide_register_mobile_card3" = "Tocar tarjeta inteligente móvil para registrar.";
+"guide_register_mobile_card4" = "Datos huella guardados en tu dispositivo móbil";
+"guide_register_mobile_card5" = "Si dedea deshabilitar tarjeta inteligente móvil, \n deslizar a la izquierda";
+"register_mobile_card" = "La tarjeta seleccionada está registrada";
+"stop_mobile_card" = "La tarjeta seleccionada está deshabilitada.";
+"user_other_device_mobile_card" = "Esta tarjeta está siendo usada por otro dispositivo móvil.";
+"issue_card_count" = "Contador Emisiones";
+"block" = "Bloquear";
+"unblock" = "Desbloquear";
+"register_card" = "Registro Tarjetas";
+"card_type" = "Tipo Tarjeta";
+"register_method" = "Método Registro";
+"card_data_format" = "Formato Datos Tarjeta";
+"card_layout_format" = "Formato Layout Tarjeta";
+"smartcard_type" = "Tipo Tarjeta Inteligente";
+"id_code" = "Código Sitio";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "Tarjeta Inteligente";
+"read_card" = "Leer Tarjeta";
+"registeration_option_direct_input" = "Entrar Manualmente";
+"none_wigand" = "El formato Wiegand seleccionado no está establecido en el dispositvo. Utilize Biostar en el PC para configurar Wiegand el dispositivo.";
+"csn_format_wigand_scan" = "CSN Tarjeta no puede ser escaneado porque tipo formato CSN está establecido en Wiegand.";
+"none_registered_fingerprint" = "No hay datos de huella registrados.";
+"none_select_card" = "Ninguna entrada de tarjeta (selección) fue realizada.";
+"rescan" = "Método Re-Scan";
+"rescan_default" = "Puntuación calidad scan: 80 (recomendado)";
+"rescan_change" = "Cambio Calidad scan";
+"question_block_card" = "Quiere bloquear una tarjeta seleccionada?";
+"question_unblock_card" = "Quiere desbloquear una tarjeta seleccionada?";
+"question_reregister_card" = "Quiere permitir re-registro con la tarjeta inteligente móvil seleccionada?";
+////

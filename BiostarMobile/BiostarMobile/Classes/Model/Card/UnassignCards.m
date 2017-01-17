@@ -1,0 +1,13 @@
+//
+//  UnassignCards.m
+//  BiostarMobile
+//
+//  Created by 정의석 on 2016. 11. 29..
+//  Copyright © 2016년 suprema. All rights reserved.
+//
+
+#import "UnassignCards.h"
+
+@implementation UnassignCards
+
+@end

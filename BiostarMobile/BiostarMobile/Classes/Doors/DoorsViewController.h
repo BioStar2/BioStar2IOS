@@ -21,7 +21,7 @@
 #import "ImagePopupViewController.h"
 #import "DoorDetailViewController.h"
 
-@interface DoorsViewController : BaseViewController <DoorProviderDelegate, ImagePopupDelegate, DoorDetailViewControllerDelegate>
+@interface DoorsViewController : BaseViewController <DoorDetailViewControllerDelegate>
 {
     __weak IBOutlet UITableView *doorsTableView;
     __weak IBOutlet UIView *countView;
@@ -29,8 +29,10 @@
     __weak IBOutlet UIView *textFieldView;
     __weak IBOutlet NSLayoutConstraint *tableViewHeight;
     __weak IBOutlet UIButton *scrollButton;
+    __weak IBOutlet UILabel *totalDecLabel;
+    __weak IBOutlet UILabel *titleLabel;
     
-    NSMutableArray *doors;
+    NSMutableArray <ListDoorItem*> *doors;
     DoorProvider *provider;
     BOOL isMainRequest;
     NSString *query;
@@ -48,4 +50,5 @@
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)scrollTopOrBottom:(id)sender;
 - (void)refreshDoors;
+- (void)searchDoors:(NSString *)searchQuery limit:(NSInteger)searchLimit offset:(NSInteger)searchOffset;
 @end

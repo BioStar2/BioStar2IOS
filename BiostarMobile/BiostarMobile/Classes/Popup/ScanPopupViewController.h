@@ -17,32 +17,12 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 #import "DeviceProvider.h"
+#import "ImagePopupViewController.h"
+#import "FingerprintTemplate.h"
+#import "ListPopupViewController.h"
+#import "ScanQualityPopupViewController.h"
 
-typedef enum
-{
-    FINGERPRINT_SCAN,
-    CARD_SCAN,
-    CARD_REGIST,
-    
-} ScanType;
-
-@protocol ScanPopupViewControllerDelegate <NSObject>
-
-@optional
-
-- (void)fingerprintScanDidSuccess:(NSDictionary*)fingerprintTemplate;
-- (void)fingerprintScanDidFail:(NSDictionary*)result currentFingerPrintDic:(NSMutableDictionary*)fingerdic currentScanCount:(NSInteger)scanCount;
-- (void)fingerVerificationDidComplete:(BOOL)result;
-
-- (void)cardScanDidSuccess:(NSDictionary*)cardInfo;
-- (void)cardScanDidFail:(NSDictionary*)result;
-
-- (void)cardRegistDidSuccess:(NSDictionary*)cardInfo;
-- (void)cardRegistDidFail:(NSDictionary*)result;
-
-@end
-
-@interface ScanPopupViewController : BaseViewController <DeviceProviderDelegate>
+@interface ScanPopupViewController : BaseViewController 
 {
     __weak IBOutlet UIView *containerView;
     __weak IBOutlet UILabel *titleLabel;
@@ -55,23 +35,41 @@ typedef enum
 
     
     DeviceProvider *deviceProvider;
-    BOOL isRequesting;
     NSInteger scanIndex;
-    NSDictionary *cardInfo;
-    NSDictionary *registCardErrorDic;
-    
+    NSString *errorMessage;
+    FingerprintTemplate *scanFingerPrintTemplate;
 }
 
-@property (strong, nonatomic) NSMutableDictionary *fingerPrintDic;
+typedef void (^ScanPopupTemplateBlock)(FingerprintTemplate *fingerprintTemplate);
+typedef void (^ScanPopupLowQualityTemplateBlock)(FingerprintTemplate *fingerprintTemplate, NSString *errorMessage);
+typedef void (^ScanPopupBOOLResponseBlock)(BOOL result);
+
+
+@property (nonatomic, strong) ScanPopupTemplateBlock fingerprintTemplateBlock;
+@property (nonatomic, strong) ScanPopupBOOLResponseBlock boolResponseBlock;
+@property (nonatomic, strong) ScanPopupLowQualityTemplateBlock lowQualityBlock;
+
 @property (assign, nonatomic) NSInteger scanCount;
 @property (assign, nonatomic) NSInteger templateIndex;
-@property (assign, nonatomic) ScanType scanType;
 @property (strong, nonatomic) NSString *deviceID;
-@property (assign, nonatomic) id <ScanPopupViewControllerDelegate> delegate;
+@property (assign, nonatomic) NSUInteger scanQuality;
 
+- (void)setFingerprint:(FingerprintTemplate*)fingerPrintTemplate;
+
+- (void)getFingerPrintTemplate:(ScanPopupTemplateBlock)fingerprintTemplateBlock;
+
+- (void)getBoolResponse:(ScanPopupBOOLResponseBlock)boolResponseBlock;
+
+- (void)getLowQualityBlock:(ScanPopupLowQualityTemplateBlock)lowQualityBlock;
+
+- (void)requestScanFingerprint:(NSString*)scanDeviceID scanQuality:(NSUInteger)quality;
+
+- (void)requestVerifyFingerprint:(NSString*)scanDeviceID template:(FingerprintTemplate*)fingerprintTemplate;
 
 - (void)setScanIndex:(NSInteger)index;
-- (void)scanFingerprint:(NSString*)deviceID;
+
+- (void)showScanMethodSelectPopup;
+
 - (IBAction)confirmPopup:(id)sender;
 
 @end

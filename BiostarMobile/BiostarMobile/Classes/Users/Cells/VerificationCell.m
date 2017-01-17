@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -28,9 +29,9 @@
     // Configure the view for the selected state
 }
 
-- (void)setCardAndFingerprintCell:(NSDictionary*)dic
+- (void)setCheckSeleted:(BOOL)isSelected
 {
-    if ([[dic objectForKey:@"selected"] boolValue])
+    if (isSelected)
     {
         [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
         [_checkImage setHidden:NO];
@@ -44,23 +45,16 @@
     }
 }
 
-- (void)setCellDictionary:(NSDictionary*)dic
+
+
+- (void)setAccessGroup:(UserItemAccessGroup*)accessGroup isEditMode:(BOOL)isEditMode
 {
     
-    if ([dic objectForKey:@"name"])
-    {
-        _titleLabel.text = [dic objectForKey:@"name"];
-    }
+    _titleLabel.text = accessGroup.name;
     
-    if([[dic objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
+    if (isEditMode)
     {
-        [_accImage setHidden:YES];
-        [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
-    }
-    else
-    {
-        
-        if ([[dic objectForKey:@"selected"] boolValue])
+        if (accessGroup.isSelected)
         {
             [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
             [_checkImage setHidden:NO];
@@ -68,13 +62,81 @@
         }
         else
         {
-            [self.contentView setBackgroundColor:[UIColor whiteColor]];
-            [_checkImage setHidden:YES];
-            [_accImage setHidden:NO];
+            if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+            {
+                [_accImage setHidden:YES];
+                [_checkImage setHidden:YES];
+                [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+            }
+            else
+            {
+                [_accImage setHidden:YES];
+                [_checkImage setHidden:YES];
+                [self.contentView setBackgroundColor:[UIColor whiteColor]];
+            }
         }
     }
+    else
+    {
+        [_accImage setHidden:YES];
+        [_checkImage setHidden:YES];
+        [self.contentView setBackgroundColor:[UIColor whiteColor]];
+    }
     
+//    if (accessGroup.isSelected)
+//    {
+//        [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
+//        [_checkImage setHidden:NO];
+//        [_accImage setHidden:YES];
+//    }
+//    else
+//    {
+//        if (isEditMode)
+//        {
+//            if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+//            {
+//                [_accImage setHidden:YES];
+//                [_checkImage setHidden:YES];
+//                [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+//            }
+//            else
+//            {
+//                [_accImage setHidden:YES];
+//                [_checkImage setHidden:YES];
+//                [self.contentView setBackgroundColor:[UIColor whiteColor]];
+//            }
+//        }
+//        else
+//        {
+//            [_checkImage setHidden:YES];
+//            [_accImage setHidden:NO];
+//        }
+//    }
     
+//    if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+//    {
+//        [_accImage setHidden:YES];
+//        [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+//    }
+//    else
+//    {
+//        if (accessGroup.isSelected)
+//        {
+//            [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
+//            [_checkImage setHidden:NO];
+//            [_accImage setHidden:YES];
+//        }
+//        else
+//        {
+//            [self.contentView setBackgroundColor:[UIColor whiteColor]];
+//            [_checkImage setHidden:YES];
+//            [_accImage setHidden:NO];
+//        }
+//    }
 }
 
+- (NSString*)getTitle
+{
+    return self.titleLabel.text;
+}
 @end

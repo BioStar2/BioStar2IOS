@@ -18,13 +18,17 @@
 #import "BaseViewController.h"
 #import "AlarmDoorDetailNormalCell.h"
 #import "AlarmDoorDetailAcclCell.h"
-#import "ListSubInfoPopupViewController.h"
+#import "DoorControlPopupViewController.h"
 #import "DoorProvider.h"
 #import "UserNewDetailViewController.h"
 #import "ImagePopupViewController.h"
 #import "AlarmTimeTablePopupController.h"
+#import "EventQuery.h"
+#import "PreferenceProvider.h"
+#import "AuthProvider.h"
 
-@interface AlarmDoorDetailController : BaseViewController <ListSubInfoPopupDelegate, DoorProviderDelegate, ImagePopupDelegate, EventProviderDelegate>
+
+@interface AlarmDoorDetailController : BaseViewController
 {
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UILabel *doorNameLabel;
@@ -38,19 +42,18 @@
     DoorProvider *doorProvider;
     EventProvider *eventProvider;
     
-    NSMutableDictionary *condition;
-    NSMutableDictionary *doorDic;
-    NSMutableDictionary *userDic;
-    
-    BOOL isMainRequest;
-    
+    EventQuery *searchQuery;
+    ListDoorItem *searchedDoor;
+    SimpleUser *user;
+    NSString *phoneNumber;
     BOOL isFoundDoor;
     NSInteger doorID;
     NSInteger menuIndex;
 }
 
-@property (strong, nonatomic) NSDictionary *detailInfo;
+@property (strong, nonatomic) GetNotification *detailInfo;
 
+- (void)getDoor:(NSInteger)searchDoorID;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
 - (IBAction)moveToLog:(id)sender;
@@ -60,4 +63,5 @@
 - (void)setDefaultPeriod;
 - (void)setDefaultEventType;
 - (void)setDefaultDevice;
+- (void)showErrorToast:(NSString*)errorMessage;
 @end

@@ -17,14 +17,6 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 
-@protocol ImagePopupDelegate <NSObject>
-
-@optional
-
-- (void)confirmImagePopup;
-- (void)cancelImagePopup;
-
-@end
 
 typedef enum
 {
@@ -32,6 +24,12 @@ typedef enum
     REQUEST_FAIL,
     WARNING,
     DELETE_USERS,
+    CARD_BLOCK,
+    CARD_RELEASE,
+    CARD_REGISTER,
+    CARD_REREGISTER,
+    USER_CREATED,
+    LOW_QUALITY
     
 } ImagePopupType;
 
@@ -44,16 +42,21 @@ typedef enum
     __weak IBOutlet NSLayoutConstraint *containerHeightConstraint;
     __weak IBOutlet UIButton *confirmButton;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
     
 }
 
+typedef void (^ImagePopupResponseBlock)(ImagePopupType type, BOOL isConfirm);
+
 @property (assign, nonatomic) ImagePopupType type;
-@property (assign, nonatomic) id <ImagePopupDelegate> delegate;
 @property (strong, nonatomic) NSString *content;
 @property (strong, nonatomic) NSString *titleContent;
+@property (nonatomic, strong) ImagePopupResponseBlock responseBlock;
 
 - (IBAction)cancelCurrentPupup:(id)sender;
 - (IBAction)confirmCurrentPopup:(id)sender;
+- (void)getResponse:(ImagePopupResponseBlock)responseBlock;
 
 @end

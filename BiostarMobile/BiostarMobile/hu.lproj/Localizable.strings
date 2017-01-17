@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Perc %ld Másodperc";
 "%ld minute" = "%ld Perc";
 "%ld sec" = "%ld Másodperc";
@@ -29,10 +28,39 @@
 "status_active" = "Státusz Aktív";
 "status_inactive" = "Státusz Inaktív";
 "time_format" = "Idő Formattálás";
-"email_not_setted" = "Please set email on device setting app.";
+"email_not_setted" = "Email nincs beállítva";
 "AC" = "Aktív";
 "IN" = "Inaktív";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "Az eszköz újraindul(%@)";
+"notificationType.message.deviceRs485Disconnect"      = "RS485 kapcsolat megszakadt(%@)";
+"notificationType.message.deviceTampering"            = "Készülék szabotázs(%@)";
+"notificationType.message.doorApb"                    = "APB ajtó(%@).";
+"notificationType.message.doorForcedOpen"             = "Kényszerített ajtónyitás(%@)";
+"notificationType.message.doorHeldOpen"               = "Nyitvatartott ajtó észlelhető(%@)";
+"notificationType.message.doorOpenRequest"            = "Ajtó(%1$@) nyitás kérelem(%2$@).";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "APB riasztás zónában(%@)";
+"notificationType.message.zoneFire"                   = "Tűz riasztás zónában(%@)";
+
+"notificationType.title.deviceReboot"                 = "Készülék újraindítása";
+"notificationType.title.deviceRs485Disconnect"        = "RS485 kapcsolat megszakadt";
+"notificationType.title.deviceTampering"              = "Készülék szabotázs";
+"notificationType.title.doorApb"                      = "APB ajtó";
+"notificationType.title.doorForcedOpen"               = "Kényszerített ajtónyitás";
+"notificationType.title.doorHeldOpen"                 = "Nyitva tartott ajtó";
+"notificationType.title.doorOpenRequest"              = "Ajtó nyitás kérése";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "APB zóna";
+"notificationType.title.zoneFire"                     = "Tűzjelző zóna";
+// push
 
 
 "access_group" = "Hozzáférési csoport";
@@ -44,6 +72,7 @@
 "all_door" = "Minden ajtó";
 "all_events" = "Minden esemény";
 "all_users" = "Minden felhasználó";
+"allow_permission" = "Engedély jóváhagyás";
 "already_assigned" = "Lista korábban kijelölve";
 "app_name" = "BioStar 2";
 "applied_filter" = "Szűrő alkalmazva";
@@ -102,6 +131,7 @@
 "format" = "Formattálás";
 "from_gallery" = "Galériából";
 "group" = "Csoport";
+"guide_feature_permission" = "Útmutató funkció engedély";
 "held_opened" = "Ajtó nyitva tartás";
 "id" = "ID";
 "inactive" = "Inaktív";
@@ -119,8 +149,8 @@
 "login_fail" = "Bejelentkezés sikertelen";
 "login_id" = "Bejelentkezési ID";
 "low_quality" = "Elégtelen ujjlenyomat minőség";
-"manual_lock" = "Zár";
-"manual_unlock" = "Feloldás";
+"manual_lock" = "Kézi lezárás";
+"manual_unlock" = "Kézi feloldás";
 "max_size" = "Regisztrációs limit túllépése";
 "memory_poor" = "Kevés memória";
 "menu" = "Menü";
@@ -176,6 +206,7 @@
 "registeration_option_assign_card" = "Kártya kijelölése";
 "registeration_option_card_reader" = "Regisztrció kártyaolvasón keresztül";
 "relay" = "Relé";
+"release" = "Release";
 "request_open" = "Ajtónyitási kérelem";
 "request_open_fail" = "Ajtónyitási kérelem elutasítva";
 "request_open_sent" = "Ajtónyitási kérelem elküldve";
@@ -223,3 +254,46 @@
 "version_mobile" = "BioStar 2 mobil verzió";
 "view_log" = "Log adatok megnyitása";
 "wait" = "Kérem várjon…";
+
+
+/////
+"mobile_card" = "Mobil smart kártya";
+"myprofile_upper" = "PROFILOM";
+"mobile_card_upper" = "MOBIL SMART KÁRTYA";
+"access_on_card" = "Kártya hozzáférés";
+"secure_card" = "Biztonságos Kártya";
+"donot_again" = "Ne jelenítse meg újra!";
+"guide_register_mobile_card1" = "Ellenőrizze a kibocsátott mobil smart kártyákat.";
+"guide_register_mobile_card2" = "Regisztrációt követően használjon mobil smart kártyát!";
+"guide_register_mobile_card3" = "Regisztráljon a mobil smart kártya érintésével!";
+"guide_register_mobile_card4" = "Ujjlenyomat adatokat a mobil eszközére mentettük.";
+"guide_register_mobile_card5" = "Mobil smart kártya letiltásához pöccintsen balra.";
+"register_mobile_card" = "A kiválasztott kártya regisztrálva van.";
+"stop_mobile_card" = "A kiválasztott kártya le van tiltva.";
+"user_other_device_mobile_card" = "A kártyát egy másik mobil eszköz használja.";
+"issue_card_count" = "Kibocsátás számláló";
+"block" = "Lezár";
+"unblock" = "Felold";
+"register_card" = "Kártya regisztráció";
+"card_type" = "Kártya típus";
+"register_method" = "Regisztrációs eljárás";
+"card_data_format" = "Kártya adatformátuma";
+"card_layout_format" = "Kártya elrendezés formátuma";
+"smartcard_type" = "Smart kártya típusa";
+"id_code" = "Telephely kód";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "Smart kártya";
+"read_card" = "Kártyaolvasás";
+"registeration_option_direct_input" = "Kézi bevitel";
+"none_wigand" = "A Wiegand formátum nincs beállítva az eszközön. Állítsa be a Wiegand formátumot a BioStar PC verziójából.";
+"csn_format_wigand_scan" = "CSN kártya nem olvasható, mert a CSN formátum típus a Wiegand protokollban lett beállítva";
+"none_registered_fingerprint" = "Ujjlenyomat adat nincs regisztrálva.";
+"none_select_card" = "Nem történt kártya beolvasás.";
+"rescan" = "Újrabeolvasási eljárás";
+"rescan_default" = "Beolvasás minősége: 80 (ajánlott)";
+"rescan_change" = "Beolvasás minőségének megváltoztatása";
+"question_block_card" = "Letiltja a kiválasztott kártyát?";
+"question_unblock_card" = "Feloldja a kiválasztott kártyát?";
+"question_reregister_card" = "Engedélyezi az újra regisztrációt a kiválasztott mobil smart kártyával?";
+////

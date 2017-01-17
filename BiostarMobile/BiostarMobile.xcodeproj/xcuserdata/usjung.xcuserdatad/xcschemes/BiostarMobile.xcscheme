@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0730"
+   LastUpgradeVersion = "0800"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -49,6 +49,16 @@
                BlueprintIdentifier = "A4EB5DD81ABB8D6B00316C85"
                BuildableName = "BiostarMobileTests.xctest"
                BlueprintName = "BiostarMobileTests"
+               ReferencedContainer = "container:BiostarMobile.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A4813C961D4B15F2000EE6F5"
+               BuildableName = "BioStar 2UITests.xctest"
+               BlueprintName = "BioStar 2UITests"
                ReferencedContainer = "container:BiostarMobile.xcodeproj">
             </BuildableReference>
          </TestableReference>

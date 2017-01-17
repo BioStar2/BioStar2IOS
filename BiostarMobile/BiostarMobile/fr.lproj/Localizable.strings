@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Min %ld sec";
 "%ld minute" = "%ld Min";
 "%ld sec" = "%ld sec";
@@ -20,7 +19,7 @@
 "user:%ld device:%ld event:%ld" = "Utilisateur:%ld équipements:%ld Evénement:%ld";
 "add_card" = "Ajouter Carte";
 "date_format" = "Date Format";
-"date_time_format" = "Date/Time Format";
+"date_time_format" = "Date/Temps Format";
 "delete_alarm" = "Supprimer Alarme";
 "delete_user" = "Supprimer la Utilisateur";
 "from_photo" = "Depuis la Photo";
@@ -29,10 +28,39 @@
 "status_active" = "Statut Actif";
 "status_inactive" = "Statut Inactif";
 "time_format" = "Temps Format";
-"email_not_setted" = "Please set email on device setting app.";
+"email_not_setted" = "Veuillez renseigner l'e-mail dans les paramètres de l'application";
 "AC" = "Actif";
 "IN" = "Inactif";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ a rdémarré";
+"notificationType.message.deviceRs485Disconnect"      = "%@ a été déconnecté";
+"notificationType.message.deviceTampering"            = "%@ Tamper déclenché";
+"notificationType.message.doorApb"                    = "Une Alarme APB a été détectée sur %@";
+"notificationType.message.doorForcedOpen"             = "Une Ouverture Forcée de Porte a été détectée sur %@";
+"notificationType.message.doorHeldOpen"               = "Une Porte Retenue Ouverte a été détectée sur %@";
+"notificationType.message.doorOpenRequest"            = "(%1$@)Une Requête d'ouverture de porte a été faite par l'Utilisateur%2$@)";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "Une Alarme APB a été détectée sur %@.";
+"notificationType.message.zoneFire"                   = "Une Fire Alarm a été détectée sur %@.";
+
+"notificationType.title.deviceReboot"                 = "Redémarrage de l'Equipement";
+"notificationType.title.deviceRs485Disconnect"        = "L'Equipement a été déconnecté du RS485";
+"notificationType.title.deviceTampering"              = "Déclenchement du Tamper équipement";
+"notificationType.title.doorApb"                      = "APB de la Porte";
+"notificationType.title.doorForcedOpen"               = "Ouverture forcée de la Porte";
+"notificationType.title.doorHeldOpen"                 = "Porte Retenue Ouverte";
+"notificationType.title.doorOpenRequest"              = "Requête d'Ouverture de Porte";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "Zone APB";
+"notificationType.title.zoneFire"                     = "Zone Fire Alarm";
+// push
 
 
 "access_group" = "Groupe d'accès";
@@ -40,10 +68,10 @@
 "add" = "Ajouter";
 "alarm" = "Alarme";
 "alarm_upper" = "ALARME";
-"all_devices" = "Tous les équipements";
-"all_door" = "Toutes les portes";
-"all_events" = "Tous les évènements";
-"all_users" = "Tous les utilisateurs";
+"all_devices" = "Tous Equipements";
+"all_door" = "Toutes Portes";
+"all_events" = "Tous Evènements";
+"all_users" = "Tous Utilisateurs";
 "already_assigned" = "Liste déjà assignée";
 "app_name" = "BioStar 2";
 "applied_filter" = "Filtre appliqué";
@@ -55,22 +83,22 @@
 "card_on_device" = "Scanner la carte sur l'équipement sélectionné";
 "clear_alarm" = "Désactiver l'alarme";
 "clear_apb" = "Réinitialiser l'Anti-Passback";
-"credential" = "Informations d'identification";
+"credential" = "Credential";
 "date" = "Date";
 "delete" = "Supprimer";
-"delete_card" = "Supprimer la carte";
+"delete_card" = "Supprimer la Carte";
 "delete_confirm" = "Confirmer la suppression";
-"delete_confirm_question" = "Supprimer les donnée de manière permanente ?";
+"delete_confirm_question" = "Supprimer les donnée de manière permanente?";
 "delete_fingerprint" = "Supprimer l'empreinte";
 "delete_permission" = "Supprimer la permission";
 "delete_picture" = "Supprimer la photo";
 "deleted_user" = "Utilisateur supprimé";
 "designed" = "Designed by Suprema";
 "device" = "Equipement";
-"direct_download" = "Téléchargement direct du fichier APK";
+"direct_download" = "Téléchargement du fichier APK";
 "disconnected" = "Déconnecté";
 "door" = "Porte";
-"door_control" = "Contrôle de porte";
+"door_control" = "Contrôle de Porte";
 "door_is_open" = "Porte ouverte";
 "door_open_fail" = "Echec de l'ouverture de la porte";
 "door_relay" = "Relais de porte";
@@ -90,7 +118,7 @@
 "event" = "Evénement";
 "exit_button" = "Bouton de sortie";
 "exit_device" = "Equipement de sortie";
-"fail" = "Echec";
+"fail" = "Echec de la requête";
 "fail_retry" = "Echec de la requête, réessayer ?";
 "fail_verify_finger" = "La vérification de l'empreinte a échouée";
 "filter" = "Filtre";
@@ -106,7 +134,7 @@
 "id" = "ID";
 "inactive" = "Inactif";
 "info" = "Information";
-"inherited" = "Données par défaut";
+"inherited" = "Valeur Héritée";
 "inherited_not_change" = "Modification non disponible";
 "input_port" = "Port d'entrée";
 "invalid_email" = "E-mail invalide";
@@ -119,8 +147,8 @@
 "login_fail" = "Echec de la connexion";
 "login_id" = "ID de connexion";
 "low_quality" = "Qualité de l'empreinte insuffisante";
-"manual_lock" = "Verrouillée";
-"manual_unlock" = "Débloqué";
+"manual_lock" = "Verrouillage Manuel";
+"manual_unlock" = "Débloquage Manuel";
 "max_size" = "Limite d'enregistrement dépassée";
 "memory_poor" = "Espace mémoire insuffisant";
 "menu" = "Menu";
@@ -132,7 +160,7 @@
 "name" = "Nom";
 "nd" = "nd";
 "new_" = "Nouveau";
-"new_notification" = "Nouvelle notification";
+"new_notification" = "Nouvelle Notification";
 "new_user" = "Nouvel utilisateur";
 "new_version" = "Nouvelle version disponible, mettre à jour ?";
 "no_more_data" = "Aucune autre donnée";
@@ -153,11 +181,11 @@
 "open" = "Ouvert";
 "open_door_time" = "Temps d'ouverture de porte";
 "open_door_time_des" = "(en 3 heures)";
-"open_time" = "Temps d'ouverture";
+"open_time" = "Temps d'Ouverture";
 "operator" = "Opérateur BioStar";
 "password" = "Mot de passe";
-"password_confirm" = "Confirmer le mot de passe";
-"password_empty" = "Entrer le mot de passe";
+"password_confirm" = "Confirmer le Mot de Passe";
+"password_empty" = "Entrer le Mot de Passe";
 "password_guide" = "Requiert 8 caractères minimum comprenant des lettres de l'alphabet et au moins un nombre";
 "password_guide_strong" = "Requiert 8 caractères minimum comprenant au moins une lettre de l'alphabet (min, MAJ) et au moins un nombre et un symbole spécial";
 "password_invalid" = "Le mot de passe de correspond pas";
@@ -175,7 +203,8 @@
 "registeration_option" = "Option d'enregistrement";
 "registeration_option_assign_card" = "Assigner la carte";
 "registeration_option_card_reader" = "Enregistrer via le lecteur de carte";
-"relay" = "Relais";
+"relay" = "Relai";
+"release" = "Relâcher";
 "request_open" = "Requête de porte ouverte";
 "request_open_fail" = "Requête de porte ouverte refusée";
 "request_open_sent" = "Requête de porte ouverte envoyée";
@@ -223,3 +252,56 @@
 "version_mobile" = "Version BioStar 2 Mobile";
 "view_log" = "Historique d'identification";
 "wait" = "Merci de patienter";
+
+
+/////
+"mobile_card" = "Mobile Smart Card";
+"myprofile_upper" = "MON PROFILE";
+"mobile_card_upper" = "MOBILE SMART CARD";
+"access_on_card" = "Access On Card";
+"secure_card" = "Secure Credential Card";
+"donot_again" = "Ne plus afficher";
+"guide_register_mobile_card1" = "Veuillez Vérifier la Mobile Smart Card émise";
+"guide_register_mobile_card2" = "Utilisez la Mobile Smart Card apres l'enregistrement";
+"guide_register_mobile_card3" = "Présenter la Mobile Smart Card à enregistrer";
+"guide_register_mobile_card4" = "La donnée biométrique a été sauvegardée sur votre mobile";
+"guide_register_mobile_card5" = "Si vous souhaitez désactiver une Mobile Smart Card, \n faites glisser vers la gauche";
+"register_mobile_card" = "La Carte sélectionnée a été enregistrée";
+"stop_mobile_card" = "La Carte sélectionnée a été désactivée";
+"user_other_device_mobile_card" = "Cette carte a été attribuée à un autre Mobile";
+"issue_card_count" = "Numéro d'émission";
+"block" = "Bloquer";
+"unblock" = "Débloquer";
+"register_card" = "Enregistrer Carte";
+"card_type" = "Card Type";
+"register_method" = "Méthode d'Enregistrement";
+"card_data_format" = "Format des données de la Carte";
+"card_layout_format" = "Format Layout de la Carte";
+"smartcard_type" = "Type de Smart Card";
+"id_code" = "Facility Code";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "Smart Card";
+"read_card" = "Lire la Carte";
+"registeration_option_direct_input" = "Entrer Manuellement";
+"none_wigand" = "Le format Wiegand sélectionné n'est pas appliqué au lecteur. Veuillez d'abord appliquer le Format Wiegand souhaité au lecteur en utilistant la version PC de BioStar";
+"csn_format_wigand_scan" = "Le CSN de la carte ne peut pas être lu car le Type de Format CSN appliqué est Wiegand";
+"none_registered_fingerprint" = "Absence d'enregistrement de donnée Biometrique";
+"none_select_card" = "Aucune Carte n'a été sélectionnée.";
+"rescan" = "Méthode de re-Capture";
+"rescan_default" = "Niveau de qualité de Capture: 80 (recommandé)";
+"rescan_change" = "Changer le niveau de qualité de Capture";
+"question_block_card" = "Voulez vous bloquer la Carte sélectionnée?";
+"question_unblock_card" = "Voulez vous débloquer la Carte sélectionnée?";
+"question_reregister_card" = "Voulez vous authoriser le re-engistrement avec la Mobile Smart Card sélectionnée?";
+
+"over_value" = "Depassement de la valeur Max";
+"discern_empty" = "Aucun Facility Code n'est appliqué";
+"none_card_layout_format" = "Aucun Smart Card Layout n'est appliqué";
+"invalid_card_type" = "Le Card Format ne correspond pas";
+"wiegand_format_empty" = "Aucun Format Wiegand Layout n'est appliqué";
+"write_card" = "Ecrire la Carte";
+"invalid_card_id" = "Le premier chiffre du Card ID ne peut pas être '0'. ";
+"non_blocked" = "Access-on-card peut être effacée après avoir bloqué la carte. ";
+"add_credential" = "Voulez-vous ajouter des Credentials?";
+////

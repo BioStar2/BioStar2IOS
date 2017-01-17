@@ -27,6 +27,8 @@
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
     
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     if (self.message)
     {
         contentLabel.text = self.message;

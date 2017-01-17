@@ -18,6 +18,8 @@
 
 NSInteger popupCount = 0;
 
+static BaseViewController *sharedInstance = nil;
+
 @interface BaseViewController ()
 
 @end
@@ -33,8 +35,8 @@ NSInteger popupCount = 0;
     loadingViewController = [storyboard instantiateViewControllerWithIdentifier:@"LoadingViewController"];
     isLoading = NO;
     
-    sessionPopupController = [storyboard instantiateViewControllerWithIdentifier:@"SessionExpiredPopupController"];
-    sessionPopupController.delegate = self;
+    self.sessionPopupController = [storyboard instantiateViewControllerWithIdentifier:@"SessionExpiredPopupController"];
+    self.sessionPopupController.delegate = self;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -56,6 +58,11 @@ NSInteger popupCount = 0;
     // Pass the selected object to the new view controller.
 }
 */
+
+- (void)setSharedViewController:(BaseViewController*)controller
+{
+    sharedInstance = controller;
+}
 
 - (void)startLoading:(UIViewController*)parentViewController
 {
@@ -158,6 +165,7 @@ NSInteger popupCount = 0;
 
 - (void)popToRootViewController
 {
+    popupCount = 0;
     NSLog(@"popToRootViewController %lu", (unsigned long)self.childViewControllers.count);
     
     for (UIViewController *viewController in self.childViewControllers)
@@ -243,30 +251,14 @@ NSInteger popupCount = 0;
     }];
 }
 
-- (void)cookieWasExpired:(NSDictionary*)errDic
++ (void)sessionExpired
 {
-    [self finishLoading];
+    [sharedInstance finishLoading];
     
-    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults setObject:[NSNumber numberWithBool:NO] forKey:@"hasCookie"];
+    [LocalDataManager deleteLocalCookies];
     
-    NSHTTPCookieStorage * sharedCookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
-    NSArray * cookies = [sharedCookieStorage cookies];
-    for (NSHTTPCookie * cookie in cookies)
-    {
-        NSLog(@"%@",cookie.domain);
-        NSLog(@"cookie : %@", cookie);
-        [sharedCookieStorage deleteCookie:cookie];
-    }
-    
-    [userDefaults synchronize];
-    
-    UIApplication *application = [UIApplication sharedApplication];
-    application.applicationIconBadgeNumber = 0;
-    
-    [sessionPopupController setMessage:NSLocalizedString(@"login_expire", nil)];
-    [self showPopup:sessionPopupController parentViewController:sessionPopupController.parentViewController parentView:self.view];
-
+    [sharedInstance.sessionPopupController setMessage:NSLocalizedString(@"login_expire", nil)];
+    [sharedInstance showPopup:sharedInstance.sessionPopupController parentViewController:sharedInstance.sessionPopupController.parentViewController parentView:sharedInstance.view];
 }
 
 - (void)didComplete
@@ -279,8 +271,10 @@ NSInteger popupCount = 0;
 
 - (void)needToMoveStartController
 {
-    [self closePopup:sessionPopupController parentViewController:sessionPopupController.parentViewController];
+    popupCount = 0;
+    [self closePopup:self.sessionPopupController parentViewController:self.sessionPopupController.parentViewController];
     [self popToRootViewController];
     [self.navigationController popToRootViewControllerAnimated:YES];
+    //self.sessionPopupController = nil;
 }
 @end

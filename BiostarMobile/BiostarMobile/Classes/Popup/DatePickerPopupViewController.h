@@ -17,24 +17,24 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 
-@protocol DatePickerDelegate <NSObject>
-
-- (void)confirmDateFilter:(NSString*)date isStartDate:(BOOL)isStartDate;
-
-@end
 
 @interface DatePickerPopupViewController : BaseViewController
 {
     __weak IBOutlet UIDatePicker *datePicker;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
 }
 
-@property (assign, nonatomic) id <DatePickerDelegate> delegate;
+typedef void (^DatePickerPopupResponseBlock)(NSString *dateString);
+
 @property (assign, nonatomic) BOOL isStartDate;
 @property (assign, nonatomic) BOOL isLocalTime;
+@property (nonatomic, strong) DatePickerPopupResponseBlock responseBlock;
 
 - (IBAction)cancelDateFilter:(id)sender;
 - (IBAction)confirmDateFilter:(id)sender;
 - (void)setDate:(NSDate*)date;
+- (void)getResponse:(DatePickerPopupResponseBlock)responseBlock;
 @end

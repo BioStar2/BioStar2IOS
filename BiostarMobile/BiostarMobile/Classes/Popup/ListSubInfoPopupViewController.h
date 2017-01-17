@@ -17,37 +17,10 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 #import "RadioCell.h"
-#import "UserProvider.h"
 #import "DeviceProvider.h"
-#import "AccessGroupProvider.h"
-#import "PreferenceProvider.h"
+#import "ImagePopupViewController.h"
 
-@protocol ListSubInfoPopupDelegate <NSObject>
-
-@optional
-
-- (void)confirmServerList:(NSInteger)index;
-- (void)confirmUserGroup:(NSDictionary*)userGroup;
-- (void)confirmDoorControl:(NSInteger)index;
-- (void)confirmTimezone:(NSInteger)index;
-- (void)confirmTimeFormat:(NSDictionary*)dic;
-- (void)confirmDateFormat:(NSDictionary*)dic;
-
-- (void)confirmDeviceForFingerprint:(NSDictionary*)dic;
-- (void)confirmDeviceForRegisterCard:(NSDictionary*)dic;
-- (void)confirmCardInfo:(NSDictionary*)dic;
-- (void)confirmCardsInfo:(NSMutableArray*)cardInfo;
-- (void)confirmExchangeCard:(NSDictionary*)dic;
-- (void)confirmExchangeAccessGroup:(NSDictionary *)dic;
-- (void)confirmAddAccessGroup:(NSArray *)groups;
-- (void)confirmFilterEvents:(NSArray*)events;
-- (void)confirmFilterUsers:(NSArray*)users;
-- (void)confirmFilterDevices:(NSArray*)devices;
-
-- (void)cancelListSubInfoPopupWithError:(NSDictionary*)errDic;
-@end
-
-@interface ListSubInfoPopupViewController : BaseViewController <UserProviderDelegate, DeviceProviderDelegate, AccessGroupProviderDelegate>
+@interface ListSubInfoPopupViewController : BaseViewController
 {
     __weak IBOutlet NSLayoutConstraint *containerHeightConstraint;
     __weak IBOutlet UILabel *titleLabel;
@@ -66,38 +39,71 @@
     __weak IBOutlet UIView *singleSearchView;
     __weak IBOutlet UITextField *singleSearchTextField;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
+    
     
     NSMutableArray *contentListArray;
     NSMutableArray *selectedInfoArray;
     NSMutableArray *eventArray;
-    UserProvider *userProvider;
+    NSMutableArray *verificationInfo;
     DeviceProvider *deviceProvider;
-    AccessGroupProvider *accessProvider;
     NSMutableDictionary *contentDic;
     NSString *query;
     NSInteger offset;
     NSInteger limit;
     NSInteger totalCount;
+    NSInteger limitCount;
     NSInteger selectedIndex;
     BOOL multiSelect;
     BOOL isSelectedAll;
     BOOL isSearchable;
     BOOL isForSearch;
-    BOOL isForSingleSearch;
+    BOOL isForSingleSearch; // 검색 가능하나 멀티셀렉트 안됨
     BOOL hasNextPage;
+    BOOL isLimited;
 }
 
-@property (assign, nonatomic) id <ListSubInfoPopupDelegate> delegate;
-@property (assign, nonatomic) ListType type;
+typedef void (^ListSubInfoPopupDictionaryResponseBlock)(NSDictionary *dictionary);
+typedef void (^ListSubInfoPopupArrayResponseBlock)(NSArray *array);
+typedef void (^ListSubInfoPopupIndexResponseBlock)(NSInteger index);
+
+
+@property (assign, nonatomic) ListPopupType type;
+@property (nonatomic, strong) ListSubInfoPopupDictionaryResponseBlock dictionaryResponseBlock;
+@property (nonatomic, strong) ListSubInfoPopupArrayResponseBlock arrayResponseBlock;
+@property (nonatomic, strong) ListSubInfoPopupIndexResponseBlock indexResponseBlock;
+
+
+- (void)getDictionaryResponse:(ListSubInfoPopupDictionaryResponseBlock)dictionaryResponseBlock;
+
+- (void)getArrayResponse:(ListSubInfoPopupArrayResponseBlock)arrayResponseBlock;
+
+- (void)getIndexResponse:(ListSubInfoPopupIndexResponseBlock)indexResponseBlock;
+
+
+- (void)getCards:(NSString*)searchQuery limit:(NSInteger)searchLimit offset:(NSInteger)searchOffset;
 
 - (IBAction)showSearchTextFieldView:(id)sender;
+
 - (IBAction)showSingleSearchView:(id)sender;
+
 - (IBAction)cancelSearch:(id)sender;
+
 - (IBAction)cancelSingleSearch:(id)sender;
+
 - (IBAction)selectAll:(id)sender;
+
 - (void)adjustHeight:(NSInteger)count;
+
 - (IBAction)cancelCurrentPopup:(id)sender;
+
 - (IBAction)confirmCurrentPopup:(id)sender;
+
 - (void)setContentList:(NSArray*)array;     // 모니터링 이벤트등 이미 데이터가 있을때 호출
+
+- (void)setVerificationInfo:(NSArray*)info;
+
+- (void)addContent:(NSIndexPath *)indexPath tableView:(UITableView *)tableView;
 
 @end

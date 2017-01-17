@@ -15,7 +15,6 @@
  */
 
 #import "MonitoringSubExtraCell.h"
-#import "EventProvider.h"
 #import "CommonUtil.h"
 #import "PreferenceProvider.h"
 
@@ -23,6 +22,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -31,12 +31,12 @@
     // Configure the view for the selected state
 }
 
-- (void)setContent:(NSDictionary*)eventInfo doorInfo:(NSDictionary*)doorInfo canMoveDetail:(BOOL)canMoveDetail
+- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo canMoveDetail:(BOOL)canMoveDetail
 {
-    NSDictionary *eventType = [eventInfo objectForKey:@"event_type"];
-    if (nil == [eventType objectForKey:@"description"] || [[eventType objectForKey:@"description"] isEqualToString:@""])
+    EventType *eventType = eventInfo.event_type;
+    if (nil == eventType.event_type_description)
     {
-        NSInteger code = [[eventType objectForKey:@"code"] integerValue];
+        NSInteger code = eventType.code;
         if (code > 4095 && code < 4110)
         {
             code = 4096;
@@ -58,10 +58,10 @@
             code = 5120;
         }
         
-        NSString *detail = [EventProvider getEventMessage:code];
+        NSString *detail = [EventProvider convertEventCodeToDescription:code];
         if (nil == detail)
         {
-            _eventTitleLabel.text = [eventType objectForKey:@"code"];
+            _eventTitleLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)code];
         }
         else
         {
@@ -71,11 +71,11 @@
     }
     else
     {
-        _eventTitleLabel.text = [eventType objectForKey:@"name"];
+        _eventTitleLabel.text = eventType.event_type_description;
     }
 
 
-    NSDate *calculatedDate = [CommonUtil localDateFromString:[eventInfo objectForKey:@"datetime"] originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    NSDate *calculatedDate = [CommonUtil localDateFromString:eventInfo.datetime originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
     NSString *timeFormat;
     
@@ -95,10 +95,10 @@
     
     _eventDateLabel.text = description;
     
-    NSDictionary *userDic = [eventInfo objectForKey:@"user"];
+    SimpleUser *user = eventInfo.user;
     
-    NSString *userName = [userDic objectForKey:@"name"];
-    NSString *userID = [userDic objectForKey:@"user_id"];
+    NSString *userName = user.name;
+    NSString *userID = user.user_id;
     NSString *IDLabelText;
     if (nil == userName || [userName isEqualToString:@""])
     {
@@ -110,31 +110,36 @@
     }
     _IDLabel.text = IDLabelText;
     
-    NSDictionary *deviceDic = [eventInfo objectForKey:@"device"];
+    SimpleModel *device = eventInfo.device;
     
-    NSString *deviceName = [deviceDic objectForKey:@"name"];
-    NSString *deviceID = [deviceDic objectForKey:@"id"];
-    
-    if (nil == deviceName || [deviceName isEqualToString:@""])
+    if (nil == device.name)
     {
-        _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", deviceID, deviceID];
+        _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", device.id, device.id];
     }
     else
     {
-        _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", deviceID, deviceName];
+        _deviceLabel.text = [NSString stringWithFormat:@"%@ / %@", device.id, device.name];
         
     }
     
     
-    if (canMoveDetail)
+    [self setEventImage:eventInfo];
+}
+
+- (void)setEventImage:(EventLogResult*)logResult
+{
+    EventLevel eventLevel = [logResult.level eventLevelEnumFromString];
+    LogType logType = [logResult.type logTypeEnumFromString];
+    
+    if (logType == USER)
     {
-        if (nil == [doorInfo objectForKey:[deviceDic objectForKey:@"id"]] && nil == [userDic objectForKey:@"user_id"])
+        if ([AuthProvider hasReadPermission:USER_PERMISSION])
         {
-            [_accImageView setHidden:YES];
+            [_accImageView setHidden:NO];
         }
         else
         {
-            [_accImageView setHidden:NO];
+            [_accImageView setHidden:YES];
         }
     }
     else
@@ -142,105 +147,89 @@
         [_accImageView setHidden:YES];
     }
     
-    //[self setIcon:eventType];
-    if ([[eventInfo objectForKey:@"level"] isEqualToString:@"GREEN"])
-    {
-        [self setGreen:[eventInfo objectForKey:@"type"]];
-    }
-    else if ([[eventInfo objectForKey:@"level"] isEqualToString:@"YELLOW"])
-    {
-        [self setYellow:[eventInfo objectForKey:@"type"]];
-    }
-    else
-    {
-        [self setRed:[eventInfo objectForKey:@"type"]];
-    }
-}
-
-- (void)setGreen:(NSString*)type
-{
-    if ([type isEqualToString:@"DEVICE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_device_01"];
-    }
-    else if ([type isEqualToString:@"DOOR"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_door_01"];
-    }
-    else if ([type isEqualToString:@"USER"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_user_01"];
-    }
-    else if ([type isEqualToString:@"ZONE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_01"];
-    }
-    else if ([type isEqualToString:@"AUTHENTICATION"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_01"];
-    }
-    else
-    {
-        // default
-        _eventImageView.image = [UIImage imageNamed:@"monitoring_ic3"];
-    }
-}
-
-- (void)setRed:(NSString*)type
-{
-    if ([type isEqualToString:@"DEVICE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_device_02"];
-    }
-    else if ([type isEqualToString:@"DOOR"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_door_02"];
-    }
-    else if ([type isEqualToString:@"USER"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_user_02"];
-    }
-    else if ([type isEqualToString:@"ZONE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_02"];
-    }
-    else if ([type isEqualToString:@"AUTHENTICATION"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_02"];
-    }
-    else
-    {
-        // default
-        _eventImageView.image = [UIImage imageNamed:@"monitoring_ic7"];
-    }
-}
-
-- (void)setYellow:(NSString*)type
-{
-    if ([type isEqualToString:@"DEVICE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_device_03"];
-    }
-    else if ([type isEqualToString:@"DOOR"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_door_03"];
-    }
-    else if ([type isEqualToString:@"USER"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_user_03"];
-    }
-    else if ([type isEqualToString:@"ZONE"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_03"];
-    }
-    else if ([type isEqualToString:@"AUTHENTICATION"])
-    {
-        _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_03"];
-    }
-    else
-    {
-        // default
-        _eventImageView.image = [UIImage imageNamed:@"monitoring_ic1"];
+    switch (eventLevel) {
+        case GREEN:
+            switch (logType) {
+                case DEVICE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_device_01"];
+                    break;
+                    
+                case DOOR:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_door_01"];
+                    break;
+                    
+                case USER:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_user_01"];
+                    break;
+                    
+                case ZONE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_01"];
+                    break;
+                    
+                case AUTHENTICATION:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_01"];
+                    break;
+                    
+                default:
+                    _eventImageView.image = [UIImage imageNamed:@"monitoring_ic3"];
+                    break;
+            }
+            break;
+        case YELLOW:
+            switch (logType) {
+                case DEVICE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_device_03"];
+                    break;
+                    
+                case DOOR:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_door_03"];
+                    break;
+                    
+                case USER:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_user_03"];
+                    break;
+                    
+                case ZONE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_03"];
+                    break;
+                    
+                case AUTHENTICATION:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_03"];
+                    break;
+                    
+                default:
+                    _eventImageView.image = [UIImage imageNamed:@"monitoring_ic1"];
+                    break;
+            }
+            break;
+            
+        case RED:
+            switch (logType) {
+                case DEVICE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_device_02"];
+                    break;
+                    
+                case DOOR:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_door_02"];
+                    break;
+                    
+                case USER:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_user_02"];
+                    break;
+                    
+                case ZONE:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_zone_02"];
+                    break;
+                    
+                case AUTHENTICATION:
+                    _eventImageView.image = [UIImage imageNamed:@"ic_event_auth_02"];
+                    break;
+                    
+                default:
+                    _eventImageView.image = [UIImage imageNamed:@"monitoring_ic7"];
+                    break;
+            }
+            break;
     }
 }
 

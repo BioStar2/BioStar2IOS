@@ -22,9 +22,10 @@
 #import "UserNewDetailViewController.h"
 #import "TextPopupViewController.h"
 #import "ImagePopupViewController.h"
-#import "ListSubInfoPopupViewController.h"
+#import "UserGroupPopupViewController.h"
+#import "PreferenceProvider.h"
 
-@interface UsersViewController : BaseViewController <UserProviderDelegate, TextPopupDelegate, UserDetailDelegate, ImagePopupDelegate, ListSubInfoPopupDelegate>
+@interface UsersViewController : BaseViewController <UserDetailDelegate>
 {
     __weak IBOutlet UITableView *usersTableView;
     __weak IBOutlet UIView *contentView;
@@ -38,6 +39,9 @@
     __weak IBOutlet UIButton *scrollButton;
     __weak IBOutlet UIView *editButtonView;
     __weak IBOutlet UIButton *doneButton;
+    __weak IBOutlet UIButton *addButton;
+    __weak IBOutlet UIButton *deleteButton;
+    __weak IBOutlet UILabel *totalDecLabel;
     
     NSInteger offset;
     NSInteger limit;
@@ -46,21 +50,25 @@
     BOOL isEditMode;
     BOOL isSearchMode;
     BOOL isForFilter;
-    NSMutableArray *users;
+    NSMutableArray <User*> *users;
     NSMutableArray *toDeleteUsers;
     NSString *query;
     NSString *groupID;
     UserProvider *provider;
+    PreferenceProvider *preferenceProvoder;
     BOOL hasNextPage;
     BOOL canScrollTop;
     float firstYPosition;
     float secondYPosition;
-    NSDictionary *filterUserGroup;
+    UserGroup *selectedUserGroup;
 
 }
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
+
+- (void)deleteSelectedUsers:(NSArray*)seletedUsers;
+- (void)showImagePopup:(NSString*)title magePopupType:(ImagePopupType)type content:(NSString*)content;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)addUser:(id)sender;
 - (IBAction)changeToDeleteMode:(id)sender;
@@ -70,4 +78,5 @@
 - (IBAction)showUserGroupFilter:(id)sender;
 - (IBAction)deleteUsers:(id)sender;
 - (void)refreshUsers;
+- (void)loadUserPhoto:(NSArray*)tempUsers;
 @end

@@ -25,14 +25,19 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [MonitorFilterViewController filterReset];
+    [self setSharedViewController:self];
     
-    offset = 0;
-    limit = 50;
+    [MonitorFilterViewController filterReset];
+    if (nil == searchQuery) {
+        searchQuery = [[EventQuery alloc] init];
+    }
+    titleLabel.text = NSLocalizedString(@"monitoring", nil);
+    requestCount = 0;
+    searchQuery.offset = 0;
+    searchQuery.limit = 50;
+    
     totalCount = 0;
     hasNextPage = NO;
-    eventSearchFailed = NO;
-    doorSearchFailed = NO;
     canScrollTop = NO;
     canMoveToDetail = YES;
     secondYPosition = 0.0f;
@@ -40,42 +45,34 @@
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     refreshControl = [[UIRefreshControl alloc] init];
-    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Event"];
     [eventTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshEvents) forControlEvents:UIControlEventValueChanged];
     
     events = [[NSMutableArray alloc] init];
     doors = [[NSMutableArray alloc] init];
-    doorDic = [[NSMutableDictionary alloc] init];
-    currentErrDic = [[NSMutableDictionary alloc] init];
+    //doorDic = [[NSMutableDictionary alloc] init];
     
     eventProvider = [[EventProvider alloc] init];
-    eventProvider.delegate = self;
-    
     doorProvider = [[DoorProvider alloc] init];
-    doorProvider.delegate = self;
     
     switch (_requestType)
     {
         case EVENT_USER:
-            //[provider getDoors];
-            [eventProvider searchEvent:condition offset:offset limit:limit];
+            [self searchEvent:searchQuery];
             canMoveToDetail = NO;
             break;
             
         case EVENT_DOOR:
-            [eventProvider searchEvent:condition offset:offset limit:limit];
+            [self searchEvent:searchQuery];
             canMoveToDetail = NO;
             break;
             
         case EVENT_MONITOR:
-            [eventProvider searchEvent:nil offset:offset limit:limit];
-            [doorProvider getDoors];
-            requestCount = 2;
+            [self searchEvent:searchQuery];
+            //[self getDoors];
+            
             break;
     }
-    
-    [self startLoading:self];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -93,14 +90,203 @@
 }
 */
 
+//- (void)getDoors
+//{
+//    [self setSharedViewController:self];
+//    requestCount++;
+//    [self startLoading:self];
+//    
+//    [doorProvider getDoors:^(GetDoorList *result) {
+//        requestCount--;
+//        if (requestCount <= 0) {
+//            requestCount = 0;
+//            [self finishLoading];
+//        }
+//        
+//        [doors addObjectsFromArray:result.records];
+////        for (ListDoorItem *door in doors)
+////        {
+////            if (nil != [door objectForKey:@"entry_device"])
+////            {
+////                [doorDic setObject:[door objectForKey:@"id"]
+////                            forKey:[[door objectForKey:@"entry_device"] objectForKey:@"id"]];
+////            }
+////            
+////            if (nil != [door objectForKey:@"door_relay"] && nil != [[[door objectForKey:@"door_relay"] objectForKey:@"device"] objectForKey:@"id"])
+////            {
+////                [doorDic setObject:[door objectForKey:@"id"]
+////                            forKey:[[[door objectForKey:@"door_relay"] objectForKey:@"device"] objectForKey:@"id"]];
+////            }
+////            
+////            if (nil != [door objectForKey:@"exit_button"] && nil != [[[door objectForKey:@"exit_button"] objectForKey:@"device"] objectForKey:@"id"])
+////            {
+////                [doorDic setObject:[door objectForKey:@"id"]
+////                            forKey:[[[door objectForKey:@"exit_button"] objectForKey:@"device"] objectForKey:@"id"]];
+////            }
+////            
+////            if (nil != [door objectForKey:@"door_sensor"] && nil != [[[door objectForKey:@"door_sensor"] objectForKey:@"device"] objectForKey:@"id"])
+////            {
+////                [doorDic setObject:[door objectForKey:@"id"]
+////                            forKey:[[[door objectForKey:@"door_sensor"] objectForKey:@"device"] objectForKey:@"id"]];
+////            }
+////            
+////            if (nil != [door objectForKey:@"exit_device"])
+////            {
+////                [doorDic setObject:[door objectForKey:@"id"]
+////                            forKey:[[door objectForKey:@"exit_device"] objectForKey:@"id"]];
+////            }
+////        }
+//        
+//    } onError:^(Response *error) {
+//        requestCount--;
+//        if (requestCount <= 0) {
+//            requestCount = 0;
+//            [self finishLoading];
+//        }
+//        
+//        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+//        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+//        [imagePopupCtrl setContent:error.message];
+//        
+//        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//        
+//        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//            if (isConfirm)
+//            {
+//                [self getDoors];
+//            }
+//        }];
+//    }];
+//    
+//}
+
+- (NSUInteger)searchDoorIDByDeviceID:(NSString*)devicdID
+{
+    NSUInteger doorID = 0;
+    
+    for (ListDoorItem *door in doors)
+    {
+        if (nil != door.entry_device)
+        {
+            if ([devicdID isEqualToString:door.entry_device.id])
+            {
+                doorID = [door.id integerValue];
+            }
+        }
+        
+        if (nil == door.door_relay)
+        {
+            if ([devicdID isEqualToString:door.door_relay.device.id])
+            {
+                doorID = [door.id integerValue];
+            }
+        }
+        
+        if (nil == door.exit_button)
+        {
+            if ([devicdID isEqualToString:door.exit_button.device.id])
+            {
+                doorID = [door.id integerValue];
+            }
+        }
+        
+        if (nil == door.door_sensor)
+        {
+            if ([devicdID isEqualToString:door.door_sensor.device.id])
+            {
+                doorID = [door.id integerValue];
+            }
+        }
+        
+        if (nil == door.exit_device)
+        {
+            if ([devicdID isEqualToString:door.exit_device.id])
+            {
+                doorID = [door.id integerValue];
+            }
+        }
+    }
+
+    return doorID;
+}
+
+- (void)searchEvent:(EventQuery*)query
+{
+    [self setSharedViewController:self];
+    requestCount++;
+    [self startLoading:self];
+    
+    [eventProvider searchEvent:query completeBlock:^(EventLogSearchResultWithoutTotal *result) {
+        
+        [refreshControl endRefreshing];
+        
+        requestCount--;
+        if (requestCount <= 0) {
+            requestCount = 0;
+            [self finishLoading];
+        }
+        
+        [refreshControl endRefreshing];
+        
+        if (searchQuery.offset == 0)
+        {
+            [events removeAllObjects];
+        }
+        
+        [events addObjectsFromArray:result.records];
+        
+        if (result.is_next)
+        {
+            hasNextPage = YES;
+            searchQuery.offset += searchQuery.limit;
+        }
+        else
+        {
+            hasNextPage = NO;
+        }
+        
+        canScrollTop = NO;
+        scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
+        
+        [eventTableView reloadData];
+    
+        
+    } onError:^(Response *error) {
+        
+        requestCount--;
+        if (requestCount <= 0) {
+            requestCount = 0;
+            [self finishLoading];
+        }
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self searchEvent:query];
+            }
+        }];
+    }];
+    
+    
+}
+
 - (void)refreshEvents
 {
-    offset = 0;
+    searchQuery.offset = 0;
+    
     [events removeAllObjects];
     [eventTableView reloadData];
-    [eventProvider searchEvent:condition offset:offset limit:limit];
-    requestCount = 1;
-    [self startLoading:self];
+    [self searchEvent:searchQuery];
 }
 - (IBAction)moveToBack:(id)sender
 {
@@ -112,13 +298,12 @@
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     filterViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitorFilterViewController"];
     filterViewController.delegate = self;
-    if (condition)
+    if (searchQuery)
     {
-        [filterViewController setCondition:condition];
+        [filterViewController setSearchQuery:searchQuery];
     }
     
     [self pushChildViewController:filterViewController parentViewController:self contentView:self.view animated:NO];
-    
 }
 
 - (IBAction)scrollTopOrBottom:(id)sender
@@ -150,31 +335,25 @@
     
 }
 
-- (void)setDeviceCondition:(NSDictionary*)deviceCondition
+- (void)setDeviceCondition:(NSArray <NSString *> *)deviceIDs
 {
-    if (nil == condition)
+    if (nil == searchQuery)
     {
-        condition = [[NSMutableDictionary alloc] initWithDictionary:deviceCondition];
+        searchQuery = [[EventQuery alloc] init];
     }
-    else
-    {
-        [condition setDictionary:deviceCondition];
-    }
-    
+    searchQuery.device_id = deviceIDs;
     [MonitorFilterViewController setResetFilter:NO];
 }
 
-- (void)setUserCondition:(NSDictionary*)userCondition;
+- (void)setUserCondition:(NSArray <NSString *> *)userIDs;
 {
-    if (nil == condition)
+    if (nil == searchQuery)
     {
-        condition = [[NSMutableDictionary alloc] initWithDictionary:userCondition];
+        searchQuery = [[EventQuery alloc] init];
     }
-    else
-    {
-        [condition setDictionary:userCondition];
-    }
+    searchQuery.user_id = userIDs;
     [MonitorFilterViewController setResetFilter:NO];
+
 }
 
 - (void)setDefaultDateCondition
@@ -187,7 +366,7 @@
     
     NSDateComponents *newComponents = [[NSDateComponents alloc] init];
     [newComponents setTimeZone:[NSTimeZone localTimeZone]];
-    //[newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+    
     [newComponents setYear:dateComponents.year];
     [newComponents setMonth:dateComponents.month];
     [newComponents setDay:dateComponents.day];
@@ -211,67 +390,42 @@
     
     NSString *expireDateString = [CommonUtil stringFromUTCDateToCurrentDateString:expireDateStr originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
-    [condition setObject:@[startDateString, expireDateString] forKey:@"datetime"];
+    searchQuery.datetime = @[startDateString, expireDateString];
 }
 
 - (void)searchByFilter
 {
-    offset = 0;
-    [eventProvider searchEvent:condition offset:offset limit:limit];
-    [self startLoading:self];
+    searchQuery.offset = 0;
+    [self searchEvent:searchQuery];
 }
 
-- (void)checkRequestResult
+- (NSString*)searchDoorNameByDoorID:(NSUInteger)ID
 {
-    requestCount--;
+    NSString *doorName = nil;
     
-    if (requestCount <= 0)
+    for (ListDoorItem *door in doors)
     {
-        requestCount = 0;
-        
-        if (!eventSearchFailed && !doorSearchFailed)
+        NSInteger doorID = [door.id integerValue];
+        if (doorID == ID)
         {
-            [self finishLoading];
-            [eventTableView reloadData];
-        }
-        else
-        {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.delegate = self;
-            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-            [imagePopupCtrl setContent:[currentErrDic objectForKey:@"message"]];
-            
-            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-            
-            [self finishLoading];
+            doorName = door.name;
+            break;
         }
     }
     
-    
+    return doorName;
 }
 
-- (void)moveToDetail:(SelectType)currentType ID:(NSInteger)currentID event:(NSDictionary*)eventDic
+- (void)moveToDetail:(SelectType)currentType ID:(NSInteger)currentID event:(EventLogResult*)eventResult
 {
-    NSDictionary *userDic = [eventDic objectForKey:@"user"];
-    NSDictionary *deviceDic = [eventDic objectForKey:@"device"];
-    
-    NSString *devicename = [deviceDic objectForKey:@"name"];
-    NSString *username = [userDic objectForKey:@"name"];
-    
+
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     
     switch (currentType)
     {
         case NONE_SELECT:
         {
-            NSString *toastStr = [NSString stringWithFormat:@"%@\n%@",NSLocalizedString(@"none_door", nil) ,NSLocalizedString(@"none_user", nil)];
-            [self.view makeToast:toastStr
-                        duration:2.0
-                        position:CSToastPositionBottom
-                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
-            break;
+            return;
         }
         case SELECT_USER:
         {
@@ -281,60 +435,8 @@
             [self pushChildViewController:userDetailViewController parentViewController:self contentView:self.view animated:YES];
             
         }
-            
             break;
-            
-        case SELECT_DEVICE:
-        {
-
-            DoorDetailViewController *doorDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"DoorDetailViewController"];
-            [self pushChildViewController:doorDetailViewController parentViewController:self contentView:self.view animated:YES];
-            
-            [doorDetailViewController getSelectedDoor:currentID];
-
-        }
-            break;
-            
-        case SELECT_BOTH:
-        {
-            
-            if (nil == devicename)
-            {
-                devicename = @"";
-            }
-            
-            if (nil == username)
-            {
-                // username 없으면 사용자 삭제여서 도어 디테일로 이동
-                DoorDetailViewController *doorDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"DoorDetailViewController"];
-                [self pushChildViewController:doorDetailViewController parentViewController:self contentView:self.view animated:YES];
-                
-                [doorDetailViewController getSelectedDoor:currentID];
-                
-                return;
-            }
-            
-            NSString *doorName;
-            for (NSDictionary *door in doors)
-            {
-                NSInteger doorID = [[door objectForKey:@"id"] integerValue];
-                if (doorID == currentID)
-                {
-                    doorName = [door objectForKey:@"name"];
-                }
-            }
-            
-            NSDictionary *tempDeviceDic = @{@"name" : [NSString stringWithFormat:@"Door %@", doorName], @"ID" : [deviceDic objectForKey:@"id"], @"type" : [NSNumber numberWithInteger:SELECT_DEVICE]};
-            NSDictionary *tempUserDic = @{@"name" : [NSString stringWithFormat:@"User %@", username], @"ID" : [userDic objectForKey:@"user_id"], @"type" : [NSNumber numberWithInteger:SELECT_USER]};
-            
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            
-            OneButtonTablePopupViewController *oneButtonPopup = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonTablePopupViewController"];
-            [self showPopup:oneButtonPopup parentViewController:self parentView:self.view];
-            oneButtonPopup.delegate = self;
-            oneButtonPopup.type = MORNITORING;
-            [oneButtonPopup setContentListArray:@[tempDeviceDic, tempUserDic]];
-        }
+        default:
             break;
     }
 }
@@ -355,29 +457,27 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *dic = [events objectAtIndex:indexPath.row];
-    NSDictionary *userDic = [dic objectForKey:@"user"];
-    NSDictionary *deviceDic = [dic objectForKey:@"device"];
+    EventLogResult *result = [events objectAtIndex:indexPath.row];
+    SimpleUser *user = result.user;
+    SimpleModel *device = result.device;
 
-    if (nil == [userDic objectForKey:@"user_id"])
+    if (nil == user.user_id)
     {
         // 2줄 또는 3줄
-        if (nil == [deviceDic objectForKey:@"id"])
+        if (nil == device.id)
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MonitoringCell" forIndexPath:indexPath];
             
             MonitoringCell *customCell = (MonitoringCell*)cell;
             
             
-            [customCell setContent:dic doorInfo:doorDic canMoveDetail:canMoveToDetail];
+            [customCell setContent:result canMoveDetail:canMoveToDetail];
             
             if (indexPath.row == events.count - 1)
             {
                 if (hasNextPage)
                 {
-                    [eventProvider searchEvent:condition offset:offset limit:limit];
-                    requestCount = 1;
-                    [self startLoading:self];
+                    [self searchEvent:searchQuery];
                 }
 
             }
@@ -392,15 +492,13 @@
             MonitoringExtraCell *customCell = (MonitoringExtraCell*)cell;
             
             
-            [customCell setContent:dic doorInfo:doorDic canMoveDetail:canMoveToDetail];
+            [customCell setContent:result canMoveDetail:canMoveToDetail];
             
             if (indexPath.row == events.count - 1)
             {
                 if (hasNextPage)
                 {
-                    [eventProvider searchEvent:condition offset:offset limit:limit];
-                    requestCount = 1;
-                    [self startLoading:self];
+                    [self searchEvent:searchQuery];
                 }
 
             }
@@ -416,15 +514,13 @@
         MonitoringSubExtraCell *customCell = (MonitoringSubExtraCell*)cell;
         
         
-        [customCell setContent:dic doorInfo:doorDic canMoveDetail:canMoveToDetail];
+        [customCell setContent:result doorInfo:result.device canMoveDetail:canMoveToDetail];
         
         if (indexPath.row == events.count - 1)
         {
             if (hasNextPage)
             {
-                [eventProvider searchEvent:condition offset:offset limit:limit];
-                requestCount = 1;
-                [self startLoading:self];
+                [self searchEvent:searchQuery];
             }
 
         }
@@ -440,13 +536,13 @@
 {
     CGFloat height = 0;
     
-    NSDictionary *eventDic = [events objectAtIndex:indexPath.row];
-    NSDictionary *userDic = [eventDic objectForKey:@"user"];
-    NSDictionary *deviceDic = [eventDic objectForKey:@"device"];
-    if (nil == [userDic objectForKey:@"user_id"])
+    EventLogResult *event = [events objectAtIndex:indexPath.row];
+    SimpleUser *user = event.user;
+    SimpleModel *device = event.device;
+    if (nil == user.user_id)
     {
         // 2줄 또는 3줄
-        if (nil == [deviceDic objectForKey:@"id"])
+        if (nil == device.id)
         {
             height = 78;
         }
@@ -465,17 +561,20 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (![AuthProvider hasReadPermission:USER_PERMISSION])
+    {
+        return;
+    }
     if (canMoveToDetail)
     {
-        NSDictionary *eventDic = [events objectAtIndex:indexPath.row];
-        NSDictionary *userDic = [eventDic objectForKey:@"user"];
-        NSDictionary *deviceDic = [eventDic objectForKey:@"device"];
+        EventLogResult *event = [events objectAtIndex:indexPath.row];
+        SimpleUser *user = event.user;
         NSInteger ID = 0;
         SelectType type = NONE_SELECT;
         
-        if (nil != [userDic objectForKey:@"user_id"])
+        if (nil != user.user_id)
         {
-            if (nil == [userDic objectForKey:@"name"])
+            if (nil == user.name)
             {
                 [self.view makeToast:NSLocalizedString(@"none_user", nil)
                             duration:2.0
@@ -483,272 +582,37 @@
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 return;
             }
-            ID = [[userDic objectForKey:@"user_id"] integerValue];
-            type = SELECT_USER;
-        }
-        
-        if (nil != [deviceDic objectForKey:@"id"])
-        {
-            if (nil != [doorDic objectForKey:[deviceDic objectForKey:@"id"]])
+            if ([user.user_id integerValue] != 0)
             {
-                NSString *key = [deviceDic objectForKey:@"id"];
-                ID = [[doorDic objectForKey:key] integerValue];
-                
-                if (type == SELECT_USER)
-                {
-                    type = SELECT_BOTH;
-                }
-                else
-                {
-                    type = SELECT_DEVICE;
-                }
+                ID = [user.user_id integerValue];
+                type = SELECT_USER;
             }
+            
         }
+
         
-        [self moveToDetail:type ID:ID event:eventDic];
+        [self moveToDetail:type ID:ID event:event];
     }
 }
 
-#pragma mark - EventProviderDelegate
-
-- (void)requestSearchEventDidFinish:(NSArray*)eventArray isNextPage:(BOOL)isNext
-{
-    if (!isNext)
-    {
-        [self.view makeToast:NSLocalizedString(@"no_more_data", nil)
-                    duration:2.0
-                    position:CSToastPositionBottom
-                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
-    }
-    
-    [refreshControl endRefreshing];
-    
-    if (offset == 0)
-    {
-        [events removeAllObjects];
-    }
-    
-    if ([eventArray isKindOfClass:[NSArray class]])
-    {
-        [events addObjectsFromArray:eventArray];
-    }
-    
-    if (isNext)
-    {
-        hasNextPage = YES;
-        offset += limit;
-    }
-    else
-    {
-        hasNextPage = NO;
-    }
-    
-    canScrollTop = NO;
-    scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
-    
-    switch (_requestType)
-    {
-        case EVENT_USER:
-            [self finishLoading];
-            [eventTableView reloadData];
-            break;
-            
-        case EVENT_DOOR:
-            [self finishLoading];
-            [eventTableView reloadData];
-            break;
-            
-        case EVENT_MONITOR:
-            [self checkRequestResult];
-            break;
-    }
-}
-
-
-- (void)requestEventProviderDidFail:(NSDictionary*)errDic
-{
-    eventSearchFailed = YES;
-    
-    [refreshControl endRefreshing];
-    switch (_requestType)
-    {
-        case EVENT_USER:
-        case EVENT_DOOR:
-        {
-            [self finishLoading];
-            
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.delegate = self;
-            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-            [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-            
-            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-            
-            
-            break;
-        }
-            
-        case EVENT_MONITOR:
-            [currentErrDic setDictionary:errDic];
-            [self checkRequestResult];
-            break;
-    }
-    
-}
-
-#pragma mark - DoorProviderDelegate
-
-- (void)requestGetDoorsDidFinish:(NSArray*)doorArray totalCount:(NSInteger)total
-{
-    [doors addObjectsFromArray:doorArray];
-    switch (_requestType)
-    {
-        case EVENT_USER:
-            break;
-            
-        case EVENT_DOOR:
-            break;
-            
-        case EVENT_MONITOR:
-            NSLog(@"requestGetDoorsDidFinish EVENT_MONITOR");
-            
-            
-            for (NSDictionary *door in doorArray)
-            {
-                if (nil != [door objectForKey:@"entry_device"])
-                {
-                    [doorDic setObject:
-                                    [door objectForKey:@"id"]
-                                forKey:
-                                    [[door objectForKey:@"entry_device"] objectForKey:@"id"]];
-                }
-                
-                if (nil != [door objectForKey:@"door_relay"] && nil != [[[door objectForKey:@"door_relay"] objectForKey:@"device"] objectForKey:@"id"])
-                {
-                    [doorDic setObject:
-                                    [door objectForKey:@"id"]
-                                forKey:
-                                    [[[door objectForKey:@"door_relay"] objectForKey:@"device"] objectForKey:@"id"]];
-                }
-                
-                if (nil != [door objectForKey:@"exit_button"] && nil != [[[door objectForKey:@"exit_button"] objectForKey:@"device"] objectForKey:@"id"])
-                {
-                    [doorDic setObject:
-                                    [door objectForKey:@"id"]
-                                forKey:
-                                    [[[door objectForKey:@"exit_button"] objectForKey:@"device"] objectForKey:@"id"]];
-                }
-                
-                if (nil != [door objectForKey:@"door_sensor"] && nil != [[[door objectForKey:@"door_sensor"] objectForKey:@"device"] objectForKey:@"id"])
-                {
-                    [doorDic setObject:
-                                    [door objectForKey:@"id"]
-                                forKey:
-                                    [[[door objectForKey:@"door_sensor"] objectForKey:@"device"] objectForKey:@"id"]];
-                }
-                
-                if (nil != [door objectForKey:@"exit_device"])
-                {
-                    [doorDic setObject:
-                     [door objectForKey:@"id"]
-                                forKey:
-                     [[door objectForKey:@"exit_device"] objectForKey:@"id"]];
-                }
-                
-                
-            }
-            [self checkRequestResult];
-            break;
-    }
-    
-    
-}
-
-- (void)requestDoorProviderDidFail:(NSDictionary*)errDic
-{
-    doorSearchFailed = YES;
-    [currentErrDic setDictionary:errDic];
-    [self checkRequestResult];
-}
-
-
-#pragma mark - OneButtonTableDelegate
-
-- (void)didSelectItem:(NSDictionary*)selectedDic
-{
-    if ([[selectedDic objectForKey:@"type"] integerValue]== SELECT_USER)
-    {
-//        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-//        UserNewDetailViewController __weak *userDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
-//        
-//        [userDetailViewController getUserInfo:[selectedDic valueForKey:@"ID"]];
-//        
-//        [self pushChildViewController:userDetailViewController parentViewController:self contentView:self.view animated:YES];
-        [self moveToDetail:SELECT_USER ID:[[selectedDic valueForKey:@"ID"] integerValue]event:nil];
-    }
-    else
-    {
-        NSString *key = [selectedDic objectForKey:@"ID"];
-        
-        NSInteger ID = [[doorDic objectForKey:key] integerValue];
-        [self moveToDetail:SELECT_DEVICE ID:ID event:nil];
-    }
-}
 
 #pragma mark - MonitorFilterDelegate
 
-- (void)saveFilter
+- (void)saveFilter:(EventQuery*)filteredQuery
 {
-    if (nil == condition)
-    {
-        condition = [[NSMutableDictionary alloc] initWithDictionary:[filterViewController getFilterConditions]];
-    }
-    else
-    {
-        [condition removeAllObjects];
-        [condition setDictionary:[filterViewController getFilterConditions]];
-    }
+    searchQuery = filteredQuery;
 }
 
-- (void)searchEvent
+- (void)searchEventByFilterController:(EventQuery*)filteredQuery
 {
-    requestCount = 1;
-    if (nil == condition)
-    {
-        condition = [[NSMutableDictionary alloc] initWithDictionary:[filterViewController getFilterConditions]];
-    }
-    else
-    {
-        [condition removeAllObjects];
-        [condition setDictionary:[filterViewController getFilterConditions]];
-    }
+    searchQuery = filteredQuery;
     
     // 사용자 장치 이벤트
-    NSInteger userCount = 0;
-    NSInteger deviceCount = 0;
-    NSInteger eventCount = 0;
+    NSString *userCount = searchQuery.user_id.count == 0 ? NSLocalizedString(@"all_users", nil) : [NSString stringWithFormat:@"%ld", searchQuery.user_id.count];
+    NSString * deviceCount = searchQuery.device_id.count == 0 ? NSLocalizedString(@"all_devices", nil) : [NSString stringWithFormat:@"%ld", searchQuery.device_id.count];
+    NSString * eventCount = searchQuery.event_type_code.count == 0 ? NSLocalizedString(@"all_events", nil) : [NSString stringWithFormat:@"%ld", searchQuery.event_type_code.count];
     
-    NSArray *userValue = [condition objectForKey:@"user_id"];
-    NSArray *deviceValue = [condition objectForKey:@"device_id"];
-    NSArray *eventValue = [condition objectForKey:@"event_type_code"];
-    if (userValue)
-    {
-        userCount = userValue.count;
-    }
-    
-    if (deviceValue)
-    {
-        deviceCount = deviceValue.count;
-    }
-    
-    if (eventValue)
-    {
-        eventCount = eventValue.count;
-    }
-    
-    NSString *toastContent = [NSString stringWithFormat:NSLocalizedString(@"user:%ld device:%ld event:%ld", nil)
+    NSString *toastContent = [NSString stringWithFormat:NSLocalizedString(@"user:%@ device:%@ event:%@", nil)
                               ,userCount
                               ,deviceCount
                               ,eventCount];
@@ -763,43 +627,6 @@
     [self searchByFilter];
 }
 
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    switch (_requestType)
-    {
-        case EVENT_USER:
-        case EVENT_DOOR:
-            eventSearchFailed = NO;
-            [eventProvider searchEvent:condition offset:offset limit:limit];
-            break;
-            
-        case EVENT_MONITOR:
-            if (eventSearchFailed && doorSearchFailed)
-            {
-                eventSearchFailed = NO;
-                doorSearchFailed = NO;
-                [eventProvider searchEvent:nil offset:offset limit:limit];
-                [doorProvider getDoors];
-                requestCount = 2;
-            }
-            else if (!eventSearchFailed && doorSearchFailed)
-            {
-                doorSearchFailed = NO;
-                [doorProvider getDoors];
-                requestCount = 1;
-            }
-            else if (eventSearchFailed && !doorSearchFailed)
-            {
-                eventSearchFailed = NO;
-                [eventProvider searchEvent:nil offset:offset limit:limit];
-                requestCount = 1;
-            }
-            break;
-    }
-    
-}
 
 #pragma mark - ScrollView Delegate
 

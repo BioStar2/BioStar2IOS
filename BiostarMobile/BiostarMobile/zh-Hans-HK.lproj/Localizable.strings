@@ -34,6 +34,35 @@
 "IN" = "無效";
 // ios only
 
+// push
+
+"notificationType.message.deviceReboot"               = "%@ 被重啟";
+"notificationType.message.deviceRs485Disconnect"      = "%@ 斷開";
+"notificationType.message.deviceTampering"            = "%@ 被強拆";
+"notificationType.message.doorApb"                    = "從%@上檢測到反潛返警報";
+"notificationType.message.doorForcedOpen"             = "從%@上檢測到強制破門";
+"notificationType.message.doorHeldOpen"               = "從%@上檢測到門長開未關";
+"notificationType.message.doorOpenRequest"            = "(%1$@)門收到用戶(%2$@)開門請求";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "%@ 上檢測到反潛返警報";
+"notificationType.message.zoneFire"                   = "%@ 上檢測到火警警報";
+
+"notificationType.title.deviceReboot"                 = "重啟設備";
+"notificationType.title.deviceRs485Disconnect"        = "設備RS485連接斷開";
+"notificationType.title.deviceTampering"              = "設備被強拆";
+"notificationType.title.doorApb"                      = "反潛返門";
+"notificationType.title.doorForcedOpen"               = "強制破門";
+"notificationType.title.doorHeldOpen"                 = "門長開未關";
+"notificationType.title.doorOpenRequest"              = "開門請求";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "反潛返區域";
+"notificationType.title.zoneFire"                     = "火警區域";
+
+// push
 
 "access_group" = "存取權限分組";
 "active" = "有效";
@@ -225,3 +254,56 @@
 "version_mobile" = "BioStar 2 流動版";
 "view_log" = "查看日誌";
 "wait" = "請稍等";
+
+
+/////
+"mobile_card" = "移動端智慧卡";
+"myprofile_upper" = "我的資料";
+"mobile_card_upper" = "移動端智慧卡";
+"access_on_card" = "卡片訪問";
+"secure_card" = "安全卡片";
+"donot_again" = "不再顯示";
+"guide_register_mobile_card1" = "查看已派發的移動端智慧卡";
+"guide_register_mobile_card2" = "在註冊後使用移動端智慧卡";
+"guide_register_mobile_card3" = "接觸智慧卡來註冊";
+"guide_register_mobile_card4" = "指紋資料被存儲在移動設備中";
+"guide_register_mobile_card5" = "若你想停用智慧卡\n向左滑動";
+"register_mobile_card" = "選定的卡片已註冊";
+"stop_mobile_card" = "選定的卡片已停用";
+"user_other_device_mobile_card" = "此卡片由另一個移動端設備使用";
+"issue_card_count" = "派發計數";
+"block" = "限制";
+"unblock" = "解除限制";
+"register_card" = "卡片註冊";
+"card_type" = "卡片類型";
+"register_method" = "註冊方法";
+"card_data_format" = "卡片資料格式";
+"card_layout_format" = "卡片佈局格式";
+"smartcard_type" = "智慧卡類型";
+"id_code" = "設備碼";
+"csn" = "卡片序號";
+"wiegand" = "韋根";
+"smartcard" = "智慧卡";
+"read_card" = "讀卡";
+"registeration_option_direct_input" = "手動輸入";
+"none_wigand" = "選定的韋根格式未在設備內設置，請使用PC版本BioStar設置設備韋根格式";
+"csn_format_wigand_scan" = "無法讀取卡號，由於卡號格式類型被設置為韋根";
+"none_registered_fingerprint" = "無註冊指紋數據";
+"none_select_card" = "沒有(選擇)卡片輸入";
+"rescan" = "重新讀取方法";
+"rescan_default" = "讀取品質分數:80(推薦)";
+"rescan_change" = "更改讀取品質";
+"question_block_card" = "是否想要限制選定卡片";
+"question_unblock_card" = "是否想要解除限制選定卡片";
+"question_reregister_card" = "是否允許使用選定移動端智慧卡重新註冊";
+
+"over_value" = "超出最大值";
+"discern_empty" = "未應用設備編號（FC）";
+"none_card_layout_format" = "未應用智慧卡佈局";
+"invalid_card_type" = "卡片格式不匹配";
+"wiegand_format_empty" = "未應用韋根格式";
+"write_card" = "寫卡片";
+"invalid_card_id" = "不允许卡片ID首位为0";
+"non_blocked" = "訪問卡片可在限制後刪除";
+"add_credential" = "Do you want to add credentials?";
+////

@@ -26,6 +26,8 @@
 #import "MonitorFilterViewController.h"
 #import "MonitoringSubExtraCell.h"
 #import "ImagePopupViewController.h"
+#import "EventQuery.h"
+#import "SelectModel.h"
 
 typedef enum{
     NONE_SELECT,
@@ -43,28 +45,23 @@ typedef enum{
 } RequestType;
 
 
-@interface MonitoringViewController : BaseViewController <EventProviderDelegate, OneButtonTableDelegate, DoorProviderDelegate, MonitorFilterDelegate, ImagePopupDelegate>
+@interface MonitoringViewController : BaseViewController <MonitorFilterDelegate>
 {
     __weak IBOutlet UITableView *eventTableView;
     __weak IBOutlet UIButton *filterButton;
     __weak IBOutlet UIView *filterView;
     __weak IBOutlet UIButton *scrollButton;
+    __weak IBOutlet UILabel *titleLabel;
     
-    NSInteger offset;
-    NSInteger limit;
     NSInteger totalCount;
     EventProvider *eventProvider;
     DoorProvider *doorProvider;
-    NSMutableArray *events;
-    NSMutableArray *doors;
-    NSMutableDictionary *doorDic;
+    NSMutableArray <EventLogResult *> *events;
+    NSMutableArray <ListDoorItem *> *doors;
     MonitorFilterViewController *filterViewController;
-    NSMutableDictionary *condition;
-    NSMutableDictionary *currentErrDic;
+    EventQuery *searchQuery;
     NSString *userID;
     NSInteger requestCount;
-    BOOL eventSearchFailed;
-    BOOL doorSearchFailed;
     BOOL hasNextPage;
     float firstYPosition;
     float secondYPosition;
@@ -77,11 +74,14 @@ typedef enum{
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showFilter:(id)sender;
 - (IBAction)scrollTopOrBottom:(id)sender;
-- (void)checkRequestResult;
-- (void)moveToDetail:(SelectType)currentType ID:(NSInteger)currentID event:(NSDictionary*)eventDic;
+- (void)searchEvent:(EventQuery*)query;
+//- (void)getDoors;
+- (void)moveToDetail:(SelectType)currentType ID:(NSInteger)currentID event:(EventLogResult*)eventResult;
 - (void)searchByFilter;
 - (void)refreshEvents;
-- (void)setUserCondition:(NSDictionary*)userCondition;  // 유저 디테일에서 뷰로그로 넘어 올때
-- (void)setDeviceCondition:(NSDictionary*)deviceCondition; // 도어 디테일에서 뷰로그로 넘어 올때
+- (void)setUserCondition:(NSArray <NSString *> *)userIDs;  // 유저 디테일에서 뷰로그로 넘어 올때
+- (void)setDeviceCondition:(NSArray <NSString *> *)deviceIDs; // 도어 디테일에서 뷰로그로 넘어 올때
 - (void)setDefaultDateCondition;
+- (NSUInteger)searchDoorIDByDeviceID:(NSString*)devicdID;
+- (NSString*)searchDoorNameByDoorID:(NSUInteger)ID;
 @end

@@ -26,6 +26,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     titleLabel.text = NSLocalizedString(@"open_door_time", nil);
 }
 
@@ -118,14 +119,6 @@
         [cell setContent:content];
         return cell;
     }
-    
-}
-
-
-#pragma mark - Table View Delegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
     
 }
 

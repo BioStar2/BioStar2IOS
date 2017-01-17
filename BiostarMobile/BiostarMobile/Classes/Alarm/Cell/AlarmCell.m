@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -28,9 +29,9 @@
     // Configure the view for the selected state
 }
 
-- (void)setAlarmCell:(NSDictionary*)alarmInfo isDeleteMode:(BOOL)isDeleteMode
+- (void)setAlarmCell:(GetNotification*)alarmInfo isDeleteMode:(BOOL)isDeleteMode
 {
-    NSDate *calculatedDate = [CommonUtil dateFromString:[alarmInfo objectForKey:@"event_datetime"]  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    NSDate *calculatedDate = [CommonUtil dateFromString:alarmInfo.event_datetime  originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
     NSString *timeFormat;
     
@@ -56,7 +57,7 @@
         [imageAccView setHidden:NO];
     }
     
-    if ([[alarmInfo objectForKey:@"selected"] boolValue])
+    if (alarmInfo.isSelected)
     {
         [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
         [checkView setHidden:NO];
@@ -67,7 +68,7 @@
         [checkView setHidden:YES];
     }
     
-    if ([[alarmInfo objectForKey:@"status"] isEqualToString:@"UNREAD"])
+    if ([alarmInfo.status isEqualToString:@"UNREAD"])
     {
         [newIconView setHidden:NO];
     }
@@ -76,54 +77,71 @@
         [newIconView setHidden:YES];
     }
     
-    if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DOOR_OPEN_REQUEST"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"door_open_request"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_01"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DOOR_FORCED_OPEN"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"door_forced_open"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_02"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DOOR_HELD_OPEN"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"door_held_open"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_03"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DEVICE_TAMPERING"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"device_tampering"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DEVICE_REBOOT"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"device_reboot"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_01"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"DEVICE_RS485_DISCONNECT"])
-    {
-        // 알림시간 하나밖에 없음
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"device_rs485_disconnect"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"ZONE_APB"])
-    {
-        if ([[[alarmInfo objectForKey:@"event"] objectForKey:@"zone_apb"] objectForKey:@"door"])
+    NotificationType notyType = [alarmInfo.type notificationTypeEnumFromString];
+    
+    switch (notyType) {
+            
+        case DOOR_OPEN_REQUEST:
+            alarmDec.text = NSLocalizedString(alarmInfo.event.door_open_request.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_01"]];
+            break;
+            
+        case DOOR_FORCED_OPEN:
         {
+            alarmDec.text = NSLocalizedString(alarmInfo.event.door_forced_open.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_02"]];
+        }
+            break;
+            
+        case DOOR_HELD_OPEN:
+        {
+            alarmDec.text = NSLocalizedString(alarmInfo.event.door_held_open.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_03"]];
         }
-        else
+            break;
+            
+        case DEVICE_TAMPERING:
         {
-            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_zone_02"]];
+            alarmDec.text = NSLocalizedString(alarmInfo.event.device_tampering.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
         }
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"zone_apb"] objectForKey:@"title"];
-        
-    }
-    else if ([[alarmInfo objectForKey:@"type"] isEqualToString:@"ZONE_FIRE"])
-    {
-        alarmDec.text = [[[alarmInfo objectForKey:@"event"] objectForKey:@"zone_fire"] objectForKey:@"title"];
-        [alarmIcon setImage:[UIImage imageNamed:@"ic_event_fire_alarm"]];
+            break;
+            
+        case DEVICE_REBOOT:
+        {
+            alarmDec.text = NSLocalizedString(alarmInfo.event.device_reboot.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_01"]];
+        }
+            break;
+            
+        case DEVICE_RS485_DISCONNECT:
+        {
+            alarmDec.text = NSLocalizedString(alarmInfo.event.device_rs485_disconnect.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
+        }
+            break;
+            
+        case ZONE_APB:
+        {
+            if (alarmInfo.event.zone_apb.door)
+            {
+                [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_03"]];
+            }
+            else
+            {
+                [alarmIcon setImage:[UIImage imageNamed:@"ic_event_zone_03"]];
+            }
+            
+            alarmDec.text = NSLocalizedString(alarmInfo.event.zone_apb.title_loc_key, nil);
+        }
+            break;
+            
+        case ZONE_FIRE:
+        {
+            alarmDec.text = NSLocalizedString(alarmInfo.event.zone_fire.title_loc_key, nil);
+            [alarmIcon setImage:[UIImage imageNamed:@"ic_event_fire_alarm"]];
+        }
+            break;
     }
 }
 

@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -30,10 +31,21 @@
 
 - (void)setContentLabel
 {
-    if ([[UserProvider getPasswordStrengthLevel] isEqualToString:@"STRONG"])
-        contentLabel.text = NSLocalizedString(@"password_guide_strong", nil);
+    if ([PreferenceProvider isUpperVersion])
+    {
+        if ([[PreferenceProvider getBioStarSetting].password_strength_level isEqualToString:@"STRONG"])
+            contentLabel.text = NSLocalizedString(@"password_guide_strong", nil);
+        else
+            contentLabel.text = NSLocalizedString(@"password_guide", nil);
+    }
     else
-        contentLabel.text = NSLocalizedString(@"password_guide", nil);
+    {
+        if ([[AuthProvider getLoginUserInfo].password_strength_level isEqualToString:@"STRONG"])
+            contentLabel.text = NSLocalizedString(@"password_guide_strong", nil);
+        else
+            contentLabel.text = NSLocalizedString(@"password_guide", nil);
+    }
+    
     
 }
 @end

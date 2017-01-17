@@ -16,9 +16,9 @@
 
 #import "MonitorFilterViewController.h"
 
-NSArray *filterUsers = nil;
-NSArray *filterDevices = nil;
-NSArray *filterEvents = nil;
+NSArray <User* >*filterUsers = nil;
+NSArray <SearchResultDevice*> *filterDevices = nil;
+NSArray <EventType*> *filterEvents = nil;
 BOOL needToResetFilter = NO;
 
 @interface MonitorFilterViewController ()
@@ -29,27 +29,25 @@ BOOL needToResetFilter = NO;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self setSharedViewController:self];
     // Do any additional setup after loading the view.
-    
+    titleLabel.text = NSLocalizedString(@"filter", nil);
     [self.view setBackgroundColor:[UIColor clearColor]];
     
-    if (nil == _condition)
+    if (nil == searchQuery)
     {
-        _condition = [[NSMutableDictionary alloc] init];
+        searchQuery = [[EventQuery alloc] init];
     }
     eventProvider = [[EventProvider alloc] init];
-    eventProvider.delegate = self;
-    
-    isForDate = NO;
     [self setDefaultValue];
 }
 
-+ (void)setFilterDevices:(NSArray*)devices
++ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices
 {
     filterDevices = devices;
 }
 
-+ (void)setFilterUsers:(NSArray*)users
++ (void)setFilterUsers:(NSArray<User*>*)users
 {
     filterUsers = users;
 }
@@ -81,9 +79,9 @@ BOOL needToResetFilter = NO;
 
 - (IBAction)moveToBack:(id)sender
 {
-    if ([self.delegate respondsToSelector:@selector(saveFilter)])
+    if ([self.delegate respondsToSelector:@selector(saveFilter:)])
     {
-        [self.delegate saveFilter];
+        [self.delegate saveFilter:searchQuery];
     }
     
     [self popChildViewController:self parentViewController:self.parentViewController animated:NO];
@@ -96,23 +94,22 @@ BOOL needToResetFilter = NO;
         return;
     }
     
-    if ([self.delegate respondsToSelector:@selector(searchEvent)])
+    if ([self.delegate respondsToSelector:@selector(searchEventByFilterController:)])
     {
-        [self.delegate searchEvent];
+        [self.delegate searchEventByFilterController:searchQuery];
     }
     [self popChildViewController:self parentViewController:self.parentViewController animated:NO];
 }
 
-- (NSDictionary *)getFilterConditions
+- (EventQuery *)searchQuery
 {
-    return _condition;
+    return searchQuery;
 }
 
 - (BOOL)verifyPeriod
 {
     
-    
-    NSArray *values = [_condition objectForKey:@"datetime"];
+    NSArray <NSString *>*values = searchQuery.datetime;
     
     NSString *startDate = [values objectAtIndex:0];
     NSString *endDate = [values lastObject];
@@ -140,66 +137,9 @@ BOOL needToResetFilter = NO;
     [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
 }
 
-- (void)setCondition:(NSMutableDictionary *)condition
-{
-    if (condition)
-    {
-        if (_condition)
-        {
-            [_condition setDictionary:condition];
-        }
-        else
-        {
-            _condition = [[NSMutableDictionary alloc] initWithDictionary:condition];
-        }
-    }
-    
-    if (nil != [_condition objectForKey:@"device_id"])
-    {
-        if (filterDevices)
-        {
-            [self setDeviceContent:filterDevices];
-        }
-    }
-    
-    if (nil != [_condition objectForKey:@"user_id"])
-    {
-        if (filterUsers)
-        {
-            [self setUserContent:filterUsers];
-        }
-    }
-    
-    if (nil != [_condition objectForKey:@"event_type_code"])
-    {
-        if (filterEvents)
-        {
-            [self setEventsContent:filterEvents];
-        }
-    }
-    
-    
-    
-//    if (filterDevices)
-//    {
-//        [self setDeviceContent:filterDevices];
-//    }
-//    
-//    if (filterEvents)
-//    {
-//        [self setEventsContent:filterEvents];
-//    }
-//    
-//    if (filterUsers)
-//    {
-//        [self setUserContent:filterUsers];
-//    }
-    
-}
-
 - (void)setDefaultValue
 {
-    if ([_condition objectForKey:@"datetime"])
+    if (nil != searchQuery.datetime)
     {
         return;
     }
@@ -236,7 +176,8 @@ BOOL needToResetFilter = NO;
     
     NSString *expireDateString = [CommonUtil stringFromUTCDateToCurrentDateString:expireDateStr originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
-    [_condition setObject:@[startDateString, expireDateString] forKey:@"datetime"];
+    searchQuery.datetime = @[startDateString, expireDateString];
+    
     [filterTableView reloadData];
 }
 
@@ -315,30 +256,50 @@ BOOL needToResetFilter = NO;
     
     DatePickerPopupViewController *datePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerPopupViewController"];
     [self showPopup:datePickerPopup parentViewController:self parentView:self.view];
-    datePickerPopup.delegate = self;
     
-    NSArray *values = [_condition objectForKey:@"datetime"];
     
     if (sender.tag == 0)
     {
         datePickerPopup.isStartDate = YES;   
-        NSString *startStr = [values objectAtIndex:0];
+        NSString *startStr = searchQuery.datetime[0];
         
         NSDate *startDate = [CommonUtil localDateFromString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
         [datePickerPopup setIsLocalTime:YES];
         [datePickerPopup setDate:startDate];
         
+        [datePickerPopup getResponse:^(NSString *dateString) {
+            
+            NSString *startStr = searchQuery.datetime[0];
+            startStr = [self stringFromChanging:startStr targetDate:dateString];
+            NSString *endStr = searchQuery.datetime[1];
+            
+            searchQuery.datetime = @[startStr, endStr];
+            [filterTableView reloadData];
+        }];
     }
     else
     {
         datePickerPopup.isStartDate = NO;
         
-        NSString *expireStr = [values objectAtIndex:1];
+        NSString *expireStr = searchQuery.datetime[1];
         NSDate *expireDate = [CommonUtil dateFromString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
         [datePickerPopup setIsLocalTime:YES];
         [datePickerPopup setDate:expireDate];
         
+        [datePickerPopup getResponse:^(NSString *dateString) {
+            
+            NSString *endStr = searchQuery.datetime[1];
+            endStr = [self stringFromChanging:expireStr targetDate:dateString];
+            
+            NSString *startStr = searchQuery.datetime[0];
+            
+            searchQuery.datetime = @[startStr, endStr];
+            [filterTableView reloadData];
+        }];
+        
     }
+    
+    
 }
 
 - (IBAction)showTimePicker:(UIButton *)sender
@@ -347,62 +308,103 @@ BOOL needToResetFilter = NO;
     
     TimePickerPopupViewController *timePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"TimePickerPopupViewController"];
     [self showPopup:timePickerPopup parentViewController:self parentView:self.view];
-    timePickerPopup.delegate = self;
-    
-    NSArray *values = [_condition objectForKey:@"datetime"];
     
     if (sender.tag == 0)
     {
         timePickerPopup.isStartDate = YES;
         
-        NSString *startStr = [values objectAtIndex:0];
+        NSString *startStr = searchQuery.datetime[0];
         
         NSDate *startDate = [CommonUtil localDateFromString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
         [timePickerPopup setDate:startDate];
+        
+        [timePickerPopup getResponse:^(NSString *dateString) {
+            
+            NSString *startStr = searchQuery.datetime[0];
+            startStr = [self stringFromChanging:startStr targetTime:dateString];
+            
+            NSString *endStr = searchQuery.datetime[1];
+            
+            searchQuery.datetime = @[startStr, endStr];
+            [filterTableView reloadData];
+            
+        }];
     }
     else
     {
         timePickerPopup.isStartDate = NO;
         
-        NSString *expireStr = [values objectAtIndex:1];
+        NSString *expireStr = searchQuery.datetime[1];
         NSDate *expireDate = [CommonUtil localDateFromString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
         [timePickerPopup setDate:expireDate];
+        
+        [timePickerPopup getResponse:^(NSString *dateString) {
+            
+            NSString *expireStr = searchQuery.datetime[1];
+            expireStr = [self stringFromChanging:expireStr targetTime:dateString];
+            
+            NSString *startStr = searchQuery.datetime[0];
+            
+            searchQuery.datetime = @[startStr, expireStr];
+            [filterTableView reloadData];
+            
+        }];
+    }
+}
+
+- (void)setSearchQuery:(EventQuery*)query
+{
+    searchQuery = query;
+    
+    if (nil != searchQuery.device_id)
+    {
+        if (filterDevices)
+        {
+            [self setDeviceContent:filterDevices];
+        }
+    }
+
+    if (nil != searchQuery.user_id)
+    {
+        if (filterUsers)
+        {
+            [self setUserContent:filterUsers];
+        }
+    }
+
+    if (nil != searchQuery.event_type_code)
+    {
+        if (filterEvents)
+        {
+            [self setEventsContent:filterEvents];
+        }
     }
 }
 
 - (IBAction)resetCondition:(id)sender
 {
-    if (filterDevices)
-    {
-        filterDevices = nil;
-    }
+    searchQuery.user_id = nil;
+    searchQuery.datetime = nil;
+    searchQuery.device_id = nil;
+    searchQuery.event_type_code = nil;
     
-    if (filterEvents)
-    {
-        filterEvents = nil;
-    }
-    
-    if (filterUsers)
-    {
-        filterUsers = nil;
-    }
-    
-    [_condition removeAllObjects];
     [self setDefaultValue];
-    if ([self.delegate respondsToSelector:@selector(saveFilter)])
+    if ([self.delegate respondsToSelector:@selector(saveFilter:)])
     {
-        [self.delegate saveFilter];
+        [self.delegate saveFilter:searchQuery];
     }
+
 }
 
-- (void)setEventsContent:(NSArray *)events
+- (void)setEventsContent:(NSArray <EventType*> *)events
 {
-    NSMutableArray *values = [[NSMutableArray alloc] init];
-    for (NSDictionary *event in events)
+    NSMutableArray <NSString*> *values = [[NSMutableArray alloc] init];
+    for (EventType *event in events)
     {
-        [values addObject:[NSString stringWithFormat:@"%ld", (long)[[event objectForKey:@"code"] integerValue]]];
+        [values addObject:[NSString stringWithFormat:@"%ld", (long)event.code]];
     }
-    [_condition setObject:values forKey:@"event_type_code"];
+    
+    searchQuery.event_type_code = values;
     
     switch (events.count)
     {
@@ -410,58 +412,69 @@ BOOL needToResetFilter = NO;
             
             break;
         case 1:
-            eventDec = [[events objectAtIndex:0] objectForKey:@"name"];
+            if ([PreferenceProvider isUpperVersion])
+            {
+                eventDec = events[0].event_type_description;
+            }
+            else
+            {
+                eventDec = events[0].name;
+            }
             break;
             
         default:
-            eventDec = [NSString stringWithFormat:@"%@ +", [[events objectAtIndex:0] objectForKey:@"name"]];
-            NSInteger value = events.count - 1;
-            eventCount = [NSString stringWithFormat:@"%lu", (long)value];
+            if ([PreferenceProvider isUpperVersion])
+            {
+                eventDec = [NSString stringWithFormat:@"%@ +", events[0].event_type_description];
+                NSInteger value = events.count - 1;
+                eventCount = [NSString stringWithFormat:@"%lu", (long)value];
+            }
+            else
+            {
+                eventDec = [NSString stringWithFormat:@"%@ +", events[0].name];
+                NSInteger value = events.count - 1;
+                eventCount = [NSString stringWithFormat:@"%lu", (long)value];
+            }
             break;
     }
     
     [filterTableView reloadData];
 }
 
-- (void)setUserContent:(NSArray *)users
+- (void)setUserContent:(NSArray <User*> *)users;
 {
-    NSMutableArray *values = [[NSMutableArray alloc] init];
-    for (NSDictionary *user in users)
+    NSMutableArray <NSString*> *values = [[NSMutableArray alloc] init];
+    for (User *user in users)
     {
-        [values addObject:[user objectForKey:@"user_id"]];
-    }
-    [_condition setObject:values forKey:@"user_id"];
-    
-    if (users.count == 1)
-    {
-        
+        [values addObject:user.user_id];
     }
     
+    searchQuery.user_id = values;
     
     switch (users.count)
     {
         case 0:
             break;
         case 1:
-            if (nil == [[users objectAtIndex:0] objectForKey:@"name"] || [[[users objectAtIndex:0] objectForKey:@"name"] isEqualToString:@""])
+            if (nil == users[0].name || [users[0].name isEqualToString:@""])
             {
-                userDec = [[users objectAtIndex:0] objectForKey:@"user_id"];
+                userDec = users[0].user_id;
             }
             else
             {
-                userDec = [[users objectAtIndex:0] objectForKey:@"name"];
+                userDec = users[0].name;
             }
             
             break;
             
         default:
-            if (nil == [[users objectAtIndex:0] objectForKey:@"name"] || [[[users objectAtIndex:0] objectForKey:@"name"] isEqualToString:@""])
+            if (nil == users[0].name || [users[0].name isEqualToString:@""])
             {
-                userDec = [NSString stringWithFormat:@"%@ +", [[users objectAtIndex:0] objectForKey:@"user_id"]];
+                userDec = [NSString stringWithFormat:@"%@ +", users[0].user_id];
             }
             else
             {
-                userDec = [NSString stringWithFormat:@"%@ +", [[users objectAtIndex:0] objectForKey:@"name"]];
+                userDec = [NSString stringWithFormat:@"%@ +", users[0].name];
             }
             
             NSInteger value = users.count - 1;
@@ -472,15 +485,14 @@ BOOL needToResetFilter = NO;
     [filterTableView reloadData];
 }
 
-- (void)setDeviceContent:(NSArray *)devices
+- (void)setDeviceContent:(NSArray <SearchResultDevice*>*)devices
 {
     NSMutableArray *values = [[NSMutableArray alloc] init];
-    for (NSDictionary *device in devices)
+    for (SearchResultDevice *device in devices)
     {
-        [values addObject:[NSString stringWithFormat:@"%ld", (long)[[device objectForKey:@"id"] integerValue]]];
+        [values addObject:device.id];
     }
-    
-    [_condition setObject:values forKey:@"device_id"];
+    searchQuery.device_id = values;
     
     switch (devices.count)
     {
@@ -488,17 +500,81 @@ BOOL needToResetFilter = NO;
             
             break;
         case 1:
-            deviceDec = [[devices objectAtIndex:0] objectForKey:@"name"];
+            deviceDec = devices[0].name;
             break;
             
         default:
-            deviceDec = [NSString stringWithFormat:@"%@ +", [[devices objectAtIndex:0] objectForKey:@"name"]];
+            deviceDec = [NSString stringWithFormat:@"%@ +", devices[0].name];
             NSInteger value = devices.count - 1;
             deviceCount = [NSString stringWithFormat:@"%lu", (long)value];
             break;
     }
     
     [filterTableView reloadData];
+}
+
+- (void)showListDatePopup:(BOOL)isDate
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
+    listPopupCtrl.type = PEROID;
+    [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+    
+    [listPopupCtrl addOptions:@[NSLocalizedString(@"start_date", nil), NSLocalizedString(@"end_date", nil)]];
+    
+    [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        button.tag = index;
+        if (isDate)
+        {
+            [self showDatePicker:button];
+        }
+        else
+        {
+            [self showTimePicker:button];
+        }
+    }];
+}
+
+- (void)getEventMessage
+{
+    [self startLoading:self];
+
+    [eventProvider getEventTypes:^(EventTypeSearchResult *result) {
+        
+        [self finishLoading];
+        
+        // 이벤트 선택 팝업 띄워주기
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        EventPopupViewController *eventPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"EventPopupViewController"];
+        
+        [self showPopup:eventPopupCtrl parentViewController:self parentView:self.view];
+        
+        [eventPopupCtrl getEventTypeBlock:^(NSArray<EventType *> *eventTypes) {
+            filterEvents = eventTypes;
+            [self setEventsContent:eventTypes];
+        }];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getEventMessage];
+            }
+        }];
+    }];
+    
 }
 
 #pragma mark - Table view data source
@@ -523,9 +599,8 @@ BOOL needToResetFilter = NO;
             DateCell *customCell = (DateCell*)cell;
             customCell.titleLabel.text = NSLocalizedString(@"period", nil);
             
-            NSArray *values = [_condition objectForKey:@"datetime"];
-            NSString *startStr = [values objectAtIndex:0];
-            NSString *expireStr = [values objectAtIndex:1];
+            NSString *startStr = searchQuery.datetime[0];
+            NSString *expireStr = searchQuery.datetime[1];
             startStr = [CommonUtil stringFromCurrentLocaleDateString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:@"yyyy/MM/dd"];
             expireStr = [CommonUtil stringFromCurrentLocaleDateString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:@"yyyy/MM/dd"];
             
@@ -543,9 +618,9 @@ BOOL needToResetFilter = NO;
             TimeCell *customCell = (TimeCell*)cell;
             customCell.titleLabel.text = NSLocalizedString(@"time", nil);
             
-            NSArray *values = [_condition objectForKey:@"datetime"];
-            NSString *startStr = [values objectAtIndex:0];
-            NSString *expireStr = [values objectAtIndex:1];
+            NSString *startStr = searchQuery.datetime[0];
+            NSString *expireStr = searchQuery.datetime[1];
+            
             startStr = [CommonUtil stringFromCurrentLocaleDateString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:@"HH:mm"];
             expireStr = [CommonUtil stringFromCurrentLocaleDateString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:@"HH:mm"];
             
@@ -559,7 +634,7 @@ BOOL needToResetFilter = NO;
         case 2:
         {
             // Event
-            NSArray *values = [_condition objectForKey:@"event_type_code"];
+            NSArray *values = searchQuery.event_type_code;
             switch (values.count)
             {
                 case 0:
@@ -603,7 +678,7 @@ BOOL needToResetFilter = NO;
         case 3:
         {
             // User
-            NSArray *values = [_condition objectForKey:@"user_id"];
+            NSArray *values = searchQuery.user_id;
             switch (values.count)
             {
                 case 0:
@@ -646,7 +721,7 @@ BOOL needToResetFilter = NO;
             break;
         case 4:
         {
-            NSArray *values = [_condition objectForKey:@"device_id"];
+            NSArray *values = searchQuery.device_id;
             switch (values.count)
             {
                 case 0:
@@ -714,6 +789,7 @@ BOOL needToResetFilter = NO;
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
+#warning 2.4.1 에서 filter section 빼기 as
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SectionCell"];
     
     return cell.contentView;
@@ -723,74 +799,63 @@ BOOL needToResetFilter = NO;
 {
     switch (indexPath.row)
     {
-        case 0:
-        {
-            // 날짜 선택
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-            listPopupCtrl.delegate = self;
-            listPopupCtrl.isRadioStyle = YES;
-            listPopupCtrl.type = PEROID;
-            [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-            [listPopupCtrl addOptions:@[NSLocalizedString(@"start_date", nil),
-                                        NSLocalizedString(@"end_date", nil)]];
-            isForDate = YES;
-        }
+        case 0:     // 날짜 선택
+            [self showListDatePopup:YES];
             break;
-        case 1:
-        {
-            // 시간 선택
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-            listPopupCtrl.delegate = self;
-            listPopupCtrl.isRadioStyle = YES;
-            listPopupCtrl.type = PEROID;
-            [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-            [listPopupCtrl addOptions:@[NSLocalizedString(@"start_time", nil),
-                                        NSLocalizedString(@"end_time", nil)]];
-            
-            isForDate = NO;
-        }
+        case 1:     // 시간 선택
+            [self showListDatePopup:NO];
             break;
-        case 2:
-            // event
-            eventMessages = [eventProvider getEventMessages];
-            if (nil != eventMessages)
+        case 2:     // event
+            if (nil != [eventProvider getEventTypes])
             {
                 // 이벤트 선택 팝업 띄우기
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = EVENT_SELECT;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                [listSubInfoPopupCtrl setContentList:eventMessages];
+                EventPopupViewController *eventPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"EventPopupViewController"];
+                
+                [self showPopup:eventPopupCtrl parentViewController:self parentView:self.view];
+                
+                [eventPopupCtrl getEventTypeBlock:^(NSArray<EventType *> *eventTypes) {
+                    
+                    filterEvents = eventTypes;
+                    [self setEventsContent:eventTypes];
+                }];
+                
+                
             }
             else
             {
-                [eventProvider getEventMessage];
-                [self startLoading:self];
+                [self getEventMessage];
             }
             break;
             
-        case 3:
-            // User
+        case 3:     // User
         {
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListSubInfoPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-            listPopupCtrl.delegate = self;
-            listPopupCtrl.type = USER_SELECT;
-            [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+            UserPopupViewController *userPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"UserPopupViewController"];
+            
+            [self showPopup:userPopupCtrl parentViewController:self parentView:self.view];
+            
+            [userPopupCtrl getUsers:^(NSArray<User *> *users) {
+                filterUsers = users;
+                
+                [self setUserContent:users];
+            }];
             
         }
             break;
-        case 4:
-            // Device
+        case 4:     // Device
         {
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-            listSubInfoPopupCtrl.delegate = self;
-            listSubInfoPopupCtrl.type = DEVICE_SELECT;
-            [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
+            DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
+            
+            devicePopupController.deviceMode = ALL_DEVICES_MODE;
+            [self showPopup:devicePopupController parentViewController:self parentView:self.view];
+            
+            [devicePopupController getDevices:^(NSArray<SearchResultDevice *> *devices) {
+                filterDevices = devices;
+                
+                [self setDeviceContent:devices];
+            }];
             
         }
             break;
@@ -799,32 +864,10 @@ BOOL needToResetFilter = NO;
 
 #pragma mark - Date Time delegate
 
-- (void)confirmDateFilter:(NSString*)date isStartDate:(BOOL)isStartDate
-{
-    NSMutableArray *values = [[NSMutableArray alloc] initWithArray:[_condition objectForKey:@"datetime"]];
-    
-    if (isStartDate)
-    {
-        // 변경된 년 월 일 만 교체 한 뒤, 서버 시간으로 바꾼 후 dictionary 데이터 교체
-        NSString *startStr = [values objectAtIndex:0];
-        startStr = [self stringFromChanging:startStr targetDate:date];
-        [values replaceObjectAtIndex:0 withObject:startStr];
-    }
-    else
-    {
-        NSString *expireStr = [values objectAtIndex:1];
-        expireStr = [self stringFromChanging:expireStr targetDate:date];
-        
-        [values replaceObjectAtIndex:1 withObject:expireStr];
-    }
-    
-    [_condition setObject:values forKey:@"datetime"];
-    [filterTableView reloadData];
-}
 
 - (void)confirmTimeFilter:(NSString *)date isStartDate:(BOOL)isStartDate
 {
-    NSMutableArray *values = [[NSMutableArray alloc] initWithArray:[_condition objectForKey:@"datetime"]];
+    NSMutableArray *values = [[NSMutableArray alloc] initWithArray:searchQuery.datetime];
     
     if (isStartDate)
     {
@@ -841,62 +884,9 @@ BOOL needToResetFilter = NO;
         [values replaceObjectAtIndex:1 withObject:expireStr];
     }
     
-    [_condition setObject:values forKey:@"datetime"];
+    searchQuery.datetime = values;
     [filterTableView reloadData];
 }
 
-#pragma mark - ListPopupViewControllerDelegate
 
-- (void)didSelectDateOption:(NSInteger)optionIndex
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.tag = optionIndex;
-    if (isForDate)
-    {
-        
-        [self showDatePicker:button];
-    }
-    else
-    {
-        [self showTimePicker:button];
-    }
-}
-
-#pragma mark - ListSubInfoPopupDelegate
-
-
-- (void)confirmFilterEvents:(NSArray*)events
-{
-    filterEvents = events;
-    
-    [self setEventsContent:events];
-}
-
-- (void)confirmFilterUsers:(NSArray*)users
-{
-    filterUsers = users;
-    
-    [self setUserContent:users];
-}
-
-- (void)confirmFilterDevices:(NSArray*)devices
-{
-    filterDevices = devices;
-    
-    [self setDeviceContent:devices];
-}
-
-#pragma mark - EventProviderDelegate
-
-- (void)requestGetEventMessageDidFinish:(NSArray *)eventTypes
-{
-    eventMessages = [eventProvider getEventMessages];
-    [self finishLoading];
-    // 이벤트 선택 팝업 띄워주기 
-}
-
-- (void)requestEventProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-}
 @end

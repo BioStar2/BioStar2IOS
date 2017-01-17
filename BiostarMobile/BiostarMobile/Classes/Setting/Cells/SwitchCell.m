@@ -20,6 +20,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -28,13 +29,11 @@
     // Configure the view for the selected state
 }
 
-- (void)setSwitchCellContent:(NSMutableArray*)notifications index:(NSInteger)index
+- (void)setSwitchCellContent:(NotificationSetting*)notification index:(NSInteger)index
 {
-    NSDictionary *notification = [notifications objectAtIndex:index];
-    
-    _titleLabel.text = [notification objectForKey:@"description"];
+    _titleLabel.text = notification.noti_description;
     _settingSwitch.tag = index;
-    _settingSwitch.on = [[notification objectForKey:@"subscribed"] boolValue];
+    _settingSwitch.on = notification.subscribed;
 
 }
 @end

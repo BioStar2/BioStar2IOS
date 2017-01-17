@@ -16,18 +16,20 @@
 
 #import <UIKit/UIKit.h>
 #import "UserProvider.h"
+#import "CustomImageView.h"
 #import "CommonUtil.h"
 #import "Common.h"
 #import "SDImageCache.h"
+#import "PreferenceProvider.h"
 
-@interface UserCell : UITableViewCell <UserProviderDelegate>
+@interface UserCell : UITableViewCell 
 {
     UserProvider *provider;
     NSString *imagestr;
-    NSDictionary *userInfo;
+    
 }
 
-@property (weak, nonatomic) IBOutlet UIImageView *userImage;
+@property (weak, nonatomic) IBOutlet CustomImageView *userImage;
 @property (weak, nonatomic) IBOutlet UILabel *name;
 @property (weak, nonatomic) IBOutlet UILabel *userIDLabel;
 @property (weak, nonatomic) IBOutlet UIView *cardView;
@@ -38,5 +40,8 @@
 @property (weak, nonatomic) IBOutlet UIImageView *checkView;
 @property (weak, nonatomic) IBOutlet UIImageView *accView;
 
-- (void)setCellDictionary:(NSDictionary*)dic;
+
+
+- (void)setUser:(User*)user;
+- (void)loadUserPhoto:(NSString*)userID;
 @end

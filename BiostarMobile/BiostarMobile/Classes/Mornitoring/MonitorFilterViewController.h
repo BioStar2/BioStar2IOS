@@ -24,21 +24,26 @@
 #import "DatePickerPopupViewController.h"
 #import "TimePickerPopupViewController.h"
 #import "EventProvider.h"
-#import "ListSubInfoPopupViewController.h"
 #import "ListPopupViewController.h"
 #import "OneButtonPopupViewController.h"
+#import "DevicePopupViewController.h"
+#import "SelectModel.h"
+#import "User.h"
+#import "UserPopupViewController.h"
+#import "EventPopupViewController.h"
 
 @protocol MonitorFilterDelegate <NSObject>
 
 @optional
 
-- (void)searchEvent;
-- (void)saveFilter;
+- (void)searchEventByFilterController:(EventQuery*)filteredQuery;
+- (void)saveFilter:(EventQuery*)filteredQuery;
 @end
 
-@interface MonitorFilterViewController : BaseViewController <DatePickerDelegate, TimePickerDelegate, EventProviderDelegate, ListSubInfoPopupDelegate, ListPopupViewControllerDelegate>
+@interface MonitorFilterViewController : BaseViewController
 {
     __weak IBOutlet UITableView *filterTableView;
+    __weak IBOutlet UILabel *titleLabel;
     
     NSString *eventDec;
     NSString *eventCount;
@@ -46,18 +51,19 @@
     NSString *deviceCount;
     NSString *userDec;
     NSString *userCount;
-    EventProvider *eventProvider;
     
-    BOOL isForDate;
+    EventProvider *eventProvider;
+    EventQuery *searchQuery;
+    
 }
 
 @property (assign, nonatomic) id <MonitorFilterDelegate> delegate;
-@property (strong, nonatomic) NSMutableDictionary *condition;
 
-
+- (void)setSearchQuery:(EventQuery*)query;
+- (void)showListDatePopup:(BOOL)isDate;
+- (void)getEventMessage;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)searchEventByFilter:(id)sender;
-- (NSDictionary *)getFilterConditions;
 - (void)setDefaultValue;
 - (IBAction)showDatePicker:(UIButton *)sender;
 - (IBAction)showTimePicker:(UIButton *)sender;
@@ -66,13 +72,13 @@
 - (NSString*)stringFromChanging:(NSString*)origin targetDate:(NSString*)target;
 // 피커뷰에서 선택된 시간만 바꾸기 
 - (NSString*)stringFromChanging:(NSString*)origin targetTime:(NSString*)target;
-- (void)setEventsContent:(NSArray *)events;
-- (void)confirmFilterEvents:(NSArray*)events;
-- (void)confirmFilterUsers:(NSArray*)users;
+- (void)setEventsContent:(NSArray <EventType*> *)events;
+- (void)setUserContent:(NSArray <User*> *)users;
+- (void)setDeviceContent:(NSArray <SearchResultDevice*>*)devices;
 - (BOOL)verifyPeriod;
 - (void)showVerificationPopup:(NSString*)message;
 + (void)filterReset;
 + (void)setResetFilter:(BOOL)neetToReset;
-+ (void)setFilterDevices:(NSArray*)devices;
-+ (void)setFilterUsers:(NSArray*)users;
++ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices;
++ (void)setFilterUsers:(NSArray<User*>*)users;
 @end

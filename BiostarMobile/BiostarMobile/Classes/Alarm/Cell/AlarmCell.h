@@ -18,6 +18,7 @@
 #import "CommonUtil.h"
 #import "PreferenceProvider.h"
 #import "Common.h"
+#import "NSString+EnumParser.h"
 
 @interface AlarmCell : UITableViewCell
 {
@@ -30,5 +31,5 @@
     
 }
 
-- (void)setAlarmCell:(NSDictionary*)alarmInfo isDeleteMode:(BOOL)isDeleteMode;
+- (void)setAlarmCell:(GetNotification*)alarmInfo isDeleteMode:(BOOL)isDeleteMode;
 @end

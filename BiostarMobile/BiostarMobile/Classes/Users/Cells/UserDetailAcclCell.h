@@ -16,6 +16,8 @@
 
 #import <UIKit/UIKit.h>
 #import "Common.h"
+#import "User.h"
+#import "PreferenceProvider.h"
 
 @protocol UserDetailAccCellDelegate <NSObject>
 
@@ -26,19 +28,31 @@
 - (void)userEmailDidChange:(NSString*)email;
 - (void)userTelephoneDidChange:(NSString*)telephone;
 - (void)userLogin_IDDidChange:(NSString*)loginID;
-- (void)userPasswordDidChange:(NSString*)password;
+- (void)maxValueIsOver;
 
 @end
 
+#define ID_MAXLENGTH 10
+#define ALPHABET_ID_MAXLENGTH 32
+#define NAME_MAXLENGTH 48
+#define LOGIN_ID_MAXLENGTH 32
+#define TEHEPHONE_MAXLENGTH 32
+#define EMAIL_MAXLENGTH 128
 
 @interface UserDetailAcclCell : UITableViewCell
+{
+    User* currentUser;
+}
 
 @property (assign, nonatomic) id <UserDetailAccCellDelegate> delegate;
 @property (assign, nonatomic) CellType type;
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UITextField *contentField;
 
-- (void)setCellContent:(NSDictionary*)userInfoDic cellType:(CellType)type viewMode:(DetailType)mode;
-- (void)setCellContent:(NSDictionary*)userInfoDic cellType:(CellType)type viewMode:(DetailType)mode hasOperator:(BOOL)hasOperator;
+- (void)setCellContent:(User*)user cellType:(CellType)type viewMode:(DetailType)mode;
+- (void)setCellContent:(User*)user cellType:(CellType)type viewMode:(DetailType)mode hasOperator:(BOOL)hasOperator;
+- (BOOL)validateLoginID:(NSString*)string;
+- (BOOL)validateUserID:(NSString*)string;
+- (NSString*)getTitle;
 
 @end

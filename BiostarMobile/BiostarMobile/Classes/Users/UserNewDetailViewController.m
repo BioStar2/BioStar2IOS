@@ -23,43 +23,37 @@
 
 @implementation UserNewDetailViewController
 
-
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    isUserEditPhoto = NO;
-    isForPopupRequest = NO;
+    [self setSharedViewController:self];
+    
     hasOperator = NO;
     isUpdatedOrDeleted = NO;
-    userInfoDic = [[NSMutableDictionary alloc] init];
-    toUpdateUserInfoDic = [[NSMutableDictionary alloc] init];
     [titleView setBackgroundColor:[[UIColor blackColor] colorWithAlphaComponent:0.2]];
     
     detailTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-    
-    [self setDefaultPeriod];
-    //[self setDefaultUserGroup];
-    //[self setDefaultUserID];
     provider = UserProviderInstance;
-    provider.delegate = self;
-    if (nil != userID)
-    {
-        [provider getUser:userID];
-        [self startLoading:self];
-    }
-    
+    preferenceProvoder = [[PreferenceProvider alloc] init];
     switch (_type)
     {
         case VIEW_MODE:
-            if (![AuthProvider hasWritePermission:@"USER"])
+            if (![AuthProvider hasWritePermission:USER_PERMISSION])
             {
                 [editButtonView setHidden:YES];
                 [doneButton setHidden:YES];
             }
+            if (nil != userID)
+            {
+                [self getUser:userID];
+            }
+            
             break;
             
         case CREATE_MODE:
+            toUpdateUser = [User new];
+            toUpdateUser.access_groups = @[];
+            [self setDefaultPeriod];
             titleLabel.text = NSLocalizedString(@"new_user", nil);
             [editButtonView setHidden:YES];
             [doneButton setHidden:NO];
@@ -69,27 +63,42 @@
             titleLabel.text = NSLocalizedString(@"myprofile", nil);
             [editButtonView setHidden:YES];
             [doneButton setHidden:NO];
+            [self getMyProfile];
             break;
         default:
             break;
     }
 }
 
-- (void)setDefaultUserID
+- (void)getMyProfile
 {
-    [toUpdateUserInfoDic setObject:[CommonUtil getTenRandomNumber] forKey:@"user_id"];
+    [self startLoading:self];
+    [provider getMyProfile:^(User *userResult) {
+        [self finishLoading];
+        [self loadUserInfo:userResult];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        
+    }];
+    
 }
 
 - (void)setDefaultPeriod
 {
-    [toUpdateUserInfoDic setObject:@"AC" forKey:@"status"];
-    [toUpdateUserInfoDic setObject:[NSNumber numberWithBool:NO] forKey:@"pin_exist"];
+    toUpdateUser.status = @"AC";
+    toUpdateUser.pin_exist = NO;
+    
+    SimpleModel *defaultUserGroup = [SimpleModel new];
+    defaultUserGroup.id = @"1";
+    defaultUserGroup.name = @"All users";
+    toUpdateUser.user_group = defaultUserGroup;
     
     NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
     
     NSDateComponents *newComponents = [[NSDateComponents alloc] init];
     [newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-    //[newComponents setTimeZone:[NSTimeZone localTimeZone]];
     [newComponents setYear:2001];
     [newComponents setMonth:01];
     [newComponents setDay:01];
@@ -100,7 +109,7 @@
     NSDate *startDate = [calendar dateFromComponents:newComponents];
     
     NSString *startStr = [CommonUtil stringFromDateString:[startDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-    [toUpdateUserInfoDic setObject:startStr forKey:@"start_datetime"];
+    toUpdateUser.start_datetime = startStr;
     
     [newComponents setYear:2030];
     [newComponents setMonth:12];
@@ -112,22 +121,16 @@
     NSDate *expireDate = [calendar dateFromComponents:newComponents];
     
     NSString *expireStr = [CommonUtil stringFromDateString:[expireDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-    [toUpdateUserInfoDic setObject:expireStr forKey:@"expiry_datetime"];
-
+    toUpdateUser.expiry_datetime = expireStr;
 }
 
-- (void)setUserGroup:(NSDictionary*)userGroup
+- (void)setUserGroup:(UserGroup*)userGroup
 {
-    [toUpdateUserInfoDic setObject:userGroup forKey:@"user_group"];
+    
+    toUpdateUser.user_group.id = userGroup.id;
+    toUpdateUser.user_group.name = userGroup.name;
 }
 
-- (void)setDefaultUserGroup
-{
-    NSMutableDictionary *userGroupID = [[NSMutableDictionary alloc] init];
-    [userGroupID setObject:[NSNumber numberWithInteger:1] forKey:@"id"];
-    [userGroupID setObject:@"All User Group" forKey:@"name"];
-    [toUpdateUserInfoDic setObject:userGroupID forKey:@"user_group"];
-}
 
 
 - (void)didReceiveMemoryWarning {
@@ -199,34 +202,82 @@
     
 }
 
-- (BOOL)verifyUserID
+- (BOOL)verifyUserIDByNumber:(NSString*)ID
 {
-    long long tempUserID = [[toUpdateUserInfoDic objectForKey:@"user_id"] longLongValue];
-    long long maxID = 4294967294;
-    if (tempUserID > maxID)
+    if ([[ID substringToIndex:1] isEqualToString:@"0"])
     {
-        [self showVerificationPopup:NSLocalizedString(@"invalid_userid", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
         return NO;
     }
-    else if (tempUserID == 0)
+    long long maxID = 4294967294;
+    
+    if ([self isAllDigits:ID])
     {
-        [self showVerificationPopup:NSLocalizedString(@"user_create_empty", nil)];
+        long long longUserID = [ID longLongValue];
+        if (longUserID > maxID)
+        {
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
+            return NO;
+        }
+        else if (longUserID == 0)
+        {
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty", nil)];
+            return NO;
+        }
+    }
+    else
+    {
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
         return NO;
     }
     
+    
+    
     return YES;
+}
+
+- (BOOL)isAllDigits:(NSString*)content
+{
+    NSCharacterSet* nonNumbers = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
+    NSRange r = [content rangeOfCharacterFromSet: nonNumbers];
+    return r.location == NSNotFound && content.length > 0;
+}
+
+- (BOOL)verifyUserID
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+        if ([toUpdateUser.user_id isEqualToString:@""] || nil == toUpdateUser.user_id)
+        {
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty", nil)];
+            return NO;
+        }
+        
+        if ([PreferenceProvider getBioStarSetting].use_alphanumeric_user_id)
+        {
+            return YES;
+        }
+        else
+        {
+            return [self verifyUserIDByNumber:toUpdateUser.user_id];
+        }
+    }
+    else
+    {
+        return [self verifyUserIDByNumber:toUpdateUser.user_id];
+    }
 }
 
 - (BOOL)verifyUserEmail
 {
     // operator 이 있으면 이메일 체크
-    if (nil == [toUpdateUserInfoDic objectForKey:@"email"] || [[toUpdateUserInfoDic objectForKey:@"email"] isEqualToString:@""])
+    if (nil == toUpdateUser.email || [toUpdateUser.email isEqualToString:@""])
     {
         return YES;
     }
-    if (![CommonUtil matchingByRegex:@"^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z‌​]{2,4})$" withField:[toUpdateUserInfoDic objectForKey:@"email"]])
+    if (![CommonUtil matchingByRegex:@"^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z‌​]{2,4})$" withField:toUpdateUser.email])
     {
-        [self showVerificationPopup:NSLocalizedString(@"invalid_email", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_email", nil)];
         return NO;
     }
 
@@ -235,8 +286,8 @@
 
 - (BOOL)verifyPeriod
 {
-    NSString *startDate = [toUpdateUserInfoDic objectForKey:@"start_datetime"];
-    NSString *endDate = [toUpdateUserInfoDic objectForKey:@"expiry_datetime"];
+    NSString *startDate = toUpdateUser.start_datetime;
+    NSString *endDate = toUpdateUser.expiry_datetime;
     
     NSDate *start = [CommonUtil dateFromString:startDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     NSDate *end = [CommonUtil dateFromString:endDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
@@ -245,7 +296,7 @@
     
     if (comparing == NSOrderedDescending || comparing == NSOrderedSame)
     {
-        [self showVerificationPopup:NSLocalizedString(@"error_set_date", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"error_set_date", nil)];
         return NO;
     }
     
@@ -254,24 +305,19 @@
 
 - (BOOL)verifyOperator
 {
-    NSArray *roles = [toUpdateUserInfoDic objectForKey:@"roles"];
-    
-    if (roles.count > 0)
+    if (toUpdateUser.roles.count > 0)
     {
-        NSString *loginID = [toUpdateUserInfoDic objectForKey:@"login_id"];
-        NSString *password = [toUpdateUserInfoDic objectForKey:@"password"];
-        if (nil == loginID || [loginID isEqualToString:@""])
+        if (nil == toUpdateUser.login_id || [toUpdateUser.login_id isEqualToString:@""])
         {
-            [self showVerificationPopup:NSLocalizedString(@"user_create_empty_idpassword", nil)];
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty_idpassword", nil)];
             return NO;
         }
         
-        BOOL password_exist = [[toUpdateUserInfoDic objectForKey:@"password_exist"] boolValue];
-        if (!password_exist)
+        if (!toUpdateUser.password_exist)
         {
-            if (nil == password || [password isEqualToString:@""])
+            if (nil == toUpdateUser.password || [toUpdateUser.password isEqualToString:@""])
             {
-                [self showVerificationPopup:NSLocalizedString(@"password_empty", nil)];
+                [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"password_empty", nil)];
                 return NO;
             }
         }
@@ -281,93 +327,513 @@
     return YES;
 }
 
-- (void)showVerificationPopup:(NSString*)message
+- (void)showOneButtonPopup:(OneButtonPopupType)type withMessage:(NSString*)message
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-    oneButtonPopupCtrl.type = USER_INFO_VERIFICATION_FAIL;
-    oneButtonPopupCtrl.popupContent = message;
+    oneButtonPopupCtrl.type = type;
+    
+    if (nil != message)
+    {
+        oneButtonPopupCtrl.popupContent = message;
+    }
+    
     [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+    
+    [oneButtonPopupCtrl getResponse:^(OneButtonPopupType type) {
+        if (type == UPDATE_USER)
+        {
+            if (_type == PROFILE_MODE)
+            {
+                [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+            }
+            else
+            {
+                [self loadUserInfo:currentUser];
+            }
+        }
+        else if (type == CREATE_USER)
+        {
+            [self moveToBack:nil];
+        }
+    }];
+ 
+}
+
+- (void)showImageButtonPopup:(ImagePopupType)type title:(NSString*)title message:(NSString*)message
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+    imagePopupCtrl.titleContent = title;
+    [imagePopupCtrl setContent:message];
+    
+    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+    
+    [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+        if (isConfirm)
+        {
+            switch (provider.type) {
+                case MyProfile_Request:
+                    [self getMyProfile];
+                    break;
+                case UserInfo_Request:
+                    [self getUser:userID];
+                    break;
+                case UserModify_Request:
+                    [self modifyUser:toUpdateUser];
+                    break;
+                case UserCreate_Request:
+                    [self createUser:toUpdateUser];
+                    break;
+                case UserDelete_Request:
+                    [self deleteUserInfo:currentUser.user_id];
+                    break;
+                case MyProfileModify_Request:
+                    [self updateMyProfile:toUpdateUser];
+                    break;
+                default:
+                    break;
+            }
+            
+        }
+        else
+        {
+            if (provider.type == UserInfo_Request || provider.type == MyProfile_Request)
+            {
+                [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+            }
+        }
+    }];
+}
+
+- (void)showPinPopup:(PinPopupType)type
+{
+    [self startLoading:self];
+    
+    [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
+        [self finishLoading];
+        
+        [self showPinPopupAfterAPICall:type];
+    } onError:^(Response *error) {
+        [self finishLoading];
+
+        [self showPinPopupAfterAPICall:type];
+    }];
+    
+    
+}
+
+- (void)showPinPopupAfterAPICall:(PinPopupType)type
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    PinPopupViewController *pinPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"PinPopupViewController"];
+    pinPopupCtrl.type = type;
+    
+    [self showPopup:pinPopupCtrl parentViewController:self parentView:self.view];
+    
+    [pinPopupCtrl getResponse:^(PinPopupType type, NSString *pin) {
+        if (type == PIN)
+        {
+            toUpdateUser.pin_exist = YES;
+            toUpdateUser.pin = pin;
+            [detailTableView reloadData];
+
+        }
+        else
+        {
+            toUpdateUser.password = pin;
+            toUpdateUser.password_exist = YES;
+            [detailTableView reloadData];
+
+        }
+    }];
+}
+
+- (void)getUser:(NSString*)ID
+{
+    [self startLoading:self];
+    
+    [provider getUser:ID userBlock:^(User *userResult) {
+        [self finishLoading];
+        [self loadUserInfo:userResult];
+    } onError:^(Response *error) {
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        [self finishLoading];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+    }];
+    
+    
+}
+
+- (void)modifyUser:(User*)user
+{
+    [self startLoading:self];
+    [provider modifyUser:user responseBlock:^(Response *error) {
+        [self finishLoading];
+        
+        isUpdatedOrDeleted = YES;
+        _type = VIEW_MODE;
+        
+        [editButtonView setHidden:NO];
+        [doneButton setHidden:YES];
+        
+        if ([toUpdateUser.user_id isEqualToString:[AuthProvider getLoginUserInfo].user_id])
+        {
+            // 수정한 사용자와 로그인한 사용자가 같을때
+            [AuthProvider setLoginUserInfo:toUpdateUser];
+            [[NSNotificationCenter defaultCenter] postNotificationName:LOGGED_IN_USER_UPDATEED object:nil];
+            
+        }
+        currentUser = nil;
+        currentUser = [toUpdateUser copy];
+        
+        NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+        
+        if (nil != currentUser.photo && ![currentUser.photo isEqualToString:@""])
+        {
+            NSData *imageData = [[NSData alloc] initWithBase64EncodedString:currentUser.photo options:NSDataBase64DecodingIgnoreUnknownCharacters];
+            UIImage* scaledImage = [CommonUtil imageCompress:[UIImage imageWithData:imageData] fileSize:MAX_IMAGE_FILE_SIZE];
+            [[SDImageCache sharedImageCache] storeImage:scaledImage forKey:userPhotoKey toDisk:YES];
+        }
+        else
+        {
+            [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES];
+        }
+        
+        [detailTableView reloadData];
+        
+    } onErrorBlock:^(Response *error) {
+        [self finishLoading];
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+    }];
+}
+
+
+- (void)createUser:(User*)user
+{
+    [self startLoading:self];
+    
+    [provider createUser:user responseBlock:^(Response *error) {
+        
+        [self finishLoading];
+        
+        isUpdatedOrDeleted = YES;
+        _type = VIEW_MODE;
+        
+        [editButtonView setHidden:NO];
+        [doneButton setHidden:YES];
+        
+        if ([PreferenceProvider isUpperVersion])
+        {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.type = USER_CREATED;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    _type = MODIFY_MODE;
+                    currentUser = [user copy];
+                    [detailTableView reloadData];
+                    
+                    [editButtonView setHidden:YES];
+                    [doneButton setHidden:NO];
+                    
+                }
+                else
+                {
+                    [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+                }
+            }];
+        }
+        else
+        {
+            [self showOneButtonPopup:CREATE_USER withMessage:nil];
+        }
+        
+        
+    } onErrorBlock:^(Response *error) {
+        [self finishLoading];
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        
+    }];
+    
+}
+
+- (void)updateMyProfile:(User*)user
+{
+    [self startLoading:self];
+    
+    user.fingerprint_templates = nil;
+    
+    [provider updateProfile:toUpdateUser responseBlock:^(Response *error) {
+        [self finishLoading];
+        
+        isUpdatedOrDeleted = YES;
+        _type = PROFILE_MODE;
+        
+        [editButtonView setHidden:NO];
+        [doneButton setHidden:YES];
+        
+        currentUser = nil;
+        currentUser = [toUpdateUser copy];
+        
+        NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+        
+        if (nil != currentUser.photo && ![currentUser.photo isEqualToString:@""])
+        {
+            NSData *imageData = [[NSData alloc] initWithBase64EncodedString:currentUser.photo options:NSDataBase64DecodingIgnoreUnknownCharacters];
+            UIImage* scaledImage = [CommonUtil imageCompress:[UIImage imageWithData:imageData] fileSize:MAX_IMAGE_FILE_SIZE];
+            [[SDImageCache sharedImageCache] storeImage:scaledImage forKey:userPhotoKey toDisk:YES];
+        }
+        else
+        {
+            [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES];
+        }
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        successPopupCtrl.type = UPDATE_USER;
+        [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
+        
+        [successPopupCtrl getResponse:^(OneButtonPopupType type) {
+            [self finishLoading];
+            [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+        }];
+        
+    } onErrorBlock:^(Response *error) {
+        [self finishLoading];
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        
+    }];
+    
+    
+}
+
+- (void)deleteUserInfo:(NSString*)deleteUserID
+{
+    [self startLoading:self];
+    
+    [provider deleteUser:deleteUserID responseBlock:^(Response *error) {
+        
+        NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+        
+        [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES withCompletion:^{
+            
+            isUpdatedOrDeleted = YES;
+            [self finishLoading];
+            [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+            
+        }];
+        
+    } onErrorBlock:^(Response *error) {
+        
+        [self finishLoading];
+        
+        // 재시도 할것인지에 대한 팝업 띄워주기
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+    }];
+    
+    
 }
 
 - (IBAction)updateUserInfo:(id)sender
 {
     [self.view endEditing:YES];
     
-    if (![self verifyUserID])
+    if ([PreferenceProvider isUpperVersion])
     {
-        return;
-    }
-    
-    if (![self verifyUserEmail])
-    {
-        return;
-    }
-    
-    if (![self verifyPeriod])
-    {
-        return;
-    }
-    
-    if (![self verifyOperator])
-    {
-        return;
-    }
-    
-    isForPopupRequest = NO;
-    
-    switch (_type)
-    {
-        case MODIFY_MODE:
+        [self startLoading:self];
+        [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
+            [self finishLoading];
             
-            if (isUserEditPhoto)
+            [detailTableView reloadData];
+            
+            if (![self verifyUserID])
             {
-                [provider modifyUser:[toUpdateUserInfoDic objectForKey:@"user_id"] userInfo:toUpdateUserInfoDic];
+                return;
             }
-            else
+            
+            if (![self verifyUserEmail])
             {
-                NSMutableDictionary *tempUserInfoDic = [[NSMutableDictionary alloc] initWithDictionary:toUpdateUserInfoDic];
-                [tempUserInfoDic removeObjectForKey:@"photo"];
-                [provider modifyUser:[tempUserInfoDic objectForKey:@"user_id"] userInfo:tempUserInfoDic];
+                return;
             }
-            break;
+            
+            if (![self verifyPeriod])
+            {
+                return;
+            }
+            
+            if (![self verifyOperator])
+            {
+                return;
+            }
+            
+            switch (_type)
+            {
+                case MODIFY_MODE:
+                    
+                    [self modifyUser:toUpdateUser];
+                    break;
+                    
+                case CREATE_MODE:
+                    [self createUser:toUpdateUser];
+                    break;
+                    
+                case PROFILE_MODE:
+                {
+                    [self updateMyProfile:toUpdateUser];
+                    break;
+                }
+                default:
+                    break;
+            }
+            
+        } onError:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.type = REQUEST_FAIL;
+            [imagePopupCtrl setContent:error.message];
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                
+                if (isConfirm)
+                {
+                    [self updateUserInfo:nil];
+                }
+                
+            }];
+            
+        }];
+    }
+    else
+    {
+        [self finishLoading];
         
-        case CREATE_MODE:
-            [provider createUser:toUpdateUserInfoDic];
-            break;
-            
-        case PROFILE_MODE:
+        if (![self verifyUserID])
         {
-            NSMutableDictionary *tempUserInfoDic = [[NSMutableDictionary alloc] initWithDictionary:toUpdateUserInfoDic];
-            [tempUserInfoDic removeObjectForKey:@"fingerprint_templates"];
-            
-            if (!isUserEditPhoto)
-            {
-                [tempUserInfoDic removeObjectForKey:@"photo"];
-            }
-            
-            [provider modifyUser:[tempUserInfoDic objectForKey:@"user_id"] userInfo:tempUserInfoDic];
-            
-            break;
+            return;
         }
-        default:
-            break;
+        
+        if (![self verifyUserEmail])
+        {
+            return;
+        }
+        
+        if (![self verifyPeriod])
+        {
+            return;
+        }
+        
+        if (![self verifyOperator])
+        {
+            return;
+        }
+        
+        switch (_type)
+        {
+            case MODIFY_MODE:
+                
+                [self modifyUser:toUpdateUser];
+                break;
+                
+            case CREATE_MODE:
+                [self createUser:toUpdateUser];
+                break;
+                
+            case PROFILE_MODE:
+            {
+                [self updateMyProfile:toUpdateUser];
+                break;
+            }
+            default:
+                break;
+        }
     }
-    
-    [self startLoading:self];
 }
 
-- (IBAction)switchEditMode:(id)sender {
+- (IBAction)switchEditMode:(id)sender
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+//        if (![AuthProvider hasReadPermission:@"ACCESS_GROUP"])
+//        {
+//            NSString *popupContent = [NSString stringWithFormat:@"%@\n%@",NSLocalizedString(@"guide_feature_permission", nil) , @"ACCESS_GROUP"];
+//            
+//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//            OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+//            oneButtonPopupCtrl.type = PERMISSION_DENIED;
+//            oneButtonPopupCtrl.popupContent = popupContent;
+//            [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+//            
+//            [oneButtonPopupCtrl getResponse:^(OneButtonPopupType type) {
+//                
+//            }];
+//            
+//            return;
+//        }
+        
+        [self startLoading:self];
+        
+        [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
+            
+            [self finishLoading];
+            
+            toUpdateUser = nil;
+            toUpdateUser = [currentUser copy];
+            
+            _type = MODIFY_MODE;
+            
+            [detailTableView reloadData];
+            
+            [editButtonView setHidden:YES];
+            [doneButton setHidden:NO];
+            
+        } onError:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.type = REQUEST_FAIL;
+            [imagePopupCtrl setContent:error.message];
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                
+                if (isConfirm)
+                {
+                    [self switchEditMode:nil];
+                }
+                
+            }];
+            
+        }];
+    }
+    else
+    {
+        toUpdateUser = nil;
+        toUpdateUser = [currentUser copy];
+        
+        _type = MODIFY_MODE;
+        
+        [detailTableView reloadData];
+        
+        [editButtonView setHidden:YES];
+        [doneButton setHidden:NO];
+    }
     
-    [toUpdateUserInfoDic removeAllObjects];
-    [self setDefaultPeriod];
-    [toUpdateUserInfoDic setDictionary:userInfoDic];
-    _type = MODIFY_MODE;
-    
-    [detailTableView reloadData];
-    
-    [editButtonView setHidden:YES];
-    [doneButton setHidden:NO];
 }
 
 
@@ -377,10 +843,9 @@
     MonitoringViewController *mornitorViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitoringViewController"];
     mornitorViewController.requestType = EVENT_USER;
     
-    [MonitorFilterViewController setFilterUsers:@[userInfoDic]];
-    NSDictionary *condition = @{@"user_id" : @[[userInfoDic objectForKey:@"user_id"]]};
+    [MonitorFilterViewController setFilterUsers:@[currentUser]];
     
-    [mornitorViewController setUserCondition:condition];
+    [mornitorViewController setUserCondition:@[currentUser.user_id]];
     [self pushChildViewController:mornitorViewController parentViewController:self contentView:self.view animated:YES];
     
 }
@@ -388,104 +853,100 @@
 
 - (IBAction)showStartDatePopup:(id)sender
 {
-    switch (_type)
+    if (_type == MODIFY_MODE || _type == CREATE_MODE)
     {
-        case MODIFY_MODE:
-        case CREATE_MODE:
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        
+        DatePickerPopupViewController *datePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerPopupViewController"];
+        [self showPopup:datePickerPopup parentViewController:self parentView:self.view];
+        datePickerPopup.isStartDate = YES;
+        
+        NSString *startStr;
+        if (nil == toUpdateUser.start_datetime || [toUpdateUser.start_datetime isEqualToString:@""])
         {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
             
-            DatePickerPopupViewController *datePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerPopupViewController"];
-            [self showPopup:datePickerPopup parentViewController:self parentView:self.view];
-            datePickerPopup.delegate = self;
+            NSDateComponents *newComponents = [[NSDateComponents alloc] init];
+            [newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+            [newComponents setYear:2001];
+            [newComponents setMonth:01];
+            [newComponents setDay:01];
+            [newComponents setHour:0];
+            [newComponents setMinute:0];
+            [newComponents setSecond:0];
             
-            datePickerPopup.isStartDate = YES;
+            NSDate *startDate = [calendar dateFromComponents:newComponents];
             
-            NSString *startStr;
-            if (nil == [toUpdateUserInfoDic objectForKey:@"start_datetime"] || [[toUpdateUserInfoDic objectForKey:@"start_datetime"] isEqualToString:@""])
-            {
-                NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-                
-                NSDateComponents *newComponents = [[NSDateComponents alloc] init];
-                [newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-                [newComponents setYear:2001];
-                [newComponents setMonth:01];
-                [newComponents setDay:01];
-                [newComponents setHour:0];
-                [newComponents setMinute:0];
-                [newComponents setSecond:0];
-                
-                NSDate *startDate = [calendar dateFromComponents:newComponents];
-                
-                startStr = [CommonUtil stringFromDateString:[startDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-                [toUpdateUserInfoDic setObject:startStr forKey:@"start_datetime"];
-            }
-            else
-            {
-                startStr = [toUpdateUserInfoDic objectForKey:@"start_datetime"];
-            }
-            
-            
-            NSDate *startDate = [CommonUtil localDateFromString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-            
-            
-            [datePickerPopup setIsLocalTime:NO];
-            [datePickerPopup setDate:startDate];
-            break;
+            startStr = [CommonUtil stringFromDateString:[startDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+            toUpdateUser.start_datetime = startStr;
         }
-        default:
-            break;
+        else
+        {
+            startStr = toUpdateUser.start_datetime;
+        }
+        
+        NSDate *startDate = [CommonUtil localDateFromString:startStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+        
+        [datePickerPopup setIsLocalTime:NO];
+        [datePickerPopup setDate:startDate];
+        
+        [datePickerPopup getResponse:^(NSString *dateString) {
+            // 선택한 날짜를 서버 시간으로 바꿔서 딕션어리에 저장
+            NSString *startDateStr =  [CommonUtil stringFromDateString:dateString originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+            toUpdateUser.start_datetime = startDateStr;
+            [detailTableView reloadData];
+        }];
     }
 }
 
 - (IBAction)showExpireDatePopup:(id)sender
 {
-    switch (_type)
+    if (_type == MODIFY_MODE || _type == CREATE_MODE)
     {
-        case MODIFY_MODE:
-        case CREATE_MODE:
+     
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        
+        DatePickerPopupViewController *datePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerPopupViewController"];
+        [self showPopup:datePickerPopup parentViewController:self parentView:self.view];
+        
+        datePickerPopup.isStartDate = NO;
+        
+        NSString *expireStr;
+        if (nil == toUpdateUser.expiry_datetime || [toUpdateUser.expiry_datetime isEqualToString:@""])
         {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
             
-            DatePickerPopupViewController *datePickerPopup = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerPopupViewController"];
-            [self showPopup:datePickerPopup parentViewController:self parentView:self.view];
-            datePickerPopup.delegate = self;
+            NSDateComponents *newComponents = [[NSDateComponents alloc] init];
+            [newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
             
-            datePickerPopup.isStartDate = NO;
+            [newComponents setYear:2030];
+            [newComponents setMonth:12];
+            [newComponents setDay:31];
+            [newComponents setHour:23];
+            [newComponents setMinute:59];
+            [newComponents setSecond:59];
             
-            NSString *expireStr;
-            if (nil == [toUpdateUserInfoDic objectForKey:@"expiry_datetime"] || [[toUpdateUserInfoDic objectForKey:@"expiry_datetime"] isEqualToString:@""])
-            {
-                NSCalendar *calendar= [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-                
-                NSDateComponents *newComponents = [[NSDateComponents alloc] init];
-                [newComponents setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
-                
-                [newComponents setYear:2030];
-                [newComponents setMonth:12];
-                [newComponents setDay:31];
-                [newComponents setHour:23];
-                [newComponents setMinute:59];
-                [newComponents setSecond:59];
-                
-                NSDate *expireDate = [calendar dateFromComponents:newComponents];
-                
-                expireStr = [CommonUtil stringFromDateString:[expireDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-                [toUpdateUserInfoDic setObject:expireStr forKey:@"expiry_datetime"];
-            }
-            else
-            {
-                expireStr = [toUpdateUserInfoDic objectForKey:@"expiry_datetime"];
-            }
+            NSDate *expireDate = [calendar dateFromComponents:newComponents];
             
-            NSDate *expireDate = [CommonUtil dateFromString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-            [datePickerPopup setIsLocalTime:NO];
-            [datePickerPopup setDate:expireDate];
+            expireStr = [CommonUtil stringFromDateString:[expireDate description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+            toUpdateUser.expiry_datetime = expireStr;
         }
-            break;
+        else
+        {
+            expireStr = toUpdateUser.expiry_datetime;
+        }
+        
+        NSDate *expireDate = [CommonUtil dateFromString:expireStr originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+        [datePickerPopup setIsLocalTime:NO];
+        [datePickerPopup setDate:expireDate];
+        
+        [datePickerPopup getResponse:^(NSString *dateString) {
+            // 선택한 날짜를 서버 시간으로 바꿔서 딕션어리에 저장
+            NSString *expireDateStr =  [CommonUtil stringFromDateString:dateString originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+            toUpdateUser.expiry_datetime = expireDateStr;
             
-        default:
-            break;
+            [detailTableView reloadData];
+        }];
     }
 }
 
@@ -493,9 +954,15 @@
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     TextPopupViewController *textPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"TextPopupViewController"];
-    textPopupCtrl.delegate = self;
     textPopupCtrl.type = USER_DELETE;
     [self showPopup:textPopupCtrl parentViewController:self parentView:self.view];
+    
+    [textPopupCtrl getResponse:^(TextPopupType type, BOOL isConfirm) {
+        if (isConfirm)
+        {
+            [self deleteUserInfo:currentUser.user_id];
+        }
+    }];
 }
 
 - (IBAction)showPhotoPopup:(id)sender
@@ -507,66 +974,80 @@
     
     [self.view endEditing:YES];
     
-    NSDictionary *item1 = @{@"name" : NSLocalizedString(@"take_picture", nil)};
-    NSDictionary *item2 = @{@"name" : NSLocalizedString(@"from_photo", nil)};
-    NSDictionary *item3 = @{@"name" : NSLocalizedString(@"delete_picture", nil)};
-    
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     
     OneButtonTablePopupViewController *oneButtonPopup = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonTablePopupViewController"];
-    oneButtonPopup.delegate = self;
     oneButtonPopup.type = PHOTO;
     [self showPopup:oneButtonPopup parentViewController:self parentView:self.view];
-    [oneButtonPopup setContentListArray:@[item1, item2, item3]];
+    [oneButtonPopup setContentStringArray:@[NSLocalizedString(@"take_picture", nil), NSLocalizedString(@"from_photo", nil), NSLocalizedString(@"delete_picture", nil)]];
+    
+    [oneButtonPopup getIndexResponse:^(NSInteger index) {
+        switch (index)
+        {
+            case 0:
+            {
+                // 사진찍기
+                UIImagePickerController * picker = [[UIImagePickerController alloc] init];
+                
+                // Don't forget to add UIImagePickerControllerDelegate in your .h
+                picker.delegate = self;
+                picker.allowsEditing = YES;
+                picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+                
+                [self presentViewController:picker animated:YES completion:^{
+                    
+                }];
+                
+            }
+                break;
+                
+            case 1:
+            {
+                // 사진첩에서 가져오기
+                UIImagePickerController * picker = [[UIImagePickerController alloc] init];
+                
+                // Don't forget to add UIImagePickerControllerDelegate in your .h
+                picker.delegate = self;
+                picker.allowsEditing = YES;
+                picker.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+                
+                [self presentViewController:picker animated:YES completion:^{
+                    
+                }];
+            }
+                break;
+                
+            case 2:
+                // 사진 삭제
+                toUpdateUser.photo = @"";
+                [detailTableView reloadData];
+                break;
+        }
+    }];
 }
 
-- (void)loadUserInfo:(NSDictionary *)userInfo
+- (void)loadUserInfo:(User*)user
 {
-    if (nil == userInfoDic)
+    if ([user.user_id integerValue] == 1)
     {
-        userInfoDic = [[NSMutableDictionary alloc] initWithDictionary:userInfo];
+        [editButtonView setHidden:YES];
+    }
+    currentUser = user;
+    
+    if ([PreferenceProvider isUpperVersion])
+    {
+        hasOperator = user.permission ? YES : NO;
     }
     else
     {
-        [userInfoDic setDictionary:userInfo];
+        hasOperator = user.roles.count > 0 ? YES : NO;
     }
     
-    NSArray *roles = [userInfoDic objectForKey:@"roles"];
-    if (roles.count > 0)
-    {
-        hasOperator = YES;
-    }
-    else
-    {
-        hasOperator = NO;
-    }
-    
-    if (![[userInfoDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
-    {
-        NSString *imageString = [userInfoDic objectForKey:@"photo"];
-        if (nil != imageString && ![imageString isEqualToString:@""])
-        {
-            NSData *imageData = [[NSData alloc] initWithBase64EncodedString:imageString options:NSDataBase64DecodingIgnoreUnknownCharacters];
-            UIImage *serverImage = [UIImage imageWithData:imageData];
-            UIImage* scaledImage = [CommonUtil imageCompress:serverImage fileSize:MAX_IMAGE_FILE_SIZE];
-            
-            NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
-            [[SDImageCache sharedImageCache] storeImage:scaledImage forKey:userPhotoKey toDisk:YES];
-            
-            imageData = nil;
-            imageString = nil;
-            
-            [userInfoDic setObject:scaledImage forKey:@"photo"];
-        }
-    }
     if (_type == VIEW_MODE)
     {
-        titleLabel.text = [userInfoDic objectForKey:@"name"];
+        titleLabel.text = user.name;
     }
-    else if (_type == PROFILE_MODE)
-    {
-        [toUpdateUserInfoDic setDictionary:userInfoDic];
-    }
+    toUpdateUser = [user copy];
     
     [detailTableView reloadData];
 }
@@ -591,70 +1072,164 @@
     
     switch (type)
     {
-        case OPERATOR:
-        {
-            // userID 1 번이면 이동불가
-            if ([userID isEqualToString:@"1"])
-            {
-                return;
-            }
-            NSArray *roles = [toUpdateUserInfoDic objectForKey:@"roles"];
-            [verificationViewController setOperators:roles];
-        }
-            break;
         case ACCESS_GROUPS:
-            [verificationViewController setAccessGroup:[toUpdateUserInfoDic objectForKey:@"access_groups"] withUserGroup:[toUpdateUserInfoDic objectForKey:@"access_groups_in_user_group"]];
+            [verificationViewController setAccessGroup:toUpdateUser.access_groups withUserGroup:toUpdateUser.access_groups_in_user_group];
             break;
         case FINGERPRINT:
-            [verificationViewController setVerificationInfo:[toUpdateUserInfoDic objectForKey:@"fingerprint_templates"]];
+            [verificationViewController setFingerPrintTemplates:toUpdateUser.fingerprint_templates];
             break;
         case CARD:
-            [verificationViewController setVerificationInfo:[toUpdateUserInfoDic objectForKey:@"cards"]];
+            [verificationViewController setCards:toUpdateUser.cards];
             break;
     }
     
     [self pushChildViewController:verificationViewController parentViewController:self contentView:self.view animated:YES];
 }
 
+- (void)moveToFingerPrintCredentialViewController
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+        UserVerificationAddViewController *verificationViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserVerificationAddViewController"];
+        verificationViewController.delegate = self;
+        
+        if (_type == PROFILE_MODE)
+        {
+            [self moveToVerificationViewController:FINGERPRINT];
+            return;
+        }
+        else
+        {
+            verificationViewController.isProfileMode = NO;
+        }
+        
+        verificationViewController.type = FINGERPRINT;
+        [verificationViewController setUserInfo:currentUser];
+        [self pushChildViewController:verificationViewController parentViewController:self contentView:self.view animated:YES];
+    }
+    else
+    {
+        [self moveToVerificationViewController:FINGERPRINT];
+    }
+}
+
+- (void)moveToCardCredentialViewController
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+        CardCredentialViewController *credentialViewController = [storyboard instantiateViewControllerWithIdentifier:@"CardCredentialViewController"];
+        credentialViewController.delegate = self;
+        
+        if (_type == PROFILE_MODE)
+        {
+            credentialViewController.isProfileMode = YES;
+        }
+        else
+        {
+            credentialViewController.isProfileMode = NO;
+        }
+        
+        [credentialViewController setUserVeryfications:currentUser];
+        
+        [self pushChildViewController:credentialViewController parentViewController:self contentView:self.view animated:YES];
+    }
+    else
+    {
+        [self moveToVerificationViewController:CARD];
+    }
+}
+
 - (void)showUserGroupPopup
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ListSubInfoPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-    listPopupCtrl.delegate = self;
-    listPopupCtrl.type = USER_GROUP;
-    [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+    UserGroupPopupViewController *userGroupPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"UserGroupPopupViewController"];
+    [self showPopup:userGroupPopupCtrl parentViewController:self parentView:self.view];
+    [userGroupPopupCtrl getSelectedUserGroup:^(UserGroup *userGroup) {
+        
+        toUpdateUser.user_group = (SimpleModel*)userGroup;
+        [detailTableView reloadData];
+        
+    }];
+
 }
 
+- (void)showPermissionPopup
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    PermissionPopupViewController *permissionPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"PermissionPopupViewController"];
+    
+    [self showPopup:permissionPopupCtrl parentViewController:self parentView:self.view];
+    
+    if ([PreferenceProvider isUpperVersion])
+    {
+        [permissionPopupCtrl getSelectedPermissionBlock:^(Permission *permission) {
+            
+            if ([permission.name isEqualToString:NSLocalizedString(@"none", nil)])
+            {
+                toUpdateUser.permission = nil;
+                toUpdateUser.login_id = nil;
+                toUpdateUser.password = nil;
+                toUpdateUser.password_exist = NO;
+                hasOperator = NO;
+                [detailTableView reloadData];
+            }
+            else
+            {
+                toUpdateUser.permission = permission;
+                hasOperator = YES;
+                [detailTableView reloadData];
+            }
+            
+        }];
+    }
+    else
+    {
+        [permissionPopupCtrl getSelectedRoleBlock:^(CloudRole *role) {
+            if ([role.role_description isEqualToString:NSLocalizedString(@"none", nil)])
+            {
+                NSArray *roles = @[];
+                toUpdateUser.roles = roles;
+                toUpdateUser.login_id = @"";
+                toUpdateUser.password = @"";
+                toUpdateUser.password_exist = NO;
+                hasOperator = NO;
+            }
+            else
+            {
+                NSArray *roles = @[role];
+                toUpdateUser.roles = roles;
+                hasOperator = YES;
+            }
+            
+            [detailTableView reloadData];
+        }];
+    }
+    
+}
 - (void)showPeriodPopup
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-    listPopupCtrl.delegate = self;
-    listPopupCtrl.isRadioStyle = YES;
     listPopupCtrl.type = PEROID;
+    
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+    
     [listPopupCtrl addOptions:@[NSLocalizedString(@"start_date", nil),
                                 NSLocalizedString(@"end_date", nil)]];
-}
-
-#pragma mark - DatePickerDelegate
-
-- (void)confirmDateFilter:(NSString*)date isStartDate:(BOOL)isStartDate
-{
-    // 선택한 날짜를 서버 시간으로 바꿔서 딕션어리에 저장
-    if (isStartDate)
-    {
-        NSString *startDateStr =  [CommonUtil stringFromDateString:date originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-        [toUpdateUserInfoDic setObject:startDateStr forKey:@"start_datetime"];
-        
-    }
-    else
-    {
-        NSString *expireDateStr =  [CommonUtil stringFromDateString:date originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
-        [toUpdateUserInfoDic setObject:expireDateStr forKey:@"expiry_datetime"];
-    }
     
-    [detailTableView reloadData];
+    
+    [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
+        if (index == 0)
+        {
+            [self showStartDatePopup:nil];
+        }
+        else
+        {
+            [self showExpireDatePopup:nil];
+        }
+    }];
 }
 
 #pragma mark - KeyBoard Noti
@@ -662,18 +1237,11 @@
 - (void)keyboardWillShow:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
     CGSize kbSize = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    //CGFloat deltaHeight = kbSize.height - _currentKeyboardHeight;
-    // Write code to adjust views accordingly using deltaHeight
-    //_currentKeyboardHeight = kbSize.height;
     
     tableViewConstraint.constant = kbSize.height;
 }
 
 - (void)keyboardWillHide:(NSNotification*)notification {
-    //NSDictionary *info = [notification userInfo];
-    //CGSize kbSize = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
-    // Write code to adjust views accordingly using kbSize.height
-    //_currentKeyboardHeight = 0.0f;
     
     tableViewConstraint.constant = 0;
 }
@@ -715,12 +1283,23 @@
         case 2: // 크리덴셜
             if (_type == VIEW_MODE)
             {
-                if ([[userInfoDic objectForKey:@"pin_exist"] boolValue])
+                if (currentUser.pin_exist)
                 {
                     rowCount = 3;
                 }
                 else
                     rowCount = 2;
+            }
+            else if(_type == CREATE_MODE)
+            {
+                if ([PreferenceProvider isUpperVersion])
+                {
+                    rowCount = 1;
+                }
+                else
+                {
+                    rowCount = 3;
+                }
             }
             else
                 rowCount = 3;
@@ -746,6 +1325,7 @@
 {
     switch (indexPath.section)
     {
+        // secion 0
         case 0:
         {
             switch (indexPath.row)
@@ -757,14 +1337,12 @@
                     
                     if (_type == VIEW_MODE)
                     {
-                        [pictureCell setTopCell:userInfoDic mode:_type];
+                        [pictureCell setTopCell:currentUser mode:_type];
                     }
                     else
                     {
-                        [pictureCell setTopCell:toUpdateUserInfoDic mode:_type];
+                        [pictureCell setTopCell:toUpdateUser mode:_type];
                     }
-                    
-                    
                     
                     return pictureCell;
                     break;
@@ -779,26 +1357,18 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"user_id", nil);
-                            customCell.contentField.text = [userInfoDic objectForKey:@"user_id"];
+                            customCell.contentField.text = currentUser.user_id;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
                             break;
                         }
                         case MODIFY_MODE:
-                        {
-                            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
-                            UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_ID viewMode:_type];
-                            customCell.delegate = self;
-                            return customCell;
-                        }
-                            break;
                         case CREATE_MODE:
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_ID viewMode:_type];
+                            [customCell setCellContent:toUpdateUser cellType:CELL_USER_ID viewMode:_type];
                             customCell.delegate = self;
                             return customCell;
                         }
@@ -816,7 +1386,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"name", nil);
-                            customCell.contentField.text = [userInfoDic objectForKey:@"name"];
+                            customCell.contentField.text = currentUser.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             
@@ -829,7 +1399,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_NAME viewMode:_type];
+                            [customCell setCellContent:toUpdateUser cellType:CELL_USER_NAME viewMode:_type];
                             customCell.delegate = self;
                             
                             return customCell;
@@ -843,12 +1413,12 @@
                 {
                     if (_type == VIEW_MODE)
                     {
-                        if (nil == [userInfoDic objectForKey:@"email"] || [[userInfoDic objectForKey:@"email"] isEqualToString:@""])
+                        if (nil == currentUser.email || [currentUser.email isEqualToString:@""])
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"email", nil);
-                            customCell.contentField.text = [userInfoDic objectForKey:@"email"];
+                            customCell.contentField.text = currentUser.email;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -857,7 +1427,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:userInfoDic cellType:CELL_USER_EMAIL viewMode:_type];
+                            [customCell setCellContent:currentUser cellType:CELL_USER_EMAIL viewMode:_type];
                             customCell.delegate = self;
                             
                             return customCell;
@@ -867,7 +1437,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                         UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                        [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_EMAIL viewMode:_type];
+                        [customCell setCellContent:toUpdateUser cellType:CELL_USER_EMAIL viewMode:_type];
                         customCell.delegate = self;
                         
                         return customCell;
@@ -880,12 +1450,12 @@
                 {
                     if (_type == VIEW_MODE)
                     {
-                        if (nil == [userInfoDic objectForKey:@"phone_number"] || [[userInfoDic objectForKey:@"phone_number"] isEqualToString:@""])
+                        if (nil == currentUser.phone_number || [currentUser.phone_number isEqualToString:@""])
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"telephone", nil);
-                            customCell.contentField.text = [userInfoDic objectForKey:@"phone_number"];
+                            customCell.contentField.text = currentUser.phone_number;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -894,7 +1464,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:userInfoDic cellType:CELL_USER_TELEPHONE viewMode:_type];
+                            [customCell setCellContent:currentUser cellType:CELL_USER_TELEPHONE viewMode:_type];
                             customCell.delegate = self;
                             
                             return customCell;
@@ -904,7 +1474,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                         UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                        [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_TELEPHONE viewMode:_type];
+                        [customCell setCellContent:toUpdateUser cellType:CELL_USER_TELEPHONE viewMode:_type];
                         customCell.delegate = self;
                         
                         return customCell;
@@ -921,26 +1491,46 @@
                     switch (_type)
                     {
                         case VIEW_MODE:
+                        case PROFILE_MODE:
                         {
-                            NSArray *roles = [userInfoDic objectForKey:@"roles"];
-                            [customCell setOperatorCellContent:roles isEditMode:NO];
-
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                [customCell setPermission:currentUser.permission.name isEditMode:NO];
+                            }
+                            else
+                            {
+                                [customCell setOperatorCellContent:currentUser.roles isEditMode:NO];
+                            }
+                            
                             return customCell;
                             break;
                         }
                         case MODIFY_MODE:
                         case CREATE_MODE:
-                        case PROFILE_MODE:
                         {
-                            NSArray *roles = [toUpdateUserInfoDic objectForKey:@"roles"];
-                            if ([userID isEqualToString:@"1"])
+                            if ([PreferenceProvider isUpperVersion])
                             {
-                                [customCell setOperatorCellContent:roles isEditMode:NO];
+                                if ([userID isEqualToString:@"1"])
+                                {
+                                    [customCell setPermission:toUpdateUser.permission.name isEditMode:NO];
+                                }
+                                else
+                                {
+                                    [customCell setPermission:toUpdateUser.permission.name isEditMode:YES];
+                                }
                             }
                             else
                             {
-                                [customCell setOperatorCellContent:roles isEditMode:YES];
+                                if ([userID isEqualToString:@"1"])
+                                {
+                                    [customCell setOperatorCellContent:toUpdateUser.roles isEditMode:NO];
+                                }
+                                else
+                                {
+                                    [customCell setOperatorCellContent:toUpdateUser.roles isEditMode:YES];
+                                }
                             }
+                            
                             
                             return customCell;
                         }
@@ -960,7 +1550,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"group", nil);
-                            customCell.contentField.text = [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"];
+                            customCell.contentField.text = currentUser.user_group.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -972,7 +1562,7 @@
                             {
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                                 UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                                [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_LOGIN_ID viewMode:_type];
+                                [customCell setCellContent:toUpdateUser cellType:CELL_USER_LOGIN_ID viewMode:_type];
                                 customCell.delegate = self;
                                 
                                 return customCell;
@@ -982,7 +1572,7 @@
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                                 UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                                 customCell.titleLabel.text = NSLocalizedString(@"group", nil);
-                                customCell.contentField.text = [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"];
+                                customCell.contentField.text = currentUser.user_group.name;
                                 [customCell.contentField setEnabled:NO];
                                 [customCell.contentField setSecureTextEntry:NO];
                                 return customCell;
@@ -996,7 +1586,7 @@
                             {
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                                 UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                                [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_LOGIN_ID viewMode:_type];
+                                [customCell setCellContent:toUpdateUser cellType:CELL_USER_LOGIN_ID viewMode:_type];
                                 customCell.delegate = self;
                                 
                                 return customCell;
@@ -1005,7 +1595,7 @@
                             {
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                                 UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                                [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_GROUP viewMode:_type hasOperator:hasOperator];
+                                [customCell setCellContent:toUpdateUser cellType:CELL_USER_GROUP viewMode:_type hasOperator:hasOperator];
                                 customCell.delegate = self;
                                 
                                 return customCell;
@@ -1022,7 +1612,7 @@
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                     UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                    [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_PASSWORD viewMode:_type];
+                    [customCell setCellContent:toUpdateUser cellType:CELL_USER_PASSWORD viewMode:_type];
                     customCell.delegate = self;
                     
                     return customCell;
@@ -1040,7 +1630,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"group", nil);
-                            customCell.contentField.text = [[userInfoDic objectForKey:@"user_group"] objectForKey:@"name"];
+                            customCell.contentField.text = currentUser.user_group.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1052,7 +1642,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_GROUP viewMode:_type];
+                            [customCell setCellContent:toUpdateUser cellType:CELL_USER_GROUP viewMode:_type];
                             customCell.delegate = self;
                             
                             return customCell;
@@ -1071,7 +1661,7 @@
             }
             break;
         }
-            
+        // secion 1
         case 1:
         {
             switch (indexPath.row)
@@ -1086,7 +1676,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"status", nil);
-                            customCell.contentField.text = NSLocalizedString([userInfoDic objectForKey:@"status"], nil);
+                            customCell.contentField.text = NSLocalizedString(currentUser.status, nil);
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1098,7 +1688,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailSwitchCell" forIndexPath:indexPath];
                             UserDetailSwitchCell *customCell = (UserDetailSwitchCell*)cell;
                             customCell.delegate = self;
-                            [customCell setCellContent:[toUpdateUserInfoDic objectForKey:@"status"]];
+                            [customCell setCellContent:toUpdateUser.status];
                             
                             return customCell;
                         }
@@ -1117,8 +1707,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailDateCell" forIndexPath:indexPath];
                             UserDetailDateCell *customCell = (UserDetailDateCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"period", nil);
-                            [customCell setStartDate:[userInfoDic objectForKey:@"start_datetime"] andExpireDate:[userInfoDic objectForKey:@"expiry_datetime"]];
-                            //[customCell.contentField setEnabled:editMode];
+                            [customCell setStartDate:currentUser.start_datetime andExpireDate:currentUser.expiry_datetime];
                             return customCell;
                             break;
                         }
@@ -1128,7 +1717,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailDateAccCell" forIndexPath:indexPath];
                             UserDetailDateAccCell *customCell = (UserDetailDateAccCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"period", nil);
-                            [customCell setStartDate:[toUpdateUserInfoDic objectForKey:@"start_datetime"] andExpireDate:[toUpdateUserInfoDic objectForKey:@"expiry_datetime"]];
+                            [customCell setStartDate:toUpdateUser.start_datetime andExpireDate:toUpdateUser.expiry_datetime];
                             return customCell;
                         }
                             break;
@@ -1145,9 +1734,9 @@
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"access_group", nil);
                             NSInteger count = 0;
-                            count += (unsigned long)[[userInfoDic objectForKey:@"access_groups"] count];
-                            count += (unsigned long)[[userInfoDic objectForKey:@"access_groups_in_user_group"] count];
                             
+                            count += (unsigned long)currentUser.access_groups.count;
+                            count += (unsigned long)currentUser.access_groups_in_user_group.count;
                             customCell.contentField.text = [NSString stringWithFormat:@"%lu", (long)count];
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1156,11 +1745,20 @@
                         }
                         case MODIFY_MODE:
                         case CREATE_MODE:
+                        {
+                            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
+                            UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
+                            [customCell setCellContent:toUpdateUser cellType:CELL_USER_ACCESS_GROUP viewMode:_type];
+                            customCell.delegate = self;
+                            
+                            return customCell;
+                        }
+                            break;
                         case PROFILE_MODE:
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            [customCell setCellContent:toUpdateUserInfoDic cellType:CELL_USER_ACCESS_GROUP viewMode:_type];
+                            [customCell setCellContent:currentUser cellType:CELL_USER_ACCESS_GROUP viewMode:_type];
                             customCell.delegate = self;
                             
                             return customCell;
@@ -1178,7 +1776,7 @@
             
             break;
         }
-            
+        // secion 2
         case 2:
         {
             switch (indexPath.row)
@@ -1192,22 +1790,74 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
-                            NSString *fingerprintCount = [NSString stringWithFormat:@"%ld", (unsigned long)[[userInfoDic objectForKey:@"fingerprint_templates"] count]];
-                            customCell.contentField.text = fingerprintCount;
+                            
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                customCell.contentField.text = currentUser.fingerprint_template_count ? currentUser.fingerprint_template_count : @"0";
+                            }
+                            else
+                            {
+                                NSString *fingerprintCount = [NSString stringWithFormat:@"%ld", (unsigned long)currentUser.fingerprint_templates.count];
+                                customCell.contentField.text = fingerprintCount;
+                            }
+                            
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
                             break;
                         }
-                        case MODIFY_MODE:
+                        
                         case CREATE_MODE:
+                        {
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailSwitchCell" forIndexPath:indexPath];
+                                UserDetailSwitchCell *customCell = (UserDetailSwitchCell*)cell;
+                                customCell.delegate = self;
+                                [customCell setCellPinContent:toUpdateUser.pin_exist];
+                                
+                                return customCell;
+                            }
+                            else
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
+                                UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
+                                customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                                
+                                if ([PreferenceProvider isUpperVersion])
+                                {
+                                    customCell.contentField.text = currentUser.fingerprint_template_count ? currentUser.fingerprint_template_count : @"0";
+                                }
+                                else
+                                {
+                                    NSString *fingerprintCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.fingerprint_templates.count];
+                                    customCell.contentField.text = fingerprintCount;
+                                }
+                                
+                                [customCell.contentField setEnabled:NO];
+                                [customCell.contentField setSecureTextEntry:NO];
+                                return customCell;
+                            }
+                            
+                        }
+                            break;
+                        case MODIFY_MODE:
                         case PROFILE_MODE:
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
-                            NSString *fingerprintCount = [NSString stringWithFormat:@"%ld", (unsigned long)[[toUpdateUserInfoDic objectForKey:@"fingerprint_templates"] count]];
-                            customCell.contentField.text = fingerprintCount;
+                            
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                customCell.contentField.text = currentUser.fingerprint_template_count ? currentUser.fingerprint_template_count : @"0";
+                            }
+                            else
+                            {
+                                NSString *fingerprintCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.fingerprint_templates.count];
+                                customCell.contentField.text = fingerprintCount;
+                            }
+                            
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1226,8 +1876,16 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"card", nil);
-                            NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)[[userInfoDic objectForKey:@"cards"] count]];
-                            customCell.contentField.text = cardCount;
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.card_count];
+                                customCell.contentField.text = cardCount;
+                            }
+                            else
+                            {
+                                NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.cards.count];
+                                customCell.contentField.text = cardCount;
+                            }
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1240,8 +1898,16 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
                             customCell.titleLabel.text = NSLocalizedString(@"card", nil);
-                            NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)[[toUpdateUserInfoDic objectForKey:@"cards"] count]];
-                            customCell.contentField.text = cardCount;
+                            if ([PreferenceProvider isUpperVersion])
+                            {
+                                NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.card_count];
+                                customCell.contentField.text = cardCount;
+                            }
+                            else
+                            {
+                                NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.cards.count];
+                                customCell.contentField.text = cardCount;
+                            }
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1275,7 +1941,7 @@
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailSwitchCell" forIndexPath:indexPath];
                             UserDetailSwitchCell *customCell = (UserDetailSwitchCell*)cell;
                             customCell.delegate = self;
-                            [customCell setCellPinContent:[[toUpdateUserInfoDic objectForKey:@"pin_exist"] boolValue]];
+                            [customCell setCellPinContent:toUpdateUser.pin_exist];
                             
                             return customCell;
                         }
@@ -1347,138 +2013,91 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [self.view endEditing:YES];
+    
+    id cell = [tableView cellForRowAtIndexPath:indexPath];
+    
+    NSString *cellTitle;
+    
+    if ([cell respondsToSelector:@selector(getTitle)])
+    {
+        cellTitle = [cell getTitle];
+    }
+    
     if (_type == VIEW_MODE)     // 뷰모드 일때
     {
-        if (indexPath.section == 0)
+        if ([cellTitle isEqualToString:NSLocalizedString(@"email", nil)])
         {
-            if (indexPath.row == 3)
+            if ([MFMailComposeViewController canSendMail])
             {
-                if ([MFMailComposeViewController canSendMail])
+                if (nil != currentUser.email)
                 {
-                    NSString *mailAddress = [userInfoDic objectForKey:@"email"];
-                    if (nil != mailAddress)
-                    {
-                        NSArray *recipents = @[mailAddress];
-                        
-                        MFMailComposeViewController *mc = [[MFMailComposeViewController alloc] init];
-                        [mc setToRecipients:recipents];
-                        mc.mailComposeDelegate = self;
-                        [self presentViewController:mc animated:YES completion:NULL];
-                    }
+                    NSArray *recipents = @[currentUser.email];
                     
-                }
-                else
-                {
-                    [self.view makeToast:NSLocalizedString(@"email_not_setted", nil)
-                                duration:2.0
-                                position:CSToastPositionTop
-                                   image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                    MFMailComposeViewController *mc = [[MFMailComposeViewController alloc] init];
+                    [mc setToRecipients:recipents];
+                    mc.mailComposeDelegate = self;
+                    [self presentViewController:mc animated:YES completion:NULL];
                 }
                 
             }
-            
-            if (indexPath.row == 4)
+            else
             {
-                NSString *phoneNumber = [userInfoDic objectForKey:@"phone_number"];
-                if (nil != phoneNumber)
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", phoneNumber]]];
+                [self.view makeToast:NSLocalizedString(@"email_not_setted", nil)
+                            duration:2.0
+                            position:CSToastPositionTop
+                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
             }
         }
-    }
-    else            // 편집, 추가 일때
-    {
-        switch (indexPath.section)
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"telephone", nil)])
         {
-            case 0:
-            {
-                if (hasOperator)
-                {
-                    if (indexPath.row == 5)
-                    {
-                        // 권한
-                        [self moveToVerificationViewController:OPERATOR];
-                    }
-                    else if(indexPath.row == 7)
-                    {
-                        // 패스워드 팝업
-                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                        PinPopupViewController *pinPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"PinPopupViewController"];
-                        pinPopupCtrl.type = PASSWORD;
-                        pinPopupCtrl.delegate = self;
-                        [self showPopup:pinPopupCtrl parentViewController:self parentView:self.view];
-                        
-                    }
-                    else if(indexPath.row == 8)
-                    {
-                        // 그룹
-                        if (_type == CREATE_MODE || _type == MODIFY_MODE)
-                        {
-                            [self showUserGroupPopup];
-                        }
-                        
-                    }
-                }
-                else
-                {
-                    if (indexPath.row == 5)
-                    {
-                        // 권한
-                        [self moveToVerificationViewController:OPERATOR];
-                    }
-                    else if (indexPath.row == 6)
-                    {
-                        // 그룹
-                        if (_type == CREATE_MODE || _type == MODIFY_MODE)
-                        {
-                            [self showUserGroupPopup];
-                        }
-                    }
-                }
-                
-                break;
+            if (nil != currentUser.phone_number)
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", currentUser.phone_number]]];
+        }
+    }
+    else
+    {
+        // 편집, 추가, 프로필
+        if ([cellTitle isEqualToString:NSLocalizedString(@"operator", nil)])
+        {
+            if (_type == PROFILE_MODE) {
+                return;
             }
-                
-            case 1:
-                if (indexPath.row == 1) // Period
-                {
-                    if (_type == CREATE_MODE || _type == MODIFY_MODE)
-                    {
-                        [self showPeriodPopup];
-                    }
-                }
-                
-                if (indexPath.row == 2) // Access Group
-                {
-                    [self moveToVerificationViewController:ACCESS_GROUPS];
-                }
-                break;
-            case 2:
+            // 권한
+            [self showPermissionPopup];
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"password", nil)])
+        {
+            [self showPinPopup:PASSWORD];
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"group", nil)])
+        {
+            if (_type != PROFILE_MODE)
             {
-                switch (indexPath.row)
-                {
-                    case 0:
-                        // fingerprint
-                        [self moveToVerificationViewController:FINGERPRINT];
-                        break;
-                    case 1:
-                        // card
-                        [self moveToVerificationViewController:CARD];
-                        break;
-                    case 2:
-                    {
-                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                        PinPopupViewController *pinPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"PinPopupViewController"];
-                        pinPopupCtrl.delegate = self;
-                        [self showPopup:pinPopupCtrl parentViewController:self parentView:self.view];
-                    }
-                        break;
-                }
-                
-                
+                [self showUserGroupPopup];
             }
-                break;
-            default:
-                break;
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"period", nil)])
+        {
+            if (_type != PROFILE_MODE)
+            {
+                [self showPeriodPopup];
+            }
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"access_group", nil)])
+        {
+            [self moveToVerificationViewController:ACCESS_GROUPS];
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"fingerprint", nil)])
+        {
+            [self moveToFingerPrintCredentialViewController];
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"card", nil)])
+        {
+            [self moveToCardCredentialViewController];
+        }
+        else if ([cellTitle isEqualToString:NSLocalizedString(@"pin_upper", nil)])
+        {
+            [self showPinPopup:PIN];
         }
     }
 }
@@ -1509,335 +2128,99 @@
     [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
-#pragma mark - UserProvider delegate
 
-
-
-- (void)requestDidFinishGettingUserInfo:(NSDictionary*)userInfo
-{
-    [self finishLoading];
-    [self loadUserInfo:userInfo];
-}
-
-- (void)requestDidFinishModifyMyProfile:(NSDictionary*)result
-{
-    isUserEditPhoto = NO;
-    [self finishLoading];
-    isUpdatedOrDeleted = YES;
-    NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
-    
-    if (nil != [userInfoDic objectForKey:@"photo"] && [[userInfoDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
-    {
-        [[SDImageCache sharedImageCache] storeImage:[userInfoDic objectForKey:@"photo"] forKey:userPhotoKey toDisk:YES];
-    }
-    else
-    {
-        [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES];
-    }
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-    successPopupCtrl.type = UPDATE_USER;
-    successPopupCtrl.delegate = self;
-    [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
-}
-
-- (void)requestDidFinishModifyUserInfo:(NSDictionary*)result
-{
-    isUserEditPhoto = NO;
-    isUpdatedOrDeleted = YES;
-    _type = VIEW_MODE;
-
-    [self finishLoading];
-    [editButtonView setHidden:NO];
-    [doneButton setHidden:YES];
-    
-    [userInfoDic removeObjectsForKeys:userInfoDic.allKeys];
-    [userInfoDic setDictionary:toUpdateUserInfoDic];
-    
-    NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
-    
-    if (nil != [userInfoDic objectForKey:@"photo"] && [[userInfoDic objectForKey:@"photo"] isKindOfClass:[UIImage class]])
-    {
-        [[SDImageCache sharedImageCache] storeImage:[userInfoDic objectForKey:@"photo"] forKey:userPhotoKey toDisk:YES];
-    }
-    else
-    {
-        [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES];
-    }
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-    successPopupCtrl.type = UPDATE_USER;
-    successPopupCtrl.delegate = self;
-    [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
-}
-
-- (void)requestDidFinishCreateUser:(NSDictionary*)result
-{
-    isUserEditPhoto = NO;
-    isUpdatedOrDeleted = YES;
-    [self finishLoading];
-    _type = VIEW_MODE;
-
-    [editButtonView setHidden:NO];
-    [doneButton setHidden:YES];
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-    successPopupCtrl.type = CREATE_USER;
-    successPopupCtrl.delegate = self;
-    [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
-}
-
-
-- (void)requestDidFinishDeleteUser:(NSDictionary*)result
-{
-    NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
-    
-    [[SDImageCache sharedImageCache] removeImageForKey:userPhotoKey fromDisk:YES withCompletion:^{
-        
-        isUpdatedOrDeleted = YES;
-        [self finishLoading];
-        [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
-        
-    }];
-    
-}
-
-- (void)requestUserProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    NSLog(@"requestDidFail : %@", errDic);
-    
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
 
 #pragma mark - UserDetailAccCellDelegate
 
 - (void)userEmailDidChange:(NSString*)email
 {
-    [toUpdateUserInfoDic setObject:email forKey:@"email"];
+    toUpdateUser.email = email;
 }
 
 - (void)userTelephoneDidChange:(NSString*)telephone
 {
-    [toUpdateUserInfoDic setObject:telephone forKey:@"phone_number"];
+    toUpdateUser.phone_number = telephone;
 }
 
 - (void)userNameDidChange:(NSString*)changedName
 {
-    [toUpdateUserInfoDic setObject:changedName forKey:@"name"];
+    toUpdateUser.name = changedName;
 }
 
 - (void)userIDDidChange:(NSString*)changedUserID
 {
-    [toUpdateUserInfoDic setObject:changedUserID forKey:@"user_id"];
+    toUpdateUser.user_id = changedUserID;
 }
 
 - (void)userLogin_IDDidChange:(NSString*)loginID
 {
-    [toUpdateUserInfoDic setObject:loginID forKey:@"login_id"];
+    toUpdateUser.login_id = loginID;
 }
 
-- (void)userPasswordDidChange:(NSString*)password
+- (void)maxValueIsOver
 {
-    //[toUpdateUserInfoDic setObject:password forKey:@"user_id"];
+    [self.view makeToast:NSLocalizedString(@"over_value", nil)
+           duration:2.0 position:CSToastPositionTop
+              image:[UIImage imageNamed:@"toast_popup_i_03"]];
 }
 
 #pragma mark - UserVerificationAddViewControllerDelegate
 
-- (void)fingerprintDidAdd:(NSArray*)fingerprintTemplates
+- (void)fingerprintWasChanged:(NSArray<FingerprintTemplate*>*)fingerprintTemplates
 {
-    [toUpdateUserInfoDic setObject:fingerprintTemplates forKey:@"fingerprint_templates"];
-
-    [detailTableView reloadData];
-}
-
-- (void)cardDidAdd:(NSArray*)cards
-{
-    [toUpdateUserInfoDic setObject:cards forKey:@"cards"];
-    
-    [detailTableView reloadData];
-}
-
-- (void)accessGroupDidChange:(NSArray*)groups
-{
-    NSMutableArray *tempGroups = [[NSMutableArray alloc] initWithArray:groups];
-    
-    for (NSDictionary *dic in groups)
+    if ([PreferenceProvider isUpperVersion])
     {
-        if ([[dic objectForKey:@"type"] isEqualToString:@"access_groups_in_user_group"])
-        {
-            [tempGroups removeObject:dic];
-        }
-    }
-    
-    [toUpdateUserInfoDic setObject:tempGroups forKey:@"access_groups"];
-    [detailTableView reloadData];
-}
-
-- (void)operatorValueDidChange:(NSArray*)operators
-{
-    if (operators.count > 0)
-    {
-        hasOperator = YES;
+        isUpdatedOrDeleted = YES;
+        toUpdateUser.fingerprint_template_count = [NSString stringWithFormat:@"%ld", fingerprintTemplates.count];
+        currentUser.fingerprint_template_count = toUpdateUser.fingerprint_template_count;
     }
     else
     {
-        hasOperator = NO;
-        // 로그인 아이디 password 빈값으로 바꾸기
-        [toUpdateUserInfoDic setObject:@"" forKey:@"login_id"];
-        [toUpdateUserInfoDic setObject:@"" forKey:@"password"];
-        [toUpdateUserInfoDic setObject:[NSNumber numberWithBool:NO] forKey:@"password_exist"];
-        
+        toUpdateUser.fingerprint_templates = fingerprintTemplates;
     }
-    
-    [toUpdateUserInfoDic setObject:operators forKey:@"roles"];
     
     [detailTableView reloadData];
 }
 
-#pragma mark - OneButtonTableDelegate
-
-- (void)didSelectIndex:(NSInteger)selectedIndex
+- (void)accessGroupDidChange:(NSArray<UserItemAccessGroup*>*)groups
 {
-    
-    switch (selectedIndex)
-    {
-        case 0:
-        {
-            // 사진찍기
-            UIImagePickerController * picker = [[UIImagePickerController alloc] init];
-            
-            // Don't forget to add UIImagePickerControllerDelegate in your .h
-            picker.delegate = self;
-            picker.allowsEditing = YES;
-            picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-            
-            [self presentViewController:picker animated:YES completion:^{
-                
-            }];
-          
-        }
-            break;
-            
-        case 1:
-        {
-            // 사진첩에서 가져오기
-            UIImagePickerController * picker = [[UIImagePickerController alloc] init];
-            
-            // Don't forget to add UIImagePickerControllerDelegate in your .h
-            picker.delegate = self;
-            picker.allowsEditing = YES;
-            picker.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
-            
-            [self presentViewController:picker animated:YES completion:^{
-                
-            }];
-        }
-            break;
-            
-        case 2:
-            // 사진 삭제
-            isUserEditPhoto = YES;
-            [toUpdateUserInfoDic setObject:@"" forKey:@"photo"];
-            [detailTableView reloadData];
-            break;
-    }
-}
-
-#pragma mark - ListPopupViewControllerDelegate
-
-- (void)didSelectDateOption:(NSInteger)optionIndex
-{
-    if (optionIndex == 0)
-    {
-        [self showStartDatePopup:nil];
-    }
-    else
-    {
-        [self showExpireDatePopup:nil];
-    }
-}
-
-- (void)cancelListPopupWithError:(NSDictionary*)errDic
-{
-    isForPopupRequest = YES;
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-#pragma mark - ListSubInfoPopupDelegate
-
-- (void)confirmUserGroup:(NSDictionary*)userGroup
-{
-    NSMutableDictionary *userGroupID = [[NSMutableDictionary alloc] init];
-    [userGroupID setObject:[userGroup objectForKey:@"id"] forKey:@"id"];
-    [userGroupID setObject:[userGroup objectForKey:@"name"] forKey:@"name"];
-    [toUpdateUserInfoDic setObject:userGroupID forKey:@"user_group"];
+    toUpdateUser.access_groups = groups;
     [detailTableView reloadData];
 }
 
-- (void)cancelListSubInfoPopupWithError:(NSDictionary*)errDic
+- (void)cardWasChanged:(NSArray<Card*>*)cards
 {
-    isForPopupRequest = YES;
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-#pragma mark - TextPopupDelegate
-
-- (void)cancelModify
-{
-    _type = VIEW_MODE;
-    [doneButton setHidden:YES];
-    [editButtonView setHidden:NO];
+    toUpdateUser.cards = cards;
     [detailTableView reloadData];
 }
 
-- (void)confirmDeleteUser
-{
-    isForPopupRequest = NO;
-    [provider deleteUser:[userInfoDic objectForKey:@"user_id"]];
-    [self startLoading:self];
-}
+#pragma mark - CardCredentialDelegate
 
+- (void)cardDidChanged:(NSArray<Card*>*)cards
+{
+    isUpdatedOrDeleted = YES;
+    toUpdateUser.card_count = cards.count;
+    currentUser.card_count = cards.count;
+    
+    [detailTableView reloadData];
+}
 
 #pragma mark - UIImagePickerControllerDelegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     // 사진 찍었거나 선택후 편집 까지 마치면 호출됨
-    isUserEditPhoto = YES;
     NSLog(@"%@", info);
     UIImage *editedImage = [info objectForKey:@"UIImagePickerControllerEditedImage"];
 
     UIImage* scaledImage = [CommonUtil imageCompress:editedImage fileSize:MAX_IMAGE_FILE_SIZE];
     
-    [toUpdateUserInfoDic setObject:scaledImage forKey:@"photo"];
+    NSData *photoData = [CommonUtil getImageDataCompress:scaledImage fileSize:MAX_IMAGE_FILE_SIZE];
+
+    NSString *photoStr = [photoData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithCarriageReturn];
+    
+    toUpdateUser.photo = photoStr;
+    
     [self dismissViewControllerAnimated:YES completion:^{
         [detailTableView reloadData];
     }];
@@ -1852,78 +2235,7 @@
     }];
 }
 
-#pragma mark - ImagePopupDelegate
 
-- (void)confirmImagePopup
-{
-    if (isForPopupRequest)
-    {
-        // 팝업창에서 API 호출하는 방식일 경우 그 팝업 다시 띄워주기
-        // 그룹
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ListSubInfoPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-        listPopupCtrl.delegate = self;
-        listPopupCtrl.type = USER_GROUP;
-        [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-    }
-    else
-    {
-        switch (provider.type)
-        {
-            case UserInfo:
-                isForPopupRequest = NO;
-                [provider getUser:userID];
-                [self startLoading:self];
-                break;
-            case UserModify:
-                isForPopupRequest = NO;
-                [provider modifyUser:[toUpdateUserInfoDic objectForKey:@"user_id"] userInfo:toUpdateUserInfoDic];
-                [self startLoading:self];
-                break;
-            case UserCreate:
-                isForPopupRequest = NO;
-                [provider createUser:toUpdateUserInfoDic];
-                [self startLoading:self];
-                break;
-            case UserDelete:
-                isForPopupRequest = NO;
-                [provider deleteUser:[userInfoDic objectForKey:@"user_id"]];
-                [self startLoading:self];
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-- (void)cancelImagePopup
-{
-    if (provider.type == UserInfo)
-    {
-        [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
-    }
-}
-
-#pragma mark - OneButtonPopupDelegate
-
-- (void)updateComplete
-{
-    
-    if (_type == PROFILE_MODE)
-    {
-        [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
-    }
-    else
-    {
-        [self loadUserInfo:userInfoDic];
-    }
-    
-}
-
-- (void)createComplete
-{
-    [self moveToBack:nil];
-}
 
 #pragma mark - SwitchCellDelegate
 
@@ -1935,54 +2247,30 @@
     {
         if (sender.isOn)
         {
-            [toUpdateUserInfoDic setObject:@"AC" forKey:@"status"];
+            toUpdateUser.status = @"AC";
         }
         else
         {
-            [toUpdateUserInfoDic setObject:@"IN" forKey:@"status"];
+            toUpdateUser.status = @"IN";
         }
     }
     else
     {
         if (sender.isOn)
         {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            PinPopupViewController *pinPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"PinPopupViewController"];
-            pinPopupCtrl.type = PIN;
-            pinPopupCtrl.delegate = self;
-            [self showPopup:pinPopupCtrl parentViewController:self parentView:self.view];
+            [self showPinPopup:PIN];
         }
         else
         {
-            [toUpdateUserInfoDic setObject:[NSNumber numberWithBool:NO] forKey:@"pin_exist"];
-            [toUpdateUserInfoDic setObject:@"" forKey:@"pin"];
-            [toUpdateUserInfoDic removeObjectForKey:@"pin_exist"];
+            toUpdateUser.pin_exist = NO;
+            toUpdateUser.pin = @"";
         }
     }
     
     [detailTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
-#pragma mark - PinPopupDelegate
 
-- (void)confirmPin:(NSString*)pin
-{
-    [toUpdateUserInfoDic setObject:[NSNumber numberWithBool:YES] forKey:@"pin_exist"];
-    [toUpdateUserInfoDic setObject:pin forKey:@"pin"];
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:2 inSection:2];
-    
-    [detailTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
-
-- (void)confirmPassword:(NSString*)password
-{
-    [toUpdateUserInfoDic setObject:password forKey:@"password"];
-    [toUpdateUserInfoDic setObject:[NSNumber numberWithBool:YES] forKey:@"password_exist"];
-
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:7 inSection:0];
-    
-    [detailTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-}
 @end
 
 

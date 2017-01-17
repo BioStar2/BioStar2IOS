@@ -24,16 +24,19 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self setSharedViewController:self];
     // Do any additional setup after loading the view.
     contentListArray = [[NSMutableArray alloc] init];
     contentDic = [[NSMutableDictionary alloc] init];
     selectedInfoArray = [[NSMutableArray alloc] init];
+    verificationInfo = [[NSMutableArray alloc] init];
     
     [containerView setHidden:YES];
     hasNextPage = NO;
-    
+    isLimited = NO;
     offset = 0;
     limit = 50;
+    limitCount = 16;
     
     multiSelect = NO;
     isSelectedAll = NO;
@@ -41,149 +44,21 @@
     isForSearch = NO;
     isForSingleSearch = NO;
     
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     listTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     
     switch (_type)
     {
-        case USER_GROUP:
-            titleLabel.text = NSLocalizedString(@"select_user_group", nil);
-            userProvider = [[UserProvider alloc] init];
-            userProvider.delegate = self;
-            [userProvider getUserGroups];
-            [self startLoading:self];
-            break;
-            
-        case DEVICE_FINGERPRINT:
-            titleLabel.text = NSLocalizedString(@"select_device_orginal", nil);
-            deviceProvider = [[DeviceProvider alloc] init];
-            deviceProvider.delegate = self;
-            [deviceProvider getDevices:query limit:10000 offset:offset mode:FINGERPRINT_MODE];
-            [self startLoading:self];
-            break;
-            
-        case DEVICE_CARD:
-            titleLabel.text = NSLocalizedString(@"registeration_option_card_reader", nil);
-            deviceProvider = [[DeviceProvider alloc] init];
-            deviceProvider.delegate = self;
-            [deviceProvider getDevices:query limit:10000 offset:offset mode:CARD_MODE];
-            [self startLoading:self];
-            
-            break;
-            
-        case DEVICE_SELECT:
-            multiSelect = YES;
-            isSearchable = YES;
-            titleLabel.text = NSLocalizedString(@"select_device_orginal", nil);
-            deviceProvider = [[DeviceProvider alloc] init];
-            deviceProvider.delegate = self;
-            [deviceProvider getDevices:nil limit:10000 offset:offset];
-            [self startLoading:self];
-            
-            break;
-            
         case ASSIGN_CARD:
         case EXCHANGE_CARD:
             isForSingleSearch = YES;
             titleLabel.text = NSLocalizedString(@"registeration_option_assign_card", nil);
             deviceProvider = [[DeviceProvider alloc] init];
-            deviceProvider.delegate = self;
-            [deviceProvider getCards:nil limit:limit offset:offset];
-            [self startLoading:self];
+            [self getCards:nil limit:limit offset:offset];
             break;
             
-        case EXCHANGE_ACCESS_GROUP:
-            accessProvider = [[AccessGroupProvider alloc] init];
-            accessProvider.delegate = self;
-            [accessProvider getAccessGroups];
-            [self startLoading:self];
-            break;
-            
-        case ADD_ACCESS_GROUP:
-            titleLabel.text = NSLocalizedString(@"select_access_group", nil);
-            multiSelect = YES;
-            accessProvider = [[AccessGroupProvider alloc] init];
-            accessProvider.delegate = self;
-            [accessProvider getAccessGroups];
-            [self startLoading:self];
-            break;
-            
-        case EVENT_SELECT:
-            eventArray = [[NSMutableArray alloc] init];
-            titleLabel.text = NSLocalizedString(@"select_event", nil);
-            multiSelect = YES;
-            isSearchable = YES;
-            break;
-            
-        case USER_SELECT:
-            titleLabel.text = NSLocalizedString(@"select_user_original", nil);
-            userProvider = [[UserProvider alloc] init];
-            userProvider.delegate = self;
-            [userProvider getUsersOffset:offset limit:limit groupID:@"1" query:nil];
-            multiSelect = YES;
-            isSearchable = YES;
-            [self startLoading:self];
-            break;
-            
-        case DOOR_CONTROL:
-        {
-            titleLabel.text = NSLocalizedString(@"door_control", nil);
-            NSMutableDictionary *openDic = [[NSMutableDictionary alloc] init];
-            NSMutableDictionary *lockDic = [[NSMutableDictionary alloc] init];
-            NSMutableDictionary *unLockDic = [[NSMutableDictionary alloc] init];
-            NSMutableDictionary *APBdic = [[NSMutableDictionary alloc] init];
-            NSMutableDictionary *alarmDic = [[NSMutableDictionary alloc] init];
-            NSMutableDictionary *releaseDic = [[NSMutableDictionary alloc] init];
-            
-            [openDic setObject:NSLocalizedString(@"open", nil) forKey:@"name"];
-            [openDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:openDic];
-            
-            [lockDic setObject:NSLocalizedString(@"manual_lock", nil) forKey:@"name"];
-            [lockDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:lockDic];
-            
-            [unLockDic setObject:NSLocalizedString(@"manual_unlock", nil) forKey:@"name"];
-            [unLockDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:unLockDic];
-            
-            [releaseDic setObject:NSLocalizedString(@"release", nil) forKey:@"name"];
-            [releaseDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:releaseDic];
-            
-            [APBdic setObject:NSLocalizedString(@"clear_apb", nil) forKey:@"name"];
-            [APBdic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:APBdic];
-            
-            [alarmDic setObject:NSLocalizedString(@"clear_alarm", nil) forKey:@"name"];
-            [alarmDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [contentListArray addObject:alarmDic];
-            
-            singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)contentListArray.count];
-            [self adjustHeight:contentListArray.count];
-            
-        }
-            break;
-        case TIME_ZONE:
-            selectedIndex = NOT_SELECTED;
-            titleLabel.text = NSLocalizedString(@"timezone", nil);
-            singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)contentListArray.count];
-            
-            multiSelect = NO;
-            break;
-        case TIME_FORMAT:
-            selectedIndex = NOT_SELECTED;
-            titleLabel.text = NSLocalizedString(@"time_format", nil);
-            singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)contentListArray.count];
-            
-            multiSelect = NO;
-            break;
-        case DATE_FORMAT:
-            selectedIndex = NOT_SELECTED;
-            titleLabel.text = NSLocalizedString(@"date_format", nil);
-            singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)contentListArray.count];
-            
-            multiSelect = NO;
-            break;
         default:
             break;
     }
@@ -235,14 +110,99 @@
 }
 
 /*
-#pragma mark - Navigation
+ #pragma mark - Navigation
+ 
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+- (void)setVerificationInfo:(NSArray*)info
+{
+    [verificationInfo removeAllObjects];
+    [verificationInfo addObjectsFromArray:info];
 }
-*/
+
+- (void)getCards:(NSString*)searchQuery limit:(NSInteger)searchLimit offset:(NSInteger)searchOffset
+{
+    [self startLoading:self];
+    
+//    [deviceProvider getCards:searchQuery limit:searchLimit offset:searchOffset completeHandler:^(NSDictionary *responseObject, NSError *error) {
+//        
+//        [self finishLoading];
+//        
+//        if (nil == error)
+//        {
+//            if (isForSearch)
+//            {
+//                isForSearch = NO;
+//                [contentListArray removeAllObjects];
+//            }
+//            else
+//            {
+//                if (contentListArray.count == 0)
+//                    [self adjustHeight:contentListArray.count];
+//            }
+//            
+//            NSArray *rows = [responseObject objectForKey:@"records"];
+//            // 최초로 불러 올때만 팝업 사이즈 조절및 애니메이션 적용
+//            if ([rows isKindOfClass:[NSArray class]])
+//            {
+//                
+//                NSMutableArray *newCardCollection = [[NSMutableArray alloc] init];
+//                
+//                for (NSDictionary *card in rows)
+//                {
+//                    NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:card];
+//                    [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+//                    
+//                    [newCardCollection addObject:dic];
+//                }
+//                
+//                [contentListArray addObjectsFromArray:newCardCollection];
+//            }
+//            
+//            totalCount = [[responseObject objectForKey:@"total"] integerValue];
+//            
+//            [listTableView reloadData];
+//            
+//            if (totalCount > contentListArray.count)
+//            {
+//                hasNextPage = YES;
+//                offset += limit;
+//            }
+//            else
+//            {
+//                hasNextPage = NO;
+//            }
+//            
+//            singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)totalCount];
+//        }
+//        else
+//        {
+//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//            imagePopupCtrl.type = REQUEST_FAIL;
+//            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+//            [imagePopupCtrl setContent:[responseObject objectForKey:@"message"]];
+//            
+//            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//            
+//            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//                
+//                if (isConfirm)
+//                {
+//                    [self getCards:searchQuery limit:searchLimit offset:searchOffset];
+//                }
+//            }];
+//        }
+//        
+//    }];
+}
+
+
 
 - (void)setContentList:(NSArray*)array
 {
@@ -255,17 +215,12 @@
         [contentListArray addObject:dic];
     }
     
-    if (_type == EVENT_SELECT)
-    {
-        [eventArray addObjectsFromArray:contentListArray];
-    }
-    
     [listTableView reloadData];
     [self adjustHeight:contentListArray.count];
     
     totalCount = array.count;
     searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-
+    
 }
 
 - (IBAction)showSearchTextFieldView:(id)sender
@@ -352,136 +307,96 @@
 {
     switch (_type)
     {
-        case USER_GROUP:
-            if ([self.delegate respondsToSelector:@selector(confirmUserGroup:)])
+        case EXCHANGE_CARD:
+            if (self.dictionaryResponseBlock && [contentDic count] > 0)
             {
-                if ([contentDic count] > 0)
-                {
-                    [self.delegate confirmUserGroup:contentDic];
-                }
-            }
-            break;
-            
-        case DEVICE_FINGERPRINT:
-            if ([self.delegate respondsToSelector:@selector(confirmDeviceForFingerprint:)])
-            {
-                if ([contentDic count] > 0)
-                {
-                    [self.delegate confirmDeviceForFingerprint:contentDic];
-                }
-            }
-            break;
-        case DEVICE_CARD:
-            if ([self.delegate respondsToSelector:@selector(confirmDeviceForRegisterCard:)])
-            {
-                if ([contentDic count] > 0)
-                {
-                    [self.delegate confirmDeviceForRegisterCard:contentDic];
-                }
-                
+                [contentDic removeObjectForKey:@"selected"];
+                self.dictionaryResponseBlock(contentDic);
+                self.dictionaryResponseBlock = nil;
             }
             break;
         case ASSIGN_CARD:
             if (multiSelect)
             {
-                if ([self.delegate respondsToSelector:@selector(confirmCardsInfo:)])
-                {
-                    if ([selectedInfoArray count] > 0)
-                        [self.delegate confirmCardsInfo:selectedInfoArray];
+                if (self.arrayResponseBlock && [selectedInfoArray count] > 0) {
+                    self.arrayResponseBlock(selectedInfoArray);
+                    self.arrayResponseBlock = nil;
                 }
             }
             else
             {
-                if ([self.delegate respondsToSelector:@selector(confirmCardInfo:)])
+                if (self.dictionaryResponseBlock && [contentDic count] > 0)
                 {
-                    if ([contentDic count] > 0)
-                        [self.delegate confirmCardInfo:contentDic];
+                    self.dictionaryResponseBlock(contentDic);
+                    self.dictionaryResponseBlock = nil;
                 }
             }
             break;
-        case EXCHANGE_CARD:
-            if ([self.delegate respondsToSelector:@selector(confirmExchangeCard:)])
-            {
-                if ([contentDic count] > 0)
-                    [self.delegate confirmExchangeCard:contentDic];
-            }
-            break;
-        case EXCHANGE_ACCESS_GROUP:
-            if ([self.delegate respondsToSelector:@selector(confirmExchangeAccessGroup:)])
-            {
-                if ([contentDic count] > 0)
-                    [self.delegate confirmExchangeAccessGroup:contentDic];
-            }
-            break;
-        case ADD_ACCESS_GROUP:
-            if ([self.delegate respondsToSelector:@selector(confirmAddAccessGroup:)])
-            {
-                if ([selectedInfoArray count] > 0)
-                    [self.delegate confirmAddAccessGroup:selectedInfoArray];
-            }
-            break;
-        case EVENT_SELECT:
-            if ([self.delegate respondsToSelector:@selector(confirmFilterEvents:)])
-            {
-                if ([selectedInfoArray count] > 0)
-                    [self.delegate confirmFilterEvents:selectedInfoArray];
-            }
-            break;
-        case USER_SELECT:
-            if ([self.delegate respondsToSelector:@selector(confirmFilterUsers:)])
-            {
-                if ([selectedInfoArray count] > 0)
-                    [self.delegate confirmFilterUsers:selectedInfoArray];
-            }
-            break;
-        case DEVICE_SELECT:
-            if ([self.delegate respondsToSelector:@selector(confirmFilterDevices:)])
-            {
-                if ([selectedInfoArray count] > 0)
-                    [self.delegate confirmFilterDevices:selectedInfoArray];
-            }
-            break;
-        case DOOR_CONTROL:
-            if ([self.delegate respondsToSelector:@selector(confirmDoorControl:)])
-            {
-                if ([contentDic count] < 1)
-                {
-                    selectedIndex = NOT_SELECTED;
-                }
-                [self.delegate confirmDoorControl:selectedIndex];
-            }
-            break;
-        case TIME_ZONE:
-            if ([self.delegate respondsToSelector:@selector(confirmTimezone:)])
-            {
-                [self.delegate confirmTimezone:selectedIndex];
-            }
-            break;
-        case TIME_FORMAT:
-            if ([self.delegate respondsToSelector:@selector(confirmTimeFormat:)])
-            {
-                if ([contentDic count] > 0)
-                {
-                    [self.delegate confirmTimeFormat:contentDic];
-                }
-                
-            }
-            break;
-        case DATE_FORMAT:
-            if ([self.delegate respondsToSelector:@selector(confirmDateFormat:)])
-            {
-                if ([contentDic count] > 0)
-                {
-                    [self.delegate confirmDateFormat:contentDic];
-                }
-                
-            }
-            break;
+            
         default:
             break;
     }
     
     [self closePopup:self parentViewController:self.parentViewController];
+}
+
+- (void)getDictionaryResponse:(ListSubInfoPopupDictionaryResponseBlock)dictionaryResponseBlock
+{
+    self.dictionaryResponseBlock = dictionaryResponseBlock;
+}
+
+- (void)getArrayResponse:(ListSubInfoPopupArrayResponseBlock)arrayResponseBlock
+{
+    self.arrayResponseBlock = arrayResponseBlock;
+}
+
+- (void)getIndexResponse:(ListSubInfoPopupIndexResponseBlock)indexResponseBlock
+{
+    self.indexResponseBlock = indexResponseBlock;
+}
+
+- (void)addContent:(NSIndexPath *)indexPath tableView:(UITableView *)tableView
+{
+    
+    
+    
+    
+    NSMutableDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
+    
+    if ([[currentDic objectForKey:@"selected"] boolValue])
+    {
+        [currentDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+        [selectedInfoArray removeObject:currentDic];
+        isLimited = NO;
+    }
+    else
+    {
+        if (!isLimited)
+        {
+            [currentDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
+            [selectedInfoArray addObject:currentDic];
+        }
+    }
+    
+    multiSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count,(unsigned long)contentListArray.count];
+    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
+    singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
+    
+    // select all 판단
+    if (selectedInfoArray.count == totalCount)
+    {
+        // 전체선택
+        [multiSearchSelectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
+    }
+    else
+    {
+        [multiSearchSelectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+    }
+    
+    [tableView reloadData];
+    
+    
+    
 }
 
 #pragma mark - Table view data source
@@ -491,9 +406,19 @@
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
     // Return the number of rows in the section.
-    return [contentListArray count];
+    switch (_type)
+    {
+        case ASSIGN_CARD:
+        case EXCHANGE_CARD:
+            return [contentListArray count];
+            break;
+        default:
+            return 0;
+            break;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -501,60 +426,26 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RadioCell" forIndexPath:indexPath];
     RadioCell *customCell = (RadioCell*)cell;
     
-    NSDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
-    
-    [customCell checkSelected:[[currentDic objectForKey:@"selected"] boolValue]];
-    
     switch (_type)
     {
         case ASSIGN_CARD:
         case EXCHANGE_CARD:
+        {
+            NSDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
+            
+            [customCell checkSelected:[[currentDic objectForKey:@"selected"] boolValue] isLimited:isLimited];
+            
             customCell.titleLabel.text = [currentDic objectForKey:@"card_id"];
             if (indexPath.row == contentListArray.count -1)
             {
                 if (hasNextPage)
                 {
-                    [deviceProvider getCards:query limit:limit offset:offset];
-                    [self startLoading:self];
-                }
-            }
-            break;
-        case USER_SELECT:
-        {
-            NSString *name = [currentDic objectForKey:@"name"];
-            NSString *ID = [currentDic objectForKey:@"user_id"];
-            if (nil == name || [name isEqualToString:@""])
-            {
-                name = ID;
-            }
-            NSString *description = [NSString stringWithFormat:@"%@ / %@",ID, name];
-            customCell.titleLabel.text = description;
-            
-            if (indexPath.row == contentListArray.count -1)
-            {
-                if (hasNextPage)
-                {
-                    [userProvider getUsersOffset:offset limit:limit groupID:@"1" query:query];
-                    [self startLoading:self];
+                    [self getCards:query limit:limit offset:offset];
                 }
             }
         }
             break;
-        case USER_GROUP:
-        case DEVICE_FINGERPRINT:
-        case DEVICE_CARD:
-        case EXCHANGE_ACCESS_GROUP:
-        case ADD_ACCESS_GROUP:
-        case EVENT_SELECT:
-        case DOOR_CONTROL:
-        case DEVICE_SELECT:
-        case TIME_ZONE:
-            customCell.titleLabel.text = [currentDic objectForKey:@"name"];
-            break;
-        case TIME_FORMAT:
-        case DATE_FORMAT:
-            customCell.titleLabel.text = [[currentDic objectForKey:@"name"] lowercaseString];
-            break;
+            
         default:
             break;
     }
@@ -572,35 +463,7 @@
     
     if (multiSelect)
     {
-        NSMutableDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
-        
-        if ([[currentDic objectForKey:@"selected"] boolValue])
-        {
-            [currentDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [selectedInfoArray removeObject:currentDic];
-        }
-        else
-        {
-            [currentDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-            [selectedInfoArray addObject:currentDic];
-        }
-        
-        multiSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count,(unsigned long)contentListArray.count];
-        searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-        singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-        // select all 판단
-        if (selectedInfoArray.count == totalCount)
-        {
-            // 전체선택
-            [multiSearchSelectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-        }
-        else
-        {
-            [multiSearchSelectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-        }
-        
-        [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-
+        [self addContent:indexPath tableView:tableView];
     }
     else
     {
@@ -627,234 +490,6 @@
     }
 }
 
-#pragma mark - UserProviderDelegate
-
-- (void)requestDidFinishGetUserGroups:(NSArray*)groups
-{
-    [self finishLoading];
-    
-    if ([groups isKindOfClass:[NSArray class]])
-    {
-        [self adjustHeight:groups.count];
-        
-        NSMutableArray *newGroup = [[NSMutableArray alloc] init];
-        
-        for (NSDictionary *group in groups)
-        {
-            NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:group];
-            [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
-            [newGroup addObject:dic];
-        }
-        
-        singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)groups.count];
-        [contentListArray addObjectsFromArray:newGroup];
-    }
-    else
-    {
-        [self adjustHeight:0];
-        singleSelectTotalCountLabel.text = @"0";
-    }
-    
-    [listTableView reloadData];
-    
-}
-
-- (void)requestDidFinishGettingUsersInfo:(NSArray*)userArray totclCount:(NSInteger)count
-{
-    [self finishLoading];
-    
-    if (isForSearch)
-    {
-        [multiSearchSelectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-        [selectedInfoArray removeAllObjects];
-        [contentListArray removeAllObjects];
-        isForSearch = NO;
-    }
-    else
-    {
-        // 최초로 불러 올때만 팝업 사이즈 조절및 애니메이션 적용
-        if (contentListArray.count == 0)
-            [self adjustHeight:count];
-    }
-    
-    totalCount = count;
-    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-    if (count == 0)
-    {
-        [contentListArray removeAllObjects];
-    }
-    else
-    {
-        // 선택 위해 뮤터블 딕션어리로 교체
-        if ([userArray isKindOfClass:[NSArray class]])
-        {
-            for (NSDictionary *user in userArray)
-            {
-                NSMutableDictionary *tempUser = [[NSMutableDictionary alloc] initWithDictionary:user];
-                [tempUser setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-                [contentListArray addObject:tempUser];
-            }
-        }
-        
-    }
-    
-    if (totalCount > contentListArray.count)
-    {
-        offset += limit;
-        hasNextPage = YES;
-    }
-    else
-    {
-        hasNextPage = NO;
-    }
-    
-    [listTableView reloadData];
-}
-
-- (void)requestUserProviderDidFail:(NSDictionary*)errDic
-{
-    // 팝업에서 API 호출후 실패날 경우 
-    [self finishLoading];
-    if ([self.delegate respondsToSelector:@selector(cancelListSubInfoPopupWithError:)])
-    {
-        [self.delegate cancelListSubInfoPopupWithError:errDic];
-    }
-    [self closePopup:self parentViewController:self.parentViewController];
-}
-
-#pragma mark - DeviceProviderDelegate
-
-- (void)requestDeviceProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    if ([self.delegate respondsToSelector:@selector(cancelListSubInfoPopupWithError:)])
-    {
-        [self.delegate cancelListSubInfoPopupWithError:errDic];
-    }
-    [self closePopup:self parentViewController:self.parentViewController];
-}
-
-- (void)requestGetCardsDidFinish:(NSDictionary *)cardColletion
-{
-    [self finishLoading];
-    
-    if (isForSearch)
-    {
-        isForSearch = NO;
-        [contentListArray removeAllObjects];
-    }
-    else
-    {
-        if (contentListArray.count == 0)
-            [self adjustHeight:contentListArray.count];
-    }
-    
-    NSArray *rows = [cardColletion objectForKey:@"records"];
-    // 최초로 불러 올때만 팝업 사이즈 조절및 애니메이션 적용
-    if ([rows isKindOfClass:[NSArray class]])
-    {
-        
-        NSMutableArray *newCardCollection = [[NSMutableArray alloc] init];
-        
-        for (NSDictionary *card in rows)
-        {
-            NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:card];
-            [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
-            [newCardCollection addObject:dic];
-        }
-        
-        [contentListArray addObjectsFromArray:newCardCollection];
-    }
-    
-    totalCount = [[cardColletion objectForKey:@"total"] integerValue];
-    
-    [listTableView reloadData];
-    
-    if (totalCount > contentListArray.count)
-    {
-        hasNextPage = YES;
-        offset += limit;
-    }
-    else
-    {
-        hasNextPage = NO;
-    }
-
-    singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)totalCount];
-}
-
-- (void)requestGetDevicesDidFinish:(NSArray*)devices totalCount:(NSInteger)total
-{
-    [self finishLoading];
-    if (isForSearch)
-    {
-        isForSearch = NO;
-        [selectedInfoArray removeAllObjects];
-        [contentListArray removeAllObjects];
-    }
-    totalCount = total;
-    multiSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count,(unsigned long)contentListArray.count];
-    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-    
-    [self adjustHeight:devices.count];
-    NSMutableArray *newDevices = [[NSMutableArray alloc] init];
-    
-    for (NSDictionary *device in devices)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:device];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [newDevices addObject:dic];
-    }
-    
-    [contentListArray addObjectsFromArray:newDevices];
-
-    
-    [listTableView reloadData];
-}
-
-#pragma mark - AccessGroupProviderDelegate
-
-- (void)requestGetAccessGroupsDidFinish:(NSDictionary*)accessGroupCollection
-{
-    [self finishLoading];
-    NSArray *groups = [accessGroupCollection objectForKey:@"records"];
-    
-    totalCount = [[accessGroupCollection objectForKey:@"total"] integerValue];
-    
-    NSMutableArray *newAccessCollection = [[NSMutableArray alloc] init];
-    
-    if ([groups isKindOfClass:[NSArray class]])
-    {
-        for (NSDictionary *card in groups)
-        {
-            NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:card];
-            [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
-            [newAccessCollection addObject:dic];
-        }
-        
-        [contentListArray addObjectsFromArray:newAccessCollection];
-    }
-    
-    [listTableView reloadData];
-    
-    [self adjustHeight:contentListArray.count];
-    
-    singleSelectTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)totalCount];
-}
-
-- (void)requestAccessGroupProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    if ([self.delegate respondsToSelector:@selector(cancelListSubInfoPopupWithError:)])
-    {
-        [self.delegate cancelListSubInfoPopupWithError:errDic];
-    }
-    [self closePopup:self parentViewController:self.parentViewController];
-}
 
 
 #pragma mark - UITextFieldDelegate
@@ -864,58 +499,12 @@
     isForSearch = YES;
     query = textField.text;
     offset = 0;
-    if (_type == USER_GROUP)
-    {
-        [userProvider getUsersOffset:offset limit:limit groupID:@"1" query:query];
-        [self startLoading:self];
-        
-    }
-    else if (_type == DEVICE_SELECT)
-    {
-        [deviceProvider getDevices:query limit:10000 offset:offset];
-        [self startLoading:self];
-    }
-    else if (_type == EVENT_SELECT)
-    {
-        NSMutableArray *searchArray = [[NSMutableArray alloc] init];
-        
-        for (NSMutableDictionary *event in eventArray)
-        {
-            [event setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-
-            NSString *name = [event objectForKey:@"name"];
-            query = [query uppercaseString];
-            
-            NSRange range;
-            range = [name rangeOfString:query];
-            
-            if (range.location != NSNotFound)
-            {
-                [searchArray addObject:event];
-            }
-        }
-        [selectedInfoArray removeAllObjects];
-        [contentListArray removeAllObjects];
-        [contentListArray addObjectsFromArray:searchArray];
-        [listTableView reloadData];
-        
-        totalCount = contentListArray.count;
-        
-        searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)selectedInfoArray.count, (unsigned long)totalCount];
-       
-    }
-    else if (_type == USER_SELECT)
-    {
-        [userProvider getUsersOffset:offset limit:limit groupID:@"1" query:query];
-        [self startLoading:self];
-    }
-    else if (_type == ASSIGN_CARD || _type == EXCHANGE_CARD)
-    {
-        [deviceProvider getCards:query limit:limit offset:offset];
-        [self startLoading:self];
-    }
     
     
+    if (_type == ASSIGN_CARD || _type == EXCHANGE_CARD)
+    {
+        [self getCards:query limit:limit offset:offset];
+    }
     
     [textField resignFirstResponder];
     return YES;

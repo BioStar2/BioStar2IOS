@@ -15,6 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "ListDoorItem.h"
 
 @interface DoorCell : UITableViewCell
 {
@@ -25,6 +26,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *doorID;
 @property (weak, nonatomic) IBOutlet UILabel *doorName;
 
-- (void)setDoorStatus:(NSDictionary*)doorDic;
+- (void)setDoorStatus:(ListDoorItem*)door;
 
 @end

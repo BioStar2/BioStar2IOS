@@ -18,36 +18,55 @@
 
 @interface UserVerificationAddViewController ()
 
+- (void)checkAllSelected:(NSInteger)allCount selectedCount:(NSInteger)selectedCount;
+
 @end
 
 @implementation UserVerificationAddViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    infoDic = [[NSMutableDictionary alloc] init];
-    fingerPrintDic = [[NSMutableDictionary alloc] init];
-    fingerPrintScanCount = 0;
     // Do any additional setup after loading the view.
+    
+    [self setSharedViewController:self];
+    
+    fingerPrintScanCount = 0;
     toDeleteArray = [[NSMutableArray alloc] init];
     isSelectedAll = NO;
     isForSwitchIndex = NO;
-    isForAPIRetry = NO;
-    
+    scanQuality = 80;
+    userProvider = [[UserProvider alloc] init];
+    totalDecLabel.text = NSLocalizedString(@"total", nil);
     switch (_type)
     {
         case FINGERPRINT:
             titleLabel.text = NSLocalizedString(@"fingerprint", nil);
-            break;
-        case CARD:
-            titleLabel.text = NSLocalizedString(@"card", nil);
+            if ([PreferenceProvider isUpperVersion])
+            {
+                if (nil == fingerPrintTemplates || fingerPrintTemplates.count == 0)
+                {
+                    [self getUserFingerprintTemplates];
+                }
+                else
+                {
+                    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+                }
+                
+            }
+            else
+            {
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+            }
+            
             break;
         case ACCESS_GROUPS:
             titleLabel.text = NSLocalizedString(@"access_group", nil);
+            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userAccessGroups.count];
             break;
-        case OPERATOR:
-            titleLabel.text = NSLocalizedString(@"permission_setting", nil);
+        case CARD:
+            titleLabel.text = NSLocalizedString(@"card", nil);
+            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
             break;
-        
     }
     
     if (_isProfileMode)
@@ -56,7 +75,7 @@
         [doneButtonView setHidden:YES];
     }
     
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
+    
     
 }
 
@@ -75,89 +94,32 @@
 }
 */
 
-- (void)setOperators:(NSArray*)operators
+
+- (void)setAccessGroup:(NSArray*)accessGroups withUserGroup:(NSArray*)userGroups
 {
-    NSMutableArray *tempOperators = [[NSMutableArray alloc] init];
-    for (NSDictionary *operator in operators)
-    {
-        NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:operator];
-        [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [tempOperators addObject:tempVerification];
-    }
-    
-    if (verificationInfos)
-    {
-        [verificationInfos removeAllObjects];
-        [verificationInfos addObjectsFromArray:tempOperators];
-    }
-    else
-    {
-        verificationInfos = [[NSMutableArray alloc] initWithArray:tempOperators];
-    }
-    
-    
+    userAccessGroups = [[NSMutableArray alloc] init];
+    [userAccessGroups addObjectsFromArray:accessGroups];
+    [userAccessGroups addObjectsFromArray:userGroups];
     [contentTableView reloadData];
 }
 
-- (void)setAccessGroup:(NSArray*)accessGroup withUserGroup:(NSArray*)userGroup
+- (void)setFingerPrintTemplates:(NSArray<FingerprintTemplate*>*)templates
 {
-    NSMutableArray *tempInfos = [[NSMutableArray alloc] init];
-    
-    
-    for (NSDictionary *info in userGroup)
-    {
-        NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:info];
-        [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [tempVerification setObject:@"access_groups_in_user_group" forKey:@"type"];
-        [tempInfos addObject:tempVerification];
-    }
-    
-    for (NSDictionary *info in accessGroup)
-    {
-        NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:info];
-        [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [tempVerification setObject:@"access_groups" forKey:@"type"];
-        [tempInfos addObject:tempVerification];
-    }
-    
-    if (verificationInfos)
-    {
-        [verificationInfos removeAllObjects];
-        verificationInfos = nil;
-    }
-    verificationInfos = [[NSMutableArray alloc] initWithArray:tempInfos];
-    
+    fingerPrintTemplates = [[NSMutableArray alloc] init];
+    [fingerPrintTemplates addObjectsFromArray:templates];
     [contentTableView reloadData];
 }
 
-- (void)setVerificationInfo:(NSArray*)infos
+- (void)setCards:(NSArray<Card*>*)cards
 {
-    
-    NSMutableArray *tempInfos = [[NSMutableArray alloc] init];
-    
-    NSInteger index = 0;
-    maxFingerprintIndex = 0;
-    for (NSDictionary *info in infos)
-    {
-        NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:info];
-        [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [tempInfos addObject:tempVerification];
-        NSInteger tempFingerprintIndex = [[info objectForKey:@"finger_index"] integerValue];
-        if (maxFingerprintIndex < tempFingerprintIndex)
-        {
-            maxFingerprintIndex = tempFingerprintIndex;
-        }
-        index++;
-    }
-    if (verificationInfos)
-    {
-        [verificationInfos removeAllObjects];
-        verificationInfos = nil;
-    }
-    verificationInfos = [[NSMutableArray alloc] initWithArray:tempInfos];
-    
+    userCards = [[NSMutableArray alloc] init];
+    [userCards addObjectsFromArray:cards];
     [contentTableView reloadData];
-    
+}
+
+- (void)setUserInfo:(User*)user
+{
+    currentUser = user;
 }
 
 - (IBAction)addVerification:(id)sender
@@ -166,16 +128,7 @@
     {
         case FINGERPRINT:
         {
-            if (nil == verificationInfos || [verificationInfos count] == 0)
-            {
-                scanIndex = 0;
-            }
-            else
-            {
-                scanIndex = verificationInfos.count;
-            }
-            
-            if ([verificationInfos count] == 10)
+            if ([fingerPrintTemplates count] >= 10)
             {
                 // 10 개 초과 등록 안됨
                 [self.view makeToast:NSLocalizedString(@"max_size", nil)
@@ -186,37 +139,37 @@
                 return;
             }
             
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-            listSubInfoPopupCtrl.delegate = self;
-            listSubInfoPopupCtrl.type = DEVICE_FINGERPRINT;
-            [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-            break;
-        }
-        case CARD:
-        {
-            if ([verificationInfos count] == 8)
+            if (nil == fingerPrintTemplates || [fingerPrintTemplates count] == 0)
             {
-                // 8 개 초과 등록 안됨
-                [self.view makeToast:NSLocalizedString(@"max_size", nil)
-                            duration:2.0
-                            position:CSToastPositionBottom
-                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
-                return;
+                scanIndex = 0;
             }
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-            listPopupCtrl.delegate = self;
-            listPopupCtrl.isRadioStyle = YES;
-            listPopupCtrl.type = CARD_OPTION;
+            else
+            {
+                scanIndex = fingerPrintTemplates.count;
+            }
             
-            [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-            [listPopupCtrl addOptions:@[NSLocalizedString(@"registeration_option_card_reader", nil) ,NSLocalizedString(@"registeration_option_assign_card", nil)]];
+            [self addFingerprint];
+            
             break;
         }
         case ACCESS_GROUPS:
         {
-            if ([verificationInfos count] == 16)
+            if ([userAccessGroups count] >= 16)
+            {
+                // 16 개 초과 등록 안됨
+                [self.view makeToast:NSLocalizedString(@"max_size", nil)
+                            duration:2.0
+                            position:CSToastPositionBottom
+                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                return;
+            }
+            [self addAccessGroup];
+            
+            break;
+        }
+        case CARD:
+        {
+            if ([userCards count] >= 8)
             {
                 // 8 개 초과 등록 안됨
                 [self.view makeToast:NSLocalizedString(@"max_size", nil)
@@ -225,24 +178,10 @@
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 return;
             }
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-            listSubInfoPopupCtrl.delegate = self;
-            listSubInfoPopupCtrl.type = ADD_ACCESS_GROUP;
-            [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-            break;
-        }
-        case OPERATOR:
-        {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-            listPopupCtrl.delegate = self;
-            listPopupCtrl.isRadioStyle = YES;
-            listPopupCtrl.type = PERMISSON;
+            [self addCard];
             
-            [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-        }
             break;
+        }
     }
 }
 
@@ -250,23 +189,51 @@
 {
     if (totalCountView.hidden)
     {
-        [toDeleteArray removeAllObjects];
-        for (NSMutableDictionary *info in verificationInfos)
+        switch (_type)
         {
-            [info setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
+            case FINGERPRINT:
+                titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                for (FingerprintTemplate *info in fingerPrintTemplates)
+                {
+                    info.isSelected = NO;
+                    
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+                break;
+            case ACCESS_GROUPS:
+                titleLabel.text = NSLocalizedString(@"access_group", nil);
+                for (UserItemAccessGroup *info in userAccessGroups)
+                {
+                    info.isSelected = NO;
+                    
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userAccessGroups.count];
+                break;
+                
+            case CARD:
+                titleLabel.text = NSLocalizedString(@"card", nil);
+                for (Card *card in userCards)
+                {
+                    card.isSelected = NO;
+                    
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+                break;
         }
+
+        [toDeleteArray removeAllObjects];
         [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
         [contentTableView reloadData];
         isSelectedAll = NO;
         
-    
         [editButtonView setHidden:NO];
         [doneButtonView setHidden:YES];
         [totalCountView setHidden:NO];
         [verificationSelectView setHidden:YES];
-        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
+        
         return;
     }
     [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
@@ -274,7 +241,22 @@
 
 - (IBAction)deleteVerification:(id)sender
 {
-    totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
+    switch (_type)
+    {
+        case FINGERPRINT:
+            titleLabel.text = NSLocalizedString(@"delete_fingerprint", nil);
+            totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+            break;
+        case ACCESS_GROUPS:
+            titleLabel.text = NSLocalizedString(@"access_group", nil);
+            totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+            break;
+        case CARD:
+            titleLabel.text = NSLocalizedString(@"delete_card", nil);
+            totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+            break;
+    }
+
     [editButtonView setHidden:YES];
     [doneButtonView setHidden:NO];
     [totalCountView setHidden:YES];
@@ -286,15 +268,51 @@
 {
     if (toDeleteArray.count > 0)
     {
-        isForAPIRetry = NO;
         // delete popup display
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = WARNING;
         imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
         [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), (unsigned long)toDeleteArray.count]];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+           
+            if (isConfirm)
+            {
+                switch (_type)
+                {
+                    case FINGERPRINT:
+                        [self deleteFingerprintTemplates];
+                        break;
+                        
+                    case ACCESS_GROUPS:
+                        [userAccessGroups removeObjectsInArray:toDeleteArray];
+                        [toDeleteArray removeAllObjects];
+                        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+                        if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
+                        {
+                            [self.delegate accessGroupDidChange:userAccessGroups];
+                        }
+                        
+                        [contentTableView reloadData];
+                        break;
+                        
+                    case CARD:
+                        [userCards removeObjectsInArray:toDeleteArray];
+                        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+                        if ([self.delegate respondsToSelector:@selector(cardWasChanged:)])
+                        {
+                            [self.delegate cardWasChanged:userCards];
+                        }
+                        [toDeleteArray removeAllObjects];
+                        [contentTableView reloadData];
+                        break;
+                }
+                
+                
+            }
+        }];
         
     }
     else
@@ -306,53 +324,96 @@
     }
 }
 
+
 - (IBAction)selectAll:(UIButton *)sender
 {
     [toDeleteArray removeAllObjects];
     
     if (!isSelectedAll)
     {
-        if (_type == ACCESS_GROUPS)
+        switch (_type)
         {
-            for (NSMutableDictionary *info in verificationInfos)
-            {
-                if (nil != [info objectForKey:@"included_by_user_group"])
+            case FINGERPRINT:
+                for (FingerprintTemplate *template in fingerPrintTemplates)
                 {
-                    if(![[info objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
+                    template.isSelected = YES;
+                    [toDeleteArray addObject:template];
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+                break;
+                
+            case ACCESS_GROUPS:
+                for (UserItemAccessGroup *accessGroup in userAccessGroups)
+                {
+                    if (nil != accessGroup.included_by_user_group)
                     {
-                        [info setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                        [toDeleteArray addObject:info];
+                        if(![accessGroup.included_by_user_group isEqualToString:@"YES"])
+                        {
+                            accessGroup.isSelected = YES;
+                            [toDeleteArray addObject:accessGroup];
+                        }
+                    }
+                    else
+                    {
+                        accessGroup.isSelected = YES;
+                        [toDeleteArray addObject:accessGroup];
                     }
                 }
-                else
-                {
-                    [info setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                    [toDeleteArray addObject:info];
-                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+                break;
                 
-            }
+            case CARD:
+                for (Card *card in userCards)
+                {
+                    card.isSelected = YES;
+                    [toDeleteArray addObject:card];
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+                break;
         }
-        else
-        {
-            for (NSMutableDictionary *info in verificationInfos)
-            {
-                [info setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                [toDeleteArray addObject:info];
-            }
-        }
-        
         [sender setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
     }
     else
     {
-        for (NSMutableDictionary *info in verificationInfos)
+        switch (_type)
         {
-            [info setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+            case FINGERPRINT:
+                for (FingerprintTemplate *template in fingerPrintTemplates)
+                {
+                    template.isSelected = NO;
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+                break;
             
+            case ACCESS_GROUPS:
+                for (UserItemAccessGroup *accessGroup in userAccessGroups)
+                {
+                    if (nil != accessGroup.included_by_user_group)
+                    {
+                        if(![accessGroup.included_by_user_group isEqualToString:@"YES"])
+                        {
+                            accessGroup.isSelected = NO;
+                        }
+                    }
+                    else
+                    {
+                        accessGroup.isSelected = NO;
+                    }
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+                break;
+                
+            case CARD:
+                for (Card *card in userCards)
+                {
+                    card.isSelected = NO;
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+                break;
+                
         }
+        
         [sender setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
     }
     
     [contentTableView reloadData];
@@ -360,38 +421,534 @@
     
 }
 
-- (void)showScanPopup:(VerificationType)type
+
+
+
+- (void)getUserFingerprintTemplates
 {
-    switch (_type)
-    {
-        case FINGERPRINT:
+    [self startLoading:self];
+    
+    [userProvider getUserFingerprints:currentUser.user_id resultBlock:^(NSArray<FingerprintTemplate *> *result) {
+        
+        [self finishLoading];
+        
+        if (nil == fingerPrintTemplates)
         {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ScanPopupViewController *scanPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ScanPopupViewController"];
-            scanPopupCtrl.scanType = FINGERPRINT_SCAN;
-            scanPopupCtrl.scanCount = fingerPrintScanCount;
-            [scanPopupCtrl setFingerPrintDic:fingerPrintDic];
-            [scanPopupCtrl setScanIndex:scanIndex];
-            [scanPopupCtrl setTemplateIndex:maxFingerprintIndex + 1];
-            [scanPopupCtrl setDeviceID:[infoDic objectForKey:@"id"]];
-            [self showPopup:scanPopupCtrl parentViewController:self parentView:self.view];
-            scanPopupCtrl.delegate = self;
+            fingerPrintTemplates = [[NSMutableArray alloc] initWithArray:result];
         }
-            break;
+        else
+        {
+            [fingerPrintTemplates removeAllObjects];
+            [fingerPrintTemplates addObjectsFromArray:result];
+        }
+        
+        
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+        
+        [contentTableView reloadData];
+        
+    } onErrorBlock:^(Response *error) {
+        
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getUserFingerprintTemplates];
+            }
             
-        case CARD:
-        {
+        }];
+        
+    }];
+    
+}
+
+- (void)deleteFingerprintTemplates
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+        [self startLoading:self];
+        
+        NSMutableArray *tempFingerprintTemplates = [[NSMutableArray alloc] initWithArray:fingerPrintTemplates];
+        [tempFingerprintTemplates removeObjectsInArray:toDeleteArray];
+        
+        UserFingerprintRecords *record = [UserFingerprintRecords new];
+        record.fingerprint_template_list = tempFingerprintTemplates;
+        
+        [userProvider updateUserFingerprints:record userID:currentUser.user_id resultBlock:^(Response *response) {
+            
+            [self finishLoading];
+            [toDeleteArray removeAllObjects];
+            [fingerPrintTemplates removeAllObjects];
+            [fingerPrintTemplates addObjectsFromArray:tempFingerprintTemplates];
+            
+            totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+            
+            if ([self.delegate respondsToSelector:@selector(fingerprintWasChanged:)])
+            {
+                [self.delegate fingerprintWasChanged:fingerPrintTemplates];
+            }
+            
+            [contentTableView reloadData];
+            
+        } onErrorBlock:^(Response *error) {
+            
+            [self finishLoading];
+            
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ScanPopupViewController *scanPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ScanPopupViewController"];
-            scanPopupCtrl.scanType = CARD_SCAN;
-            [scanPopupCtrl setDeviceID:[infoDic objectForKey:@"id"]];
-            [self showPopup:scanPopupCtrl parentViewController:self parentView:self.view];
-            scanPopupCtrl.delegate = self;
-        }
-            break;
-        default:
-            break;
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:error.message];
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self deleteFingerprintTemplates];
+                }
+                
+            }];
+            
+        }];
     }
+    else
+    {
+        [fingerPrintTemplates removeObjectsInArray:toDeleteArray];
+        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
+        
+        if ([self.delegate respondsToSelector:@selector(fingerprintWasChanged:)])
+        {
+            [self.delegate fingerprintWasChanged:fingerPrintTemplates];
+        }
+        
+        [contentTableView reloadData];
+    }
+    
+}
+
+
+- (void)updateFingerprintTemplages:(FingerprintTemplate*)fingerprintTemplate
+{
+    if ([PreferenceProvider isUpperVersion])
+    {
+        [self startLoading:self];
+        
+        UserFingerprintRecords *templateList = [UserFingerprintRecords new];
+        
+        NSMutableArray <FingerprintTemplate*>*tempTemplates = [[NSMutableArray alloc] initWithArray:fingerPrintTemplates];
+        [tempTemplates addObject:fingerprintTemplate];
+        templateList.fingerprint_template_list = tempTemplates;
+        
+        [userProvider updateUserFingerprints:templateList userID:currentUser.user_id resultBlock:^(Response *response) {
+            
+            [self finishLoading];
+            
+            userFingerPrintTemplate = fingerprintTemplate;
+            userFingerPrintTemplate.is_prepare_for_duress = NO;
+            
+            if (isForSwitchIndex)
+            {
+                [fingerPrintTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:userFingerPrintTemplate];
+                isForSwitchIndex = NO;
+            }
+            else
+            {
+                [fingerPrintTemplates addObject:userFingerPrintTemplate];
+            }
+            
+            if ([self.delegate respondsToSelector:@selector(fingerprintWasChanged:)])
+            {
+                [self.delegate fingerprintWasChanged:fingerPrintTemplates];
+            }
+            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+            [contentTableView reloadData];
+            
+        } onErrorBlock:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:error.message];
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self updateFingerprintTemplages:fingerprintTemplate];
+                }
+                
+            }];
+            
+        }];
+    }
+    else
+    {
+        userFingerPrintTemplate = fingerprintTemplate;
+        userFingerPrintTemplate.is_prepare_for_duress = NO;
+        
+        if (isForSwitchIndex)
+        {
+            [fingerPrintTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:userFingerPrintTemplate];
+            isForSwitchIndex = NO;
+        }
+        else
+        {
+            [fingerPrintTemplates addObject:userFingerPrintTemplate];
+        }
+        
+        if ([self.delegate respondsToSelector:@selector(fingerprintWasChanged:)])
+        {
+            [self.delegate fingerprintWasChanged:fingerPrintTemplates];
+        }
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+        [contentTableView reloadData];
+    }
+    
+}
+
+
+- (void)addFingerprint
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
+    
+    devicePopupController.deviceMode = FINGERPRINT_MODE;
+    [self showPopup:devicePopupController parentViewController:self parentView:self.view];
+    [devicePopupController getDevice:^(SearchResultDevice *device) {
+        selectedDevice = device;
+        [self showFingerprintScanPopup];
+        
+    }];
+    
+}
+
+
+- (void)replaceFingerprint:(NSIndexPath*)indexPath
+{
+    isForSwitchIndex = YES;
+    toBeSwitchedIndex = indexPath.row;
+    scanIndex = indexPath.row;
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
+    
+    devicePopupController.deviceMode = FINGERPRINT_MODE;
+    [self showPopup:devicePopupController parentViewController:self parentView:self.view];
+    [devicePopupController getDevice:^(SearchResultDevice *device) {
+        selectedDevice = device;
+        [self showFingerprintScanPopup];
+    }];
+}
+
+
+- (void)replaceAccessGroup:(NSIndexPath*)indexPath
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    AccessGroupPopupViewController *accessGroupPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"AccessGroupPopupViewController"];
+    
+    accessGroupPopupCtrl.type = EXCHANGE_ACCESS_GROUP;
+    [self showPopup:accessGroupPopupCtrl parentViewController:self parentView:self.view];
+    [accessGroupPopupCtrl setUserAccessGroups:userAccessGroups];
+    
+    [accessGroupPopupCtrl getAccessGroupBlock:^(AccessGroupItem *accessGroup) {
+        //삭제 모드를 위한 셋팅
+        accessGroup.isSelected = NO;
+        [userAccessGroups replaceObjectAtIndex:indexPath.row withObject:accessGroup];
+        
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:toBeSwitchedIndex inSection:0];
+        [contentTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+        
+        if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
+        {
+            [self.delegate accessGroupDidChange:userAccessGroups];
+        }
+    }];
+}
+
+
+- (void)addCard
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
+    listPopupCtrl.type = CARD_OPTION;
+    
+    [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+    [listPopupCtrl addOptions:@[NSLocalizedString(@"registeration_option_card_reader", nil) ,NSLocalizedString(@"registeration_option_assign_card", nil)]];
+    
+    [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
+        
+        if (index == 0)
+        {
+            // 스캔할 디바이스 선택
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
+            
+            devicePopupController.deviceMode = CARD_MODE;
+            [self showPopup:devicePopupController parentViewController:self parentView:self.view];
+            [devicePopupController getDevice:^(SearchResultDevice *device) {
+                selectedDevice = device;
+                
+                // 카드 스캔 팝업 띄우기
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+                ScanCardPopupViewController *scanCardPopupController = [storyboard instantiateViewControllerWithIdentifier:@"ScanCardPopupViewController"];
+                
+                [scanCardPopupController setDeviceID:selectedDevice.id];
+                [self showPopup:scanCardPopupController parentViewController:self parentView:self.view];
+                
+                [scanCardPopupController getScanCard:^(Card *scanCard) {
+                    
+                    BOOL hasEqualCard = [self hasEqualCard:scanCard];
+                    
+                    if (hasEqualCard)
+                    {
+                        [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
+                                    duration:2.0
+                                    position:CSToastPositionBottom
+                                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                        return;
+                    }
+                    
+                    [userCards addObject:scanCard];
+                    [contentTableView reloadData];
+                    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+                    
+                    if ([self.delegate respondsToSelector:@selector(cardWasChanged:)])
+                    {
+                        [self.delegate cardWasChanged:userCards];
+                    }
+                }];
+                
+            }];
+        }
+        else
+        {
+            // 카드 assign
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            CardPopupViewController *cardPopupController = [storyboard instantiateViewControllerWithIdentifier:@"CardPopupViewController"];
+            [cardPopupController setCardType:CSN_CARD_MODE];
+            [self showPopup:cardPopupController parentViewController:self parentView:self.view];
+            
+            [cardPopupController getCardBlock:^(Card *card) {
+                
+                BOOL hasEqualCard = [self hasEqualCard:card];
+                
+                if (hasEqualCard)
+                {
+                    [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
+                                duration:2.0
+                                position:CSToastPositionBottom
+                                   image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                    return;
+                }
+                
+                card.isSelected = NO;
+                [userCards addObject:card];
+                [contentTableView reloadData];
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+                if ([self.delegate respondsToSelector:@selector(cardWasChanged:)])
+                {
+                    [self.delegate cardWasChanged:userCards];
+                }
+            }];
+        }
+        
+        
+    }];
+}
+
+
+- (void)replaceCard:(NSIndexPath*)indexPath
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    CardPopupViewController *cardPopupController = [storyboard instantiateViewControllerWithIdentifier:@"CardPopupViewController"];
+    
+    [self showPopup:cardPopupController parentViewController:self parentView:self.view];
+    [cardPopupController setCardType:CSN_CARD_MODE];
+    [cardPopupController getCardBlock:^(Card *card) {
+        
+        card.isSelected = NO;
+        [userCards replaceObjectAtIndex:indexPath.row withObject:card];
+        
+        if ([self.delegate respondsToSelector:@selector(cardWasChanged:)])
+        {
+            [self.delegate cardWasChanged:userCards];
+        }
+    }];
+    
+}
+
+
+- (void)addAccessGroup
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    AccessGroupPopupViewController *accessGroupPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"AccessGroupPopupViewController"];
+    
+    accessGroupPopupCtrl.type = ADD_ACCESS_GROUP;
+    [self showPopup:accessGroupPopupCtrl parentViewController:self parentView:self.view];
+    [accessGroupPopupCtrl setUserAccessGroups:userAccessGroups];
+    [accessGroupPopupCtrl getAccessGroupsBlock:^(NSArray<AccessGroupItem *> *accessGroups) {
+        
+        [userAccessGroups addObjectsFromArray:accessGroups];
+        
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userAccessGroups.count];
+        
+        [contentTableView reloadData];
+        
+        if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
+        {
+            [self.delegate accessGroupDidChange:userAccessGroups];
+        }
+    }];
+}
+
+
+- (void)showFingerprintScanPopup
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    ScanPopupViewController *scanPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ScanPopupViewController"];
+    [scanPopupCtrl setFingerprint:fingerPrintResult];
+    [scanPopupCtrl setScanIndex:scanIndex];
+    [scanPopupCtrl setTemplateIndex:maxFingerprintIndex + 1];
+    [scanPopupCtrl setDeviceID:selectedDevice.id];
+    [scanPopupCtrl setScanQuality:scanQuality];
+    [self showPopup:scanPopupCtrl parentViewController:self parentView:self.view];
+    
+    // 지문 스캔 2회 후 verity 실패 팝업에서 cancel 눌렀을 경우
+    [scanPopupCtrl getBoolResponse:^(BOOL result) {
+        fingerPrintResult = nil;
+        fingerPrintScanCount = 0;
+    }];
+    
+    // 지문등록 정상적으로 끝났을때
+    [scanPopupCtrl getFingerPrintTemplate:^(FingerprintTemplate *fingerprintTemplate) {
+        
+        fingerPrintResult = nil;
+        fingerPrintScanCount = 0;
+        
+        [self updateFingerprintTemplages:fingerprintTemplate];
+        
+        
+    }];
+    
+    // 지문 스캔중 실패 했을 때
+    [scanPopupCtrl getLowQualityBlock:^(FingerprintTemplate *fingerprintTemplate, NSString *errorMessage) {
+    
+        fingerPrintResult = fingerprintTemplate;
+        
+        // low quality failed
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = LOW_QUALITY;
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:errorMessage];
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            
+            if (isConfirm)
+            {
+                // 재스캔 방식 팝업
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+                ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
+                listPopupCtrl.type = PEROID;
+                [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+                
+                [listPopupCtrl addOptions:@[NSLocalizedString(@"rescan_default", nil),
+                                            NSLocalizedString(@"rescan_change", nil)]];
+                
+                [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
+                   
+                    if (index == 0)
+                    {
+                        scanQuality = 80;
+                        [self showFingerprintScanPopup];
+                    }
+                    else
+                    {
+                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+                        ScanQualityPopupViewController *qualityPopup = [storyboard instantiateViewControllerWithIdentifier:@"ScanQualityPopupViewController"];
+                        
+                        [self showPopup:qualityPopup parentViewController:self parentView:self.view];
+                        
+                        [qualityPopup getResponse:^(NSUInteger quality) {
+                            
+                            scanQuality = quality;
+                            
+                            [self showFingerprintScanPopup];
+                        }];
+                        
+                        [qualityPopup getCancelResponse:^{
+                            fingerPrintResult = nil;
+                            fingerPrintScanCount = 0;
+                        }];
+                    }
+                }];
+                
+                [listPopupCtrl getCancelBlock:^{
+                    fingerPrintResult = nil;
+                    fingerPrintScanCount = 0;
+                }];
+
+            }
+            else
+            {
+                fingerPrintResult = nil;
+                fingerPrintScanCount = 0;
+            }
+        }];
+    }];
+
+}
+
+
+- (BOOL)hasEqualCard:(Card*)card
+{
+    BOOL hasEqualCard = NO;
+    
+    for (Card *assignedCard in userCards)
+    {
+        if ([card.card_id isEqualToString:assignedCard.card_id])
+        {
+            hasEqualCard = YES;
+            break;
+        }
+    }
+    
+    return hasEqualCard;
+}
+
+
+- (void)checkAllSelected:(NSInteger)allCount selectedCount:(NSInteger)selectedCount
+{
+    if (allCount == selectedCount)
+    {
+        isSelectedAll = YES;
+        [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
+    }
+    else
+    {
+        isSelectedAll = NO;
+        [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+    }
+}
+
+#pragma mark - NotificationCenter method
+
+
+- (void)scanQualityHasChanged:(NSNotification*)userInfo
+{
+    scanQuality = [[userInfo.object objectForKey:QUALITY] unsignedIntegerValue];
 }
 
 #pragma mark - Table view data source
@@ -403,32 +960,29 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return [verificationInfos count];
+    switch (_type)
+    {
+        case FINGERPRINT:
+            return [fingerPrintTemplates count];
+            break;
+        case ACCESS_GROUPS:
+            return [userAccessGroups count];
+            break;
+        case CARD:
+            return [userCards count];
+            break;
+    }
 }
 
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"VerificationCell" forIndexPath:indexPath];
     VerificationCell *customCell = (VerificationCell*)cell;
-    NSDictionary *dic = [verificationInfos objectAtIndex:indexPath.row];
+    
     switch (_type)
     {
-        case CARD:
-            customCell.titleLabel.text = [NSString stringWithFormat:@"%ld", (long)[[dic objectForKey:@"card_id"] integerValue]];
-            if (totalCountView.hidden)
-            {
-                [customCell.accImage setHidden:YES];
-            }
-            else
-            {
-                [customCell.accImage setHidden:NO];
-            }
-            [customCell setCardAndFingerprintCell:dic];
-            break;
         case FINGERPRINT:
         {
             NSInteger value = indexPath.row + 1;
@@ -444,6 +998,30 @@
                 description = [NSString stringWithFormat:NSLocalizedString(@"%ldth_fingerprint", nil), (long)value];
             
             customCell.titleLabel.text = description;
+            
+            if (self.isProfileMode)
+            {
+                [customCell.accImage setHidden:YES];
+            }
+            else
+            {
+                [customCell.accImage setHidden:NO];
+                FingerprintTemplate *template = [fingerPrintTemplates objectAtIndex:indexPath.row];
+                [customCell setCheckSeleted:template.isSelected];
+            }
+            
+            break;
+        }
+            
+        case ACCESS_GROUPS:
+        {
+            UserItemAccessGroup *accessGroup = [userAccessGroups objectAtIndex:indexPath.row];
+            [customCell setAccessGroup:accessGroup isEditMode:totalCountView.hidden];
+        }
+            break;
+        case CARD:
+            
+            customCell.titleLabel.text = userCards[indexPath.row].card_id;
             if (totalCountView.hidden)
             {
                 [customCell.accImage setHidden:YES];
@@ -452,26 +1030,10 @@
             {
                 [customCell.accImage setHidden:NO];
             }
-            [customCell setCardAndFingerprintCell:dic];
-            break;
-        }
-            
-        case ACCESS_GROUPS:
-
-            [customCell setCellDictionary:dic];
-            
-            break;
-        case OPERATOR:
-        {
-            [customCell setCellDictionary:dic];
-            customCell.titleLabel.text = [dic objectForKey:@"description"];
-        }
+            [customCell setCheckSeleted:userCards[indexPath.row].isSelected];
             break;
         
     }
-    
-    
-    
     return customCell;
     
 }
@@ -480,736 +1042,111 @@
 #pragma mark - Table View Delegate
 
 
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (_isProfileMode)
     {
         return;
     }
-    
     switch (_type)
     {
         case FINGERPRINT:
             if (totalCountView.hidden)
             {
                 // 지문 삭제 모드
-                NSMutableDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
+                FingerprintTemplate *template = [fingerPrintTemplates objectAtIndex:indexPath.row];
                 
-                if ([[verification objectForKey:@"selected"] boolValue])
+                template.isSelected = !template.isSelected;
+                if (template.isSelected)
                 {
-                    [verification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-                    [toDeleteArray removeObject:verification];
+                    [toDeleteArray addObject:template];
                 }
                 else
                 {
-                    [verification setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                    [toDeleteArray addObject:verification];
+                    [toDeleteArray removeObject:template];
                 }
+                [self checkAllSelected:fingerPrintTemplates.count selectedCount:toDeleteArray.count];
                 
-                if (verificationInfos.count == toDeleteArray.count)
-                {
-                    isSelectedAll = YES;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-                }
-                else
-                {
-                    isSelectedAll = NO;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-                }
-                
-                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
                 [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
             }
             else
             {
                 // 지문 교체 모드
-                isForSwitchIndex = YES;
-                toBeSwitchedIndex = indexPath.row;
-                scanIndex = indexPath.row;
-                
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = DEVICE_FINGERPRINT;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
+                [self replaceFingerprint:indexPath];
+
             }
             break;
         
+        case ACCESS_GROUPS:
+        {
+            UserItemAccessGroup *accessGroup = [userAccessGroups objectAtIndex:indexPath.row];
+            if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+            {
+                // 편집 불가한 항목 상속받은 유저 그룹
+                [self.view makeToast:NSLocalizedString(@"inherited_not_change", nil)
+                            duration:2.0 position:CSToastPositionBottom
+                               title:NSLocalizedString(@"inherited", nil)
+                               image:[UIImage imageNamed:@"toast_popup_i_05"]];
+                return;
+            }
+            if (totalCountView.hidden)
+            {
+                // ACCESS_GROUPS 삭제 모드
+                accessGroup.isSelected = !accessGroup.isSelected;
+                if (accessGroup.isSelected)
+                {
+                    [toDeleteArray addObject:accessGroup];
+                }
+                else
+                {
+                    [toDeleteArray removeObject:accessGroup];
+                }
+                
+                [self checkAllSelected:userAccessGroups.count selectedCount:toDeleteArray.count];
+                
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
+                [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+            }
+            else
+            {
+                // ACCESS_GROUPS 교체 모드
+                [self replaceAccessGroup:indexPath];
+                
+            }
+            break;
+        }
+            
         case CARD:
             if (totalCountView.hidden)
             {
                 // 카드 삭제 모드
-                NSMutableDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
+                Card *card = [userCards objectAtIndex:indexPath.row];
                 
-                if ([[verification objectForKey:@"selected"] boolValue])
+                card.isSelected = !card.isSelected;
+                if (card.isSelected)
                 {
-                    [verification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-                    [toDeleteArray removeObject:verification];
+                    [toDeleteArray addObject:card];
                 }
                 else
                 {
-                    [verification setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                    [toDeleteArray addObject:verification];
+                    [toDeleteArray removeObject:card];
                 }
+                [self checkAllSelected:userCards.count selectedCount:toDeleteArray.count];
                 
-                if (verificationInfos.count == toDeleteArray.count)
-                {
-                    isSelectedAll = YES;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-                }
-                else
-                {
-                    isSelectedAll = NO;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-                }
-                
-                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
                 [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
             }
             else
             {
-                // 카드 교체
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = EXCHANGE_CARD;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                toBeSwitchedIndex = indexPath.row;
-            }
-            break;
-        case ACCESS_GROUPS:
-            if (totalCountView.hidden)
-            {
-                // ACCESS_GROUPS 삭제 모드
-                NSMutableDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
-                // Access 삭제 모드
-                if (nil != [verification objectForKey:@"included_by_user_group"])
-                {
-                    if([[verification objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
-                    {
-                        // 편집 불가한 항목 상속받은 유저 그룹
-                        [self.view makeToast:NSLocalizedString(@"inherited_not_change", nil)
-                                    duration:2.0 position:CSToastPositionBottom
-                                       title:NSLocalizedString(@"inherited", nil)
-                                       image:[UIImage imageNamed:@"toast_popup_i_05"]];
-                        return;
-                    }
-                }
-                
-                
-                if ([[verification objectForKey:@"selected"] boolValue])
-                {
-                    [verification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-                    [toDeleteArray removeObject:verification];
-                }
-                else
-                {
-                    [verification setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                    [toDeleteArray addObject:verification];
-                }
-                
-                if (verificationInfos.count == toDeleteArray.count)
-                {
-                    isSelectedAll = YES;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-                }
-                else
-                {
-                    isSelectedAll = NO;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-                }
-                
-                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
-                [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-            }
-            else
-            {
-                NSDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
-                if (nil != [verification objectForKey:@"included_by_user_group"])
-                {
-                    if([[verification objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
-                    {
-                        [self.view makeToast:NSLocalizedString(@"inherited_not_change", nil)
-                                    duration:2.0 position:CSToastPositionBottom
-                                       title:NSLocalizedString(@"inherited", nil)
-                                       image:[UIImage imageNamed:@"toast_popup_i_05"]];
-                    }
-                    else
-                    {
-                        // Access 교체
-                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                        ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                        listSubInfoPopupCtrl.delegate = self;
-                        listSubInfoPopupCtrl.type = EXCHANGE_ACCESS_GROUP;
-                        [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                        toBeSwitchedIndex = indexPath.row;
-                    }
-                }
-                else
-                {
-                    // Access 교체
-                    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                    ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                    listSubInfoPopupCtrl.delegate = self;
-                    listSubInfoPopupCtrl.type = EXCHANGE_ACCESS_GROUP;
-                    [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-                    toBeSwitchedIndex = indexPath.row;
-                }
+                // 카드 교체 모드
+                [self replaceCard:indexPath];
                 
             }
             break;
-        case OPERATOR: 
-        {
-            if (totalCountView.hidden)
-            {
-                // 삭제 모드
-                NSMutableDictionary *verification = [verificationInfos objectAtIndex:indexPath.row];
-                
-                if ([[verification objectForKey:@"selected"] boolValue])
-                {
-                    [verification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-                    [toDeleteArray removeObject:verification];
-                }
-                else
-                {
-                    [verification setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-                    [toDeleteArray addObject:verification];
-                }
-                
-                if (verificationInfos.count == toDeleteArray.count)
-                {
-                    isSelectedAll = YES;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
-                }
-                else
-                {
-                    isSelectedAll = NO;
-                    [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-                }
-                
-                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
-                [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-            }
-            else
-            {
-                isForSwitchIndex = YES;
-                toBeSwitchedIndex = indexPath.row;
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
-                listPopupCtrl.delegate = self;
-                listPopupCtrl.isRadioStyle = YES;
-                listPopupCtrl.type = PERMISSON;
-                
-                [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-            }
-        }
-            break;
-    }
-    
-}
-
-#pragma mark - ListPopupViewControllerDelegate
-
-- (void)didSelectContent:(NSDictionary*)dic
-{
-    BOOL isFoundSameItem = NO;
-    for (NSDictionary *operator in verificationInfos)
-    {
-        NSString *code = [operator objectForKey:@"code"];
-        if ([code isEqualToString:[dic objectForKey:@"code"]])
-        {
-            isFoundSameItem = YES;
-            break;
-        }
-    }
-    
-    if (isFoundSameItem)
-    {
-        [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
-                    duration:2.0
-                    position:CSToastPositionBottom
-                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
-    }
-    else
-    {
-        NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] initWithDictionary:dic];
-        [tempDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        if (isForSwitchIndex)
-        {
-            [verificationInfos replaceObjectAtIndex:toBeSwitchedIndex withObject:tempDic];
-        }
-        else
-        {
-            [verificationInfos addObject:tempDic];
-        }
-        [contentTableView reloadData];
-    }
-    
-    if ([self.delegate respondsToSelector:@selector(operatorValueDidChange:)])
-    {
-        [self.delegate operatorValueDidChange:verificationInfos];
-    }
-    
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-}
-
-- (void)didSelectCardOption:(NSInteger)optionIndex
-{
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-    listSubInfoPopupCtrl.delegate = self;
-    
-    switch (optionIndex)
-    {
-        case 0:
-            listSubInfoPopupCtrl.type = DEVICE_CARD;
-            break;
-        case 1:
-            listSubInfoPopupCtrl.type = ASSIGN_CARD;
-            break;
-        
-    }
-    
-    [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-    
-}
-
-
-- (void)didSelectCard:(NSDictionary*)cardInfo
-{
-    // 카드 정보 현재 테이블뷰에 디스플레이 시키기.
-    NSMutableDictionary *mutableCardInfo = [[NSMutableDictionary alloc] initWithDictionary:cardInfo];
-    [mutableCardInfo setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-    [verificationInfos addObject:mutableCardInfo];
-    [contentTableView reloadData];
-}
-
-- (void)cancelListPopupWithError:(NSDictionary*)errDic
-{
-    
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-#pragma mark - ScanPopupViewControllerDelegate
-
-
-- (void)fingerprintScanDidSuccess:(NSDictionary*)fingerprintTemplate
-{
-    [fingerPrintDic setDictionary:fingerprintTemplate];
-    
-    [fingerPrintDic setObject:[NSNumber numberWithBool:NO] forKey:@"is_prepare_for_duress"];
-    
-    
-    if (isForSwitchIndex)
-    {
-        [verificationInfos replaceObjectAtIndex:toBeSwitchedIndex withObject:fingerPrintDic];
-        isForSwitchIndex = NO;
-    }
-    else
-    {
-        NSMutableDictionary *mutableFingerprint = [[NSMutableDictionary alloc] initWithDictionary:fingerPrintDic];
-        [mutableFingerprint setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [verificationInfos addObject:mutableFingerprint];
-        
-    }
-    
-    NSArray *tempArray = [[NSArray alloc] initWithArray:verificationInfos];
-    
-    [self setVerificationInfo:tempArray];
-    
-    if ([self.delegate respondsToSelector:@selector(fingerprintDidAdd:)])
-    {
-        [self.delegate fingerprintDidAdd:verificationInfos];
-    }
-    
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-}
-
-- (void)fingerprintScanDidFail:(NSDictionary*)result currentFingerPrintDic:(NSMutableDictionary*)fingerdic currentScanCount:(NSInteger)scanCount
-{
-    fingerPrintScanCount = scanCount;
-    [fingerPrintDic setDictionary:fingerdic];
-    
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    isForAPIRetry = YES;
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[result objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-- (void)fingerVerificationDidComplete:(BOOL)result
-{
-    fingerPrintScanCount = 0;
-    
-    if (!result)
-    {
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-        successPopupCtrl.type = FINGERPRINT_VERIFICATION_FAIL;
-        [self showPopup:successPopupCtrl parentViewController:self parentView:self.view];
-    }
-}
-
-// 카드 스캔후 레지스트 api 호출후 정상적일때 호출되는 부분
-- (void)cardRegistDidSuccess:(NSDictionary*)cardInfo
-{
-    
-    if ([[cardInfo objectForKey:@"unassigned"] boolValue])
-    {
-        BOOL hasSameCard = NO;
-        
-        for (NSDictionary *card in verificationInfos)
-        {
-            if ([[card objectForKey:@"card_id"] integerValue] == [[cardInfo objectForKey:@"card_id"] integerValue]) {
-                hasSameCard = YES;
-                break;
-            }
-        }
-        
-        if (!hasSameCard)
-        {
-            NSMutableDictionary *mutableCardInfo = [[NSMutableDictionary alloc] initWithDictionary:cardInfo];
-            [mutableCardInfo setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [verificationInfos addObject:mutableCardInfo];
-            [contentTableView reloadData];
             
-            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-            
-            if ([self.delegate respondsToSelector:@selector(cardDidAdd:)])
-            {
-                [self.delegate cardDidAdd:verificationInfos];
-            }
-        }
-        else
-        {
-            [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
-                        duration:2.0
-                        position:CSToastPositionBottom
-                           image:[UIImage imageNamed:@"toast_popup_i_03"]];
-        }
-        
-    }
-    else
-    {
-        [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
-                    duration:2.0
-                    position:CSToastPositionBottom
-                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
-    }
-    
-}
-
-- (void)cardRegistDidFail:(NSDictionary*)result
-{
-    [self.view makeToast:[result objectForKey:@"message"]
-                duration:2.0
-                position:CSToastPositionBottom
-                   image:[UIImage imageNamed:@"toast_popup_i_03"]];
-}
-
-- (void)cardScanDidFail:(NSDictionary*)result
-{
-    isForAPIRetry = YES;
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[result objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-
-#pragma mark - ListSubInfoPopupDelegate
-
-- (void)confirmDeviceForRegisterCard:(NSDictionary*)dic
-{
-    // 카드 추가하는 팝업 띄우기
-    if (nil != dic)
-    {
-        [infoDic setDictionary:dic];
-        [self showScanPopup:_type];
-
     }
 }
 
-- (void)confirmDeviceForFingerprint:(NSDictionary*)dic
-{
-    if (nil != dic)
-    {
-        [infoDic setDictionary:dic];
-        // 지문스캔 하라는 팝업띄우기
-        [self showScanPopup:_type];
-    }
-}
 
-- (void)confirmCardInfo:(NSDictionary*)dic
-{
-    NSMutableDictionary *mutableCardInfo = [[NSMutableDictionary alloc] initWithDictionary:dic];
-    [mutableCardInfo setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-    [verificationInfos addObject:mutableCardInfo];
-    [contentTableView reloadData];
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-    
-    if ([self.delegate respondsToSelector:@selector(cardDidAdd:)])
-    {
-        [self.delegate cardDidAdd:verificationInfos];
-    }
-}
-
-- (void)confirmCardsInfo:(NSMutableArray*)cardInfo
-{
-    for (NSDictionary *card in cardInfo)
-    {
-        NSMutableDictionary *mutableCardInfo = [[NSMutableDictionary alloc] initWithDictionary:card];
-        [mutableCardInfo setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [verificationInfos addObject:mutableCardInfo];
-    }
-    
-    [contentTableView reloadData];
-    totalCount.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-    
-    if ([self.delegate respondsToSelector:@selector(cardDidAdd:)])
-    {
-        [self.delegate cardDidAdd:verificationInfos];
-    }
-}
-
-- (void)confirmExchangeCard:(NSDictionary*)dic
-{
-    [verificationInfos replaceObjectAtIndex:toBeSwitchedIndex withObject:dic];
-    
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:toBeSwitchedIndex inSection:0];
-    [contentTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-    
-    if ([self.delegate respondsToSelector:@selector(cardDidAdd:)])
-    {
-        [self.delegate cardDidAdd:verificationInfos];
-    }
-}
-
-- (void)confirmExchangeAccessGroup:(NSDictionary *)dic
-{
-    // 선택된 그룹이 기존 그룹에 있는지 체크
-    NSString *exchangeName = [dic objectForKey:@"name"];
-    
-    for (NSDictionary *currentDic in verificationInfos)
-    {
-        NSString *currentName = [currentDic objectForKey:@"name"];
-        
-        if ([currentName isEqualToString:exchangeName])
-        {
-            NSString *message = [NSString stringWithFormat:@"Already Assigned\n%@", currentName];
-            [self.view makeToast:message
-                        duration:2.0
-                        position:CSToastPositionBottom
-                           image:[UIImage imageNamed:@"toast_popup_i_06"]];
-            return;
-        }
-    }
-    
-    // 삭제 모드를 위한 셋팅
-    NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:dic];
-    [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-    [tempVerification setObject:@"access_groups" forKey:@"type"];
-    
-    [verificationInfos replaceObjectAtIndex:toBeSwitchedIndex withObject:tempVerification];
-    
-    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:toBeSwitchedIndex inSection:0];
-    [contentTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-    
-    if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
-    {
-//        NSMutableArray *accessGroups = [[NSMutableArray alloc] initWithArray:verificationInfos];
-//        
-//        
-//        for (NSInteger i = 0; i < verificationInfos.count; i++)
-//        {
-//            NSDictionary *dic = [verificationInfos objectAtIndex:i];
-//            NSLog(@"access group dic : %@", dic);
-//            //편집 불가한 항목 빼기
-//            if (nil != [dic objectForKey:@"included_by_user_group"])
-//            {
-//                if([[dic objectForKey:@"included_by_user_group"] isEqualToString:@"YES"])
-//                {
-//                    [accessGroups removeObjectAtIndex:i];
-//                }
-//            }
-//        }
-        
-//        if ([verificationInfos count] > 1)
-//        {
-//            // 첫번째 편집 불가한 항목 빼기
-//            [accessGroups removeObjectAtIndex:0];
-//        }
-        [self.delegate accessGroupDidChange:verificationInfos];
-    }
-}
-
-- (void)confirmAddAccessGroup:(NSArray *)groups
-{
-    NSMutableArray *tempGroups = [[NSMutableArray alloc] init];
-    for (NSDictionary *info in groups)
-    {
-        NSMutableDictionary *tempVerification = [[NSMutableDictionary alloc] initWithDictionary:info];
-        [tempVerification setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        [tempVerification setObject:@"access_groups" forKey:@"type"];
-        [tempGroups addObject:tempVerification];
-    }
-    
-    // 선택된 그룹이 기존 그룹에 있는지 체크
-    NSMutableArray *toBeAddGroups = [[NSMutableArray alloc] initWithArray:tempGroups];
-    
-    for (NSInteger i = 0; i < verificationInfos.count; i++)
-    {
-        NSDictionary *currentDic = [verificationInfos objectAtIndex:i];
-        NSString *currentName = [currentDic objectForKey:@"name"];
-        
-        for (NSInteger j = 0; j < tempGroups.count; j++)
-        {
-            NSDictionary *selectedDic = [groups objectAtIndex:j];
-            NSString *selectedName = [selectedDic objectForKey:@"name"];
-            
-            if ([currentName isEqualToString:selectedName])     //원래 속해 있던 그룹과 같을때
-            {
-                NSString *message = [NSString stringWithFormat:@"Already Assigned\n%@", currentName];
-                [self.view makeToast:message
-                            duration:2.0
-                            position:CSToastPositionBottom
-                               image:[UIImage imageNamed:@"toast_popup_i_06"]];
-                [toBeAddGroups removeObject:[tempGroups objectAtIndex:j]];
-            }
-        }
-    }
-    
-    [verificationInfos addObjectsFromArray:toBeAddGroups];
-    
-    if (verificationInfos.count > 16)
-    {
-        NSRange range;
-        range.location = 16;
-        range.length = verificationInfos.count - 16;
-        [verificationInfos removeObjectsInRange:range];
-        
-        [self.view makeToast:NSLocalizedString(@"max_size", nil)
-                    duration:2.0
-                    position:CSToastPositionBottom
-                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
-    }
-    
-    totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)verificationInfos.count];
-    
-    [contentTableView reloadData];
-    
-    if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
-    {
-        [self.delegate accessGroupDidChange:verificationInfos];
-    }
-    
-}
-
-- (void)cancelListSubInfoPopupWithError:(NSDictionary*)errDic
-{
-    isForAPIRetry = YES;
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    if (isForAPIRetry)
-    {
-        //[self addVerification:nil];
-        switch (_type)
-        {
-            case FINGERPRINT:
-            case CARD:
-                [self showScanPopup:_type];
-                break;
-            case ACCESS_GROUPS:
-            {
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-                ListSubInfoPopupViewController *listSubInfoPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-                listSubInfoPopupCtrl.delegate = self;
-                listSubInfoPopupCtrl.type = ADD_ACCESS_GROUP;
-                [self showPopup:listSubInfoPopupCtrl parentViewController:self parentView:self.view];
-            }
-                break;
-            default:
-                break;
-        }
-    }
-    else
-    {
-        // 기존 인증방식과 액세스 그룹중에서 삭제 알럿창 확인 선택된 셀 삭제
-        [verificationInfos removeObjectsInArray:toDeleteArray];
-        [toDeleteArray removeAllObjects];
-        [contentTableView reloadData];
-        
-        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)verificationInfos.count];
-        
-        switch (_type)
-        {
-            case FINGERPRINT:
-                if ([self.delegate respondsToSelector:@selector(fingerprintDidAdd:)])
-                {
-                    [self.delegate fingerprintDidAdd:verificationInfos];
-                }
-                break;
-                
-            case CARD:
-                if ([self.delegate respondsToSelector:@selector(cardDidAdd:)])
-                {
-                    [self.delegate cardDidAdd:verificationInfos];
-                }
-                break;
-            case ACCESS_GROUPS:
-                if ([self.delegate respondsToSelector:@selector(accessGroupDidChange:)])
-                {
-                    [self.delegate accessGroupDidChange:verificationInfos];
-                }
-                break;
-            case OPERATOR:
-                if ([self.delegate respondsToSelector:@selector(operatorValueDidChange:)])
-                {
-                    [self.delegate operatorValueDidChange:verificationInfos];
-                }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-- (void)cancelImagePopup
-{
-    fingerPrintScanCount = 0;
-    [fingerPrintDic removeAllObjects];
-}
 @end

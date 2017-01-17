@@ -25,5 +25,6 @@
 
 - (void)setStartDate:(NSString*)startDate andExpireDate:(NSString*)expireDate;
 
+- (NSString*)getTitle;
 
 @end

@@ -26,39 +26,40 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
+    [self setSharedViewController:self];
     [containerView setHidden:YES];
     
     contentListArray = [[NSMutableArray alloc] init];
-    [contentListArray removeAllObjects];
-    contentDic = [[NSMutableDictionary alloc] init];
     selectedIndex = NOT_SELECTED;
-    offset = 0;
-    limit = 100;
+    
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     switch (_type)
     {
-        case PERMISSON:
-            titleLabel.text = NSLocalizedString(@"select_operator", nil);
-            permissionProvider = [[PermissionProvider alloc] init];
-            permissionProvider.delegate = self;
-            [permissionProvider getPermissions];
-            [self startLoading:self];
-            break;
-        case ASSIGN_CARD:
-            titleLabel.text = NSLocalizedString(@"registeration_option_assign_card", nil);
-            deviceProvider = [[DeviceProvider alloc] init];
-            deviceProvider.delegate = self;
-            [deviceProvider getCardsWithGroupID:@"0" limit:limit offset:offset];
-            break;
         case CARD_OPTION:
             titleLabel.text = NSLocalizedString(@"registeration_option", nil);
             break;
         case PEROID:
             titleLabel.text = NSLocalizedString(@"select_option", nil);
             break;
-        default:
-            break;    
+        case CARD_TYPE:
+            titleLabel.text = NSLocalizedString(@"card_type", nil);
+            break;
+        case REGISTRATION_POPUP:
+            titleLabel.text = NSLocalizedString(@"registeration_option", nil);
+            break;
+        case SMART_CARD_POPUP:
+            titleLabel.text = NSLocalizedString(@"smartcard_type", nil);
+            break;
+        case WIGAND_CARD_POPUP:
+            cardProvider = [[CardProvider alloc] init];
+            [self getWiegandCardFormats];
+            titleLabel.text = NSLocalizedString(@"smartcard_type", nil);
+            break;
+        case SCAN_METHOD:
+            titleLabel.text = NSLocalizedString(@"rescan", nil);
+            break;
     }
 }
 
@@ -82,6 +83,22 @@
 }
 */
 
+
+- (void)getIndexResponseBlock:(ListPopupIndexResponseBlock)responseBlock
+{
+    self.indexResponseBlock = responseBlock;
+}
+
+- (void)getModelResponseBlock:(ListPopupModelResponseBlock)responseBlock
+{
+    self.modelResponseBlock = responseBlock;
+}
+
+- (void)getCancelBlock:(ListPopupCancelBlock)cancelBlock
+{
+    self.cancelBlock = cancelBlock;
+}
+
 - (void)adjustHeight:(NSInteger)count
 {
     if (count < 4)
@@ -93,78 +110,92 @@
     [self showPopupAnimation:containerView];
 }
 
-- (IBAction)cancelCurrentPopup:(id)sender
+- (void)addOptions:(NSArray <NSString*> *)names
 {
-    [self closePopup:self parentViewController:self.parentViewController];
-}
-
-- (void)addOptions:(NSArray*)options
-{
-    [self adjustHeight:options.count];
-    
-    NSMutableArray *cardOptions = [[NSMutableArray alloc] init];
-    
-    for (NSString *option in options)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
-        [dic setObject:option forKey:@"name"];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [cardOptions addObject:dic];
+    for (NSString *name in names) {
+        SelectModel *model = [SelectModel new];
+        model.name = name;
+        [contentListArray addObject:model];
     }
     
-    [contentListArray addObjectsFromArray:cardOptions];
+    [self adjustHeight:names.count];
+    
     [contentTableView reloadData];
 }
 
-- (IBAction)confirmCurrentPopup:(id)sender
+
+- (IBAction)cancelCurrentPopup:(id)sender
 {
-    switch (_type)
+    if (self.cancelBlock)
     {
-        case PERMISSON:
-            if ([self.delegate respondsToSelector:@selector(didSelectContent:)])
-            {
-                if ([contentDic count] > 0)
-                    [self.delegate didSelectContent:contentDic];
-            }
-            break;
-            
-            
-        case CARD_OPTION:
-            if ([self.delegate respondsToSelector:@selector(didSelectCardOption:)])
-            {
-                if (selectedIndex != NOT_SELECTED)
-                {
-                    [self.delegate didSelectCardOption:selectedIndex];
-                }
-            }
-            break;
-            
-        case ASSIGN_CARD:
-            if ([self.delegate respondsToSelector:@selector(didSelectCard:)])
-            {
-                if ([contentDic count] > 0)
-                    [self.delegate didSelectCard:contentDic];
-            }
-            break;
-        case PEROID:
-            if ([self.delegate respondsToSelector:@selector(didSelectDateOption:)])
-            {
-                if (selectedIndex != NOT_SELECTED)
-                {
-                    [self.delegate didSelectDateOption:selectedIndex];
-                }
-            }
-            break;
-        default:
-            break;
+        self.cancelBlock();
+        self.cancelBlock = nil;
     }
-    
     
     [self closePopup:self parentViewController:self.parentViewController];
 }
 
 
+- (IBAction)confirmCurrentPopup:(id)sender
+{
+    if (selectedIndex != NOT_SELECTED)
+    {
+        if (self.indexResponseBlock)
+        {
+            self.indexResponseBlock(selectedIndex);
+            self.indexResponseBlock = nil;
+        }
+        if (self.modelResponseBlock)
+        {
+            self.modelResponseBlock([contentListArray objectAtIndex:selectedIndex]);
+            self.modelResponseBlock = nil;
+        }
+    }
+    
+    [self closePopup:self parentViewController:self.parentViewController];
+}
+
+- (void)getWiegandCardFormats
+{
+    [self startLoading:self];
+    
+    [cardProvider getWiegandFormat:^(WiegandFormatSearchResult *result) {
+        [self finishLoading];
+        
+        for (SimpleModel *format in result.records) {
+            SelectModel *model = [SelectModel new];
+            model.name = format.name;
+            model.id = format.id;
+            [contentListArray addObject:model];
+        }
+        
+        [self adjustHeight:contentListArray.count];
+        
+        [contentTableView reloadData];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        imagePopupCtrl.type = REQUEST_FAIL;
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getWiegandCardFormats];
+            }
+            else
+            {
+                [self closePopup:self parentViewController:self.parentViewController];
+            }
+        }];
+    }];
+}
 
 #pragma mark - Table view data source
 
@@ -183,27 +214,10 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RadioCell" forIndexPath:indexPath];
     RadioCell *customCell = (RadioCell*)cell;
     
-    NSDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
+    SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
+    [customCell checkSelected:model.isSelected];
     
-    [customCell checkSelected:[[currentDic objectForKey:@"selected"] boolValue]];
-    
-    switch (_type)
-    {
-        case PEROID:
-        case CARD_OPTION:
-            customCell.titleLabel.text = (NSLocalizedString([[contentListArray objectAtIndex:indexPath.row] objectForKey:@"name"], nil));
-            break;
-        case ASSIGN_CARD:
-            customCell.titleLabel.text = [[contentListArray objectAtIndex:indexPath.row] objectForKey:@"card_id"];
-            break;
-        case PERMISSON:
-            customCell.titleLabel.text = [[contentListArray objectAtIndex:indexPath.row] objectForKey:@"description"];
-            break;
-        default:
-            break;
-    }
-    
-    
+    customCell.titleLabel.text = model.name;
     
     return customCell;
 }
@@ -214,163 +228,25 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_isRadioStyle)
+    NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
+    
+    SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
+    
+    NSInteger index = 0;
+    
+    for (SelectModel *model in contentListArray)
     {
-        NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
+        model.isSelected = NO;
         
-        NSMutableDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
-        
-        NSInteger index = 0;
-        
-        for (NSMutableDictionary *content in contentListArray)
-        {
-            [content setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
-            [indexPaths addObject:[NSIndexPath indexPathForRow:index inSection:0]];
-            index++;
-            
-        }
-        
-        [currentDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-        
-        
-        if (_type == CARD_OPTION || _type == PEROID)
-        {
-            selectedIndex = indexPath.row;
-        }
-        else
-        {
-            [contentDic setDictionary:[contentListArray objectAtIndex:indexPath.row]];
-        }
-        
-        [tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
-    }
-    else
-    {
+        [indexPaths addObject:[NSIndexPath indexPathForRow:index inSection:0]];
+        index++;
         
     }
     
-}
-
-
-
-#pragma mark - UserProviderDelegate
-
-- (void)requestDidFinishGetUserGroups:(NSArray*)groups
-{
-    [self adjustHeight:groups.count];
+    model.isSelected = YES;
+    selectedIndex = indexPath.row;
     
-    NSMutableArray *newGroup = [[NSMutableArray alloc] init];
-    
-    for (NSDictionary *group in groups)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:group];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [newGroup addObject:dic];
-    }
-    
-    [contentListArray addObjectsFromArray:newGroup];
-    [contentTableView reloadData];
-    
-}
-
-- (void)requestUserProviderDidFail:(NSDictionary*)errDic;
-{
-}
-
-#pragma mark - PermissionProviderDelegate
-
-
-- (void)requestGetPermissionDidFinish:(NSArray*)permissions
-{
-    [self finishLoading];
-    [self adjustHeight:permissions.count + 1];
-    
-    NSMutableArray *newPermissions = [[NSMutableArray alloc] init];
-    
-    for (NSDictionary *permission in permissions)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:permission];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [newPermissions addObject:dic];
-    }
-//    NSMutableDictionary *noneDic = [[NSMutableDictionary alloc] init];
-//    [noneDic setObject:@"NONE" forKey:@"name"];
-//    [noneDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-//    [newPermissions addObject:noneDic];
-    
-    [contentListArray addObjectsFromArray:newPermissions];
-    [contentTableView reloadData];
-}
-
-
-- (void)requestPermisionProviderDidFail:(NSDictionary*)errDic
-{
-    [self finishLoading];
-    if ([self.delegate respondsToSelector:@selector(cancelListPopupWithError:)])
-    {
-        [self.delegate cancelListPopupWithError:errDic];
-    }
-    [self closePopup:self parentViewController:self.parentViewController];
-    
-}
-
-#pragma mark - DeviceProviderDelegate
-- (void)requestGetDevicesDidFinish:(NSArray*)devices totalCount:(NSInteger)total
-{
-    [self adjustHeight:devices.count];
-    
-    NSMutableArray *newDevices = [[NSMutableArray alloc] init];
-    
-    for (NSDictionary *device in devices)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:device];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [newDevices addObject:dic];
-    }
-    
-    [contentListArray addObjectsFromArray:newDevices];
-    [contentTableView reloadData];
-}
-
-- (void)requestGetCardsDidFinish:(NSDictionary *)cardColletion
-{
-    [self adjustHeight:cardColletion.count];
-    
-    NSInteger totalCount = [[cardColletion objectForKey:@"total"] integerValue];
-    
-    NSMutableArray *newCardCollection = [[NSMutableArray alloc] init];
-    
-    for (NSDictionary *card in [cardColletion objectForKey:@"rows"])
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:card];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [newCardCollection addObject:dic];
-    }
-    
-    [contentListArray addObjectsFromArray:newCardCollection];
-    [contentTableView reloadData];
-    
-    if (totalCount > limit)
-    {
-        offset += limit;
-        [deviceProvider getCardsWithGroupID:@"0" limit:limit offset:offset];
-    }
-}
-
-#pragma mark = ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    
-}
-
-- (void)cancelImagePopup
-{
+    [tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
     
 }
 

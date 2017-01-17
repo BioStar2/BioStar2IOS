@@ -15,7 +15,8 @@
  */
 
 #import <UIKit/UIKit.h>
-#import "UserProvider.h"
+#import "PreferenceProvider.h"
+#import "AuthProvider.h"
 
 @interface PasswordDecCell : UITableViewCell
 {

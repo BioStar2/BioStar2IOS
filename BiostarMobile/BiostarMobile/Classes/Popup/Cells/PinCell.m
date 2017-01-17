@@ -16,12 +16,12 @@
 
 #import "PinCell.h"
 
-#define PIN_MAXLENGTH   16
-#define PASSWORD_MAXLENGTH 32
+
 @implementation PinCell
 
 - (void)awakeFromNib {
     // Initialization code
+    [super awakeFromNib];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

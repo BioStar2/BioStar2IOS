@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Min %ld sek";
 "%ld minute" = "%ld Min";
 "%ld sec" = "%ld sek";
@@ -33,6 +32,35 @@
 "AC" = "Aktyvus";
 "IN" = "Neaktyvus";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ Buvo perkrauta";
+"notificationType.message.deviceRs485Disconnect"      = "%@ Buvo išjungtą";
+"notificationType.message.deviceTampering"            = "%@ Buvo sabotuota";
+"notificationType.message.doorApb"                    = "durys pažeistos %@.";
+"notificationType.message.doorForcedOpen"             = "Priverstinis atidarymas buvo aptiktas %@";
+"notificationType.message.doorHeldOpen"               = "Atidaros durys buvo aptiktos %@";
+"notificationType.message.doorOpenRequest"            = "(%1$@)durų atidarymo užklausą buvo atlikta varototjo(%2$@)";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "Priverstinio atidarymo aliarmas suveikė %@.";
+"notificationType.message.zoneFire"                   = "Gaisrinis aliarmas suveikė %@.";
+
+"notificationType.title.deviceReboot"                 = "Įrenginys persikrauna";
+"notificationType.title.deviceRs485Disconnect"        = "RS484 jungtis atsijungė";
+"notificationType.title.deviceTampering"              = "Sabotažas";
+"notificationType.title.doorApb"                      = "durys pažeistos";
+"notificationType.title.doorForcedOpen"               = "Priverstinis durų atidarymas";
+"notificationType.title.doorHeldOpen"                 = "Durys laikomos atviros";
+"notificationType.title.doorOpenRequest"              = "Prašom atidaryti duris";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "Pažeižimi zona";
+"notificationType.title.zoneFire"                     = "Gaisro aliarmo zona";
+// push
 
 
 "access_group" = "Įeigos grupė";
@@ -223,3 +251,45 @@
 "view_log" = "Rodyti prisijungimą";
 "wait" = "Prašome palaukti";
 
+
+/////
+"mobile_card" = "Mobilioji lustinė kortelė";
+"myprofile_upper" = "MANO PROFILIS";
+"mobile_card_upper" = "MOBILIOJI LUSTINĖ KORTELĖ";
+"access_on_card" = "Kortelės prieiga";
+"secure_card" = "Saugioji kortelė";
+"donot_again" = "Nerodyti dar kartą.";
+"guide_register_mobile_card1" = "Patikrinkite išduotas mobiliąsias lustines korteles.";
+"guide_register_mobile_card2" = "Naudoti mobiliąją lustinę kortelę po registracijos.";
+"guide_register_mobile_card3" = "Prilieskite mobiliąją lustinę kortelę užregistravimui.";
+"guide_register_mobile_card4" = "Pirštų atspaudų duomenys išsaugojami jūsų mobiliajame prietaise.";
+"guide_register_mobile_card5" = "Jei norite deaktivuoti mobiliąją lustinę kortelę, \n perbraukite į kairę.";
+"register_mobile_card" = "Pasirinkta kortelė užregistruota.";
+"stop_mobile_card" = "Pasirinkta kortelė yra deaktyvuota.";
+"user_other_device_mobile_card" = "Ši kortelė yra naudojama kito mobiliojo prietaiso.";
+"issue_card_count" = "Įvykių kiekis";
+"block" = "Blokuoti";
+"unblock" = "Atblokuoti";
+"register_card" = "Kortelės registracija";
+"card_type" = "Kortelės tipas";
+"register_method" = "Registracija būdas";
+"card_data_format" = "Kortelės duomenų formatas";
+"card_layout_format" = "Kortelės išvaizdos formatas";
+"smartcard_type" = "Lustinės kortelės tipas";
+"id_code" = "Objekto kodas";
+"csn" = "„CSN“";
+"wiegand" = "„WIEGAND“";
+"smartcard" = "Lustinė kortelė";
+"read_card" = "Skaityti kortelę";
+"registeration_option_direct_input" = "Įvesti rankiniu būdu";
+"none_wigand" = "Pasirinktas „Wiegand“ formatas yra nenustatytas prietaise. Nustatykite „Wiegand“ formatą įrenginiui su BioStar programa asmeniniam kompiuteriui.";
+"csn_format_wigand_scan" = "„CSN“ kortelė negali būti nuskaityta nes „CSN“ formato tipas yra nustatytas į „Wiegand“.";
+"none_registered_fingerprint" = "Nėra registruotų pirštų atspaudų duomenų.";
+"none_select_card" = "Kortelės nuskaitymas (pasirinkimas) neatliktas.";
+"rescan" = "Nuskaitymo metodas";
+"rescan_default" = "Skenavimo kokybės balas: 80 (rekomenduojama)";
+"rescan_change" = "Skenavimo kokybės pokytis";
+"question_block_card" = "Ar norite blokuoti pasirinktą kortelę?";
+"question_unblock_card" = "Ar norite atblokuoti pasirinktą kortelę?";
+"question_reregister_card" = "Ar norite leisti pakartotiną registraciją pasirinktai mobiliajai lustinei kortelei?";
+////

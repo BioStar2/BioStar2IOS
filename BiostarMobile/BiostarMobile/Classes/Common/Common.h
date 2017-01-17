@@ -20,15 +20,27 @@
 
 #endif
 
+#define IS_IPHONE_4 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)480) < DBL_EPSILON)
+#define IS_IPHONE_5 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)568) < DBL_EPSILON)
+#define IS_IPHONE_6 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)667) < DBL_EPSILON)
+#define IS_IPHONE_6_PLUS (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)736) < DBL_EPSILON)
+
 #define DEGREES_TO_RADIANS(angle) ((angle) / 180.0 * M_PI)
 
 #define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
-#define MOVING_TO_ALARM         @"MOVING_TO_ALARM"
-#define USER_COUNT_UPDATE       @"USER_COUNT_UPDATE"
-#define DOOR_COUNT_UPDATE       @"DOOR_COUNT_UPDATE"
-#define ALARM_COUNT_UPDATE      @"ALARM_COUNT_UPDATE"
-#define PUSH_HAS_BEEN_OCCURED   @"PUSH_HAS_BEEN_OCCURED"
+#define MOVING_TO_ALARM                 @"MOVING_TO_ALARM"
+#define USER_COUNT_UPDATE               @"USER_COUNT_UPDATE"
+#define SCAN_QUALITY_CHANGE             @"SCAN_QUALITY_CHANGE"
+#define DOOR_COUNT_UPDATE               @"DOOR_COUNT_UPDATE"
+#define ALARM_COUNT_UPDATE              @"ALARM_COUNT_UPDATE"
+#define PUSH_HAS_BEEN_OCCURED           @"PUSH_HAS_BEEN_OCCURED"
+#define LOGGED_IN_USER_UPDATEED         @"LOGGED_IN_USER_UPDATEED"
+
+#define QUALITY                         @"QUALITY"
+#define APP_SEPARATION_VERSION          @"2.4.0"
+#define ACVersion                       @"2.4.0"
+
 
 #define LIST_POPUP_MINIMUM_HEIGHT 320      // 팝업 리스트뷰 최소 사이즈
 #define LIST_SUB_POPUP_MINIMUM_HEIGHT 368      // 팝업 리스트뷰 최소 사이즈
@@ -37,38 +49,52 @@
 
 #define MAX_IMAGE_FILE_SIZE         16000
 
-typedef enum{
-    USER_GROUP,                 // 사용자 편집에서 유저그룹 사용할때
-    PERMISSON,                  // 사용자 편집에서 퍼비션
-    DEVICE_FINGERPRINT,         // 사용자 편집에서 지문 스캔
-    DEVICE_CARD,                // 사용자 편집에서 카드 스캔
-    CARD_OPTION,                // 사용자 편집에서 카드 선택 옵션
-    ASSIGN_CARD,                // 사용자 편집에서 assign card
-    EXCHANGE_CARD,              // 사용자 편집에서 카드 변경
-    EXCHANGE_ACCESS_GROUP,      // 사용자 편집에서 액세스 그룹 변경
-    ADD_ACCESS_GROUP,           // 사용자 편집에서 액세스 그룹 추가
-    PEROID,                     // 사용자 편집에서 시작 만료 시간
-    EVENT_SELECT,               // 모니터링 필터에서 이벤트 선택
-    USER_SELECT,                // 모니터링 필터에서 사용자 선택
-    DEVICE_SELECT,              // 모니터링 필터에서 디바이스 선택
-    DOOR_CONTROL,               // 도어 컨트롤
-    TIME_ZONE,                  // 셋팅 타임존
-    TIME_FORMAT,                // 셋팅 타임 포맷
-    DATE_FORMAT,                // 셋팅 데이트 포맷
-    
-} ListType;
+
+// 권한 define
+#define USER_PERMISSION                @"USER"
+#define DOOR_PERMISSION                @"DOOR"
+#define MONITORING_PERMISSION          @"MONITORING"
+#define DEVICE_PERMISSION              @"DEVICE"
+
+
+
+//typedef enum
+//{
+//    CSN_TYPE,
+//    WIEGAND_TYPE,
+//    SMART_CARD_TYPE,
+//    CARD_READING_TYPE
+//} CardAddType;
 
 typedef enum{
-    DOOR_OPEN_REQUEST,
-    DOOR_FORCED_OPEN,
-    DOOR_HELD_OPEN,
-    DEVICE_TAMPERING,
-    DEVICE_REBOOT,
-    DEVICE_RS485_DISCONNECT,
-    ZONE_APB,
-    ZONE_FIRE,
+    /*! When get all devices */
+    ALL_DEVICES_MODE,
+    /*! When get devices that support fingerprint */
+    FINGERPRINT_MODE,
+    /*! When get devices that support card */
+    CARD_MODE,
+    CSN_CARD_MODE,
+    WIEGAND_CARD_MODE,
+    SMART_CARD_MODE,
+    MOBILE_CARD_MODE,
+    READING_CARD_MODE,
+} DeviceMode;
+
+
+typedef enum
+{
+    NEW_CARD,
+    ASSIGNMENT,
+    INPUT,
+} RegistrationType;
+
+
+typedef enum{
+    ASSIGN_CARD,                // 사용자 편집에서 assign card
+    EXCHANGE_CARD,              // 사용자 편집에서 카드 변경
     
-} AlarmType;
+} ListPopupType;
+
 
 // user detail mode
 typedef enum{

@@ -27,6 +27,9 @@
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
     
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     switch (_type)
     {
         case USER_DELETE:
@@ -71,6 +74,12 @@
 }
 */
 
+
+- (void)getResponse:(TextPopupResponseBlock)responseBlock
+{
+    self.responseBlock = responseBlock;
+}
+
 - (void)setContent:(NSString*)content
 {
     contentText = content;
@@ -78,25 +87,21 @@
 
 - (IBAction)cancelCurrentPopup:(id)sender
 {
+    if (self.responseBlock)
+    {
+        self.responseBlock(_type, NO);
+        self.responseBlock = nil;
+    }
+    
     [self closePopup:self parentViewController:self.parentViewController];
 }
 
 - (IBAction)confirmCurrentPopup:(id)sender
 {
-    switch (_type)
+    if (self.responseBlock)
     {
-        case USER_DELETE:
-            if ([self.delegate respondsToSelector:@selector(confirmDeleteUser)])
-            {
-                [self.delegate confirmDeleteUser];
-            }
-            break;
-        case ALARM_DELETE:
-            if ([self.delegate respondsToSelector:@selector(confirmDeleteAlarm)])
-            {
-                [self.delegate confirmDeleteAlarm];
-            }
-            break;
+        self.responseBlock(_type, YES);
+        self.responseBlock = nil;
     }
     
     [self closePopup:self parentViewController:self.parentViewController];

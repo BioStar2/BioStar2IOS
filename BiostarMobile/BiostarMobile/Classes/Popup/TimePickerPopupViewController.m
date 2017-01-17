@@ -25,6 +25,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -53,11 +55,11 @@
 }
 
 - (IBAction)confirmTimePicker:(id)sender {
-    //NSString *timeString = [CommonUtil stringFromCurrentLocaleDateString:[timePicker.date description] originDateFormat:@"YYYY-MM-dd HH:mm:ss z" transDateFormat:@"HH:mm"];
     
-    if ([self.delegate respondsToSelector:@selector(confirmTimeFilter:isStartDate:)])
+    if (self.responseBlock)
     {
-        [self.delegate confirmTimeFilter:[timePicker.date description] isStartDate:_isStartDate];
+        self.responseBlock([timePicker.date description]);
+        self.responseBlock = nil;
     }
     
     [self closePopup:self parentViewController:self.parentViewController];
@@ -66,5 +68,10 @@
 - (void)setDate:(NSDate*)date
 {
     timePicker.date = date;
+}
+
+- (void)getResponse:(TimePickerPopupResponseBlock)responseBlock
+{
+    self.responseBlock = responseBlock;
 }
 @end

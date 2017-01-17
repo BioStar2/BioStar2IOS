@@ -31,6 +31,7 @@
     __weak IBOutlet UILabel *contentLabel;
     __weak IBOutlet UIImageView *notiImage;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *confirmBtn;
     
 }
 

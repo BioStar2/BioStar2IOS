@@ -18,14 +18,17 @@
 #import "AuthProvider.h"
 #import "Common.h"
 #import "SDImageCache.h"
+#import "CustomImageView.h"
+#import "CustomView.h"
+#import "User.h"
 
 @interface UserDetailPictureCell : UITableViewCell
 {
 }
 
-@property (weak, nonatomic) IBOutlet UIImageView *defaultImageView;
+@property (weak, nonatomic) IBOutlet CustomImageView *defaultImageView;
 @property (weak, nonatomic) IBOutlet UIView *backGroundView;
-@property (weak, nonatomic) IBOutlet UIView *userImageBackground;
+@property (weak, nonatomic) IBOutlet CustomView *userImageBackground;
 @property (weak, nonatomic) IBOutlet UILabel *userName;
 @property (weak, nonatomic) IBOutlet UILabel *userID;
 @property (weak, nonatomic) IBOutlet UIView *fingerView;
@@ -43,9 +46,10 @@
 @property (weak, nonatomic) IBOutlet UIButton *logLabelButton;
 @property (weak, nonatomic) IBOutlet UIButton *cameraButton;
 
-- (void)setTopCell:(NSDictionary*)infoDic mode:(DetailType)mode;
-- (void)adjustPhotoViewFrame;
+- (void)setTopCell:(User*)user mode:(DetailType)mode;
 - (IBAction)logButtonTouchTown:(id)sender;
 - (IBAction)logButtonTouchUpInside:(id)sender;
 - (IBAction)logButtonTouchUpOutside:(id)sender;
+- (UIImage*)getScaledImage:(NSString*)photoString;
+
 @end

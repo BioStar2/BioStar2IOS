@@ -1,0 +1,14 @@
+/* 
+  InfoPlist.strings
+  BiostarMobile
+
+  Created by 정의석 on 2017. 1. 11..
+  Copyright © 2017년 suprema. All rights reserved.
+*/
+
+
+//"NSPhotoLibraryUsageDescription" = "To change or add user's photo, access photo library";
+//"NSCameraUsageDescription" = "To change or add user's photo, access camera";
+
+"NSPhotoLibraryUsageDescription" = "";
+"NSCameraUsageDescription" = "";

@@ -25,9 +25,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    [self setSharedViewController:self];
     titleLabel.text = NSLocalizedString(@"alarm", nil);
+    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    selectTotalDecLabel.text = NSLocalizedString(@"total", nil);
+    
     isDeleteMode = NO;
-    alarmArray = [[NSMutableArray alloc] init];
+    notifications = [[NSMutableArray alloc] init];
     toDeleteArray = [[NSMutableArray alloc] init];
     hasNextPage = NO;
     canScrollTop = NO;
@@ -45,9 +49,8 @@
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     provider = [[PreferenceProvider alloc] init];
-    provider.delegate = self;
-    [provider getNotifications:limit offset:offset];
-    [self startLoading:self];
+    [self getNotifications:limit offset:offset];
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -65,13 +68,150 @@
 }
 */
 
+- (void)getNotifications:(NSInteger)notiLimit offset:(NSInteger)notiOffset
+{
+    [self startLoading:self];
+    
+    [provider getNotifications:notiLimit offset:notiOffset resultBlock:^(NotificationSearchResult *result) {
+        [self finishLoading];
+        
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        totalCount = result.total;
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)result.total];
+        deleteTotalCount.text = [NSString stringWithFormat:@"%ld", (long)result.total];
+        
+        [notifications addObjectsFromArray:result.records];
+        
+        // 다음 페이지 체크
+        if (notifications.count < result.total)
+        {
+            hasNextPage = YES;
+            offset += limit;
+        }
+        else
+        {
+            hasNextPage = NO;
+        }
+        
+        canScrollTop = NO;
+        scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
+        [alarmTableView reloadData];
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        isReadAlarm = NO;
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        if (isDeleteMode)
+        {
+            imagePopupCtrl.type = REQUEST_FAIL;
+        }
+        else
+        {
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        }
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getNotifications:notiLimit offset:notiOffset];
+            }
+        }];
+    }];
+    
+    
+}
+
+- (void)readNotification:(NSString*)notiID
+{
+    [self startLoading:self];
+    
+    [provider readNotification:notiID onComplete:^(Response *error) {
+        [self finishLoading];
+        
+        isReadAlarm = NO;
+        // 알람 종류에 따라 각기 다른 디테일로 이동
+        GetNotification *notification = [notifications objectAtIndex:alarmIndex];
+        notification.status = @"READ";
+        NSIndexPath *path = [NSIndexPath indexPathForRow:alarmIndex inSection:0];
+        [alarmTableView reloadRowsAtIndexPaths:@[path] withRowAnimation:UITableViewRowAnimationAutomatic];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:ALARM_COUNT_UPDATE object:@{@"count" :[NSNumber numberWithInteger:toDeletedNewAlarmCount]}];
+        
+        [self moveToAlarmDetail:[notifications objectAtIndex:alarmIndex]];
+        toDeletedNewAlarmCount = 0;
+        
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self readNotification:notiID];
+            }
+        }];
+    }];
+    
+}
+
+- (void)deleteNotifications:(NSArray*)notiIDs
+{
+    [self startLoading:self];
+    
+    [provider deleteNotifications:toDeleteArray onComplete:^(Response *error) {
+        [self finishLoading];
+        [[NSNotificationCenter defaultCenter] postNotificationName:ALARM_COUNT_UPDATE object:@{@"count" :[NSNumber numberWithInteger:toDeletedNewAlarmCount]}];
+        [toDeleteArray removeAllObjects];
+        deleteTotalCount.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)toDeleteArray.count, (long)totalCount];
+        toDeletedNewAlarmCount = 0;
+        
+        isSelectedAll = NO;
+        [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+        
+        [self finishLoading];
+        [self refreshAlarms];
+    } onError:^(Response *error) {
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self deleteNotifications:notiIDs];
+            }
+        }];
+    }];
+    
+}
+
 - (void)refreshAlarms
 {
     offset = 0;
-    [alarmArray removeAllObjects];
+    [notifications removeAllObjects];
     [alarmTableView reloadData];
-    [provider getNotifications:limit offset:offset];
-    [self startLoading:self];
+    [self getNotifications:limit offset:offset];
 }
 
 - (IBAction)moveToBack:(id)sender
@@ -86,9 +226,9 @@
         isDeleteMode = NO;
         [toDeleteArray removeAllObjects];
         
-        for (NSMutableDictionary *alarm in alarmArray)
+        for (GetNotification *noti in notifications)
         {
-            [alarm setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+            noti.isSelected = NO;
         }
         
         [alarmTableView reloadData];
@@ -114,7 +254,7 @@
 
 - (IBAction)scrollTopOrBottom:(id)sender {
     
-    if (nil == alarmArray || alarmArray.count == 0)
+    if (nil == notifications || notifications.count == 0)
     {
         return;
     }
@@ -128,11 +268,11 @@
     }
     else
     {
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:alarmArray.count - 1 inSection:0];
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:notifications.count - 1 inSection:0];
         [alarmTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
         scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
         
-        if (alarmArray.count == totalCount)
+        if (notifications.count == totalCount)
         {
             canScrollTop = YES;
             scrollButton.transform = CGAffineTransformMakeRotation(0);
@@ -148,11 +288,18 @@
         //삭제 팝업 노출
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.delegate = self;
+        //imagePopupCtrl.delegate = self;
         imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
         imagePopupCtrl.type = WARNING;
         [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), toDeleteArray.count]];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self deleteNotifications:toDeleteArray];
+            }
+        }];
     }
     else
     {
@@ -169,14 +316,15 @@
     isSelectedAll = !isSelectedAll;
     [toDeleteArray removeAllObjects];
     
-    for (NSMutableDictionary *notiInfo in alarmArray)
+    for (GetNotification *notiInfo in notifications)
     {
-        [notiInfo setObject:[NSNumber numberWithBool:isSelectedAll] forKey:@"selected"];
+        notiInfo.isSelected = isSelectedAll;
+        
         
         if (isSelectedAll)
         {
-            [toDeleteArray addObject:[notiInfo objectForKey:@"id"]];
-            if ([[notiInfo objectForKey:@"status"] isEqualToString:@"UNREAD"])
+            [toDeleteArray addObject:notiInfo.id];
+            if ([notiInfo.status isEqualToString:@"UNREAD"])
             {
                 toDeletedNewAlarmCount++;
             }
@@ -201,14 +349,13 @@
 - (void)readAlarm:(NSInteger)index
 {
     alarmIndex = index;
-    NSDictionary *notiInfo = [alarmArray objectAtIndex:alarmIndex];
+    GetNotification *notiInfo = [notifications objectAtIndex:alarmIndex];
     
-    if ([[notiInfo objectForKey:@"status"] isEqualToString:@"UNREAD"])
+    if ([notiInfo.status isEqualToString:@"UNREAD"])
     {
         toDeletedNewAlarmCount = 1;
         isReadAlarm = YES;
-        [provider readNotification:[notiInfo objectForKey:@"id"]];
-        [self startLoading:self];
+        [self readNotification:notiInfo.id];
     }
     else
     {
@@ -216,77 +363,95 @@
     }
 }
 
-- (void)moveToAlarmDetail:(NSDictionary*)notiInfo
+- (void)moveToAlarmDetail:(GetNotification*)notiInfo
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     
-    if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DOOR_OPEN_REQUEST"])
-    {
-        AlarmDoorDetailController __weak *alarmDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDoorDetailController"];
-        
-        [alarmDetailViewController setDetailInfo:notiInfo];
-        [self pushChildViewController:alarmDetailViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DOOR_FORCED_OPEN"])
-    {
-        AlarmForcedOpenDetailController __weak *alarmForceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmForcedOpenDetailController"];
-        [alarmForceViewController setDetailInfo:notiInfo];
-        alarmForceViewController.alarmType = DOOR_FORCED_OPEN;
-        [self pushChildViewController:alarmForceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DOOR_HELD_OPEN"])
-    {
-        AlarmForcedOpenDetailController __weak *alarmForceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmForcedOpenDetailController"];
-        [alarmForceViewController setDetailInfo:notiInfo];
-        alarmForceViewController.alarmType = DOOR_HELD_OPEN;
-        [self pushChildViewController:alarmForceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DEVICE_TAMPERING"])
-    {
-        AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
-        [alarmDeviceViewController setDetailInfo:notiInfo];
-        alarmDeviceViewController.alarmType = DEVICE_TAMPERING;
-        [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DEVICE_REBOOT"])
-    {
-        AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
-        [alarmDeviceViewController setDetailInfo:notiInfo];
-        alarmDeviceViewController.alarmType = DEVICE_REBOOT;
-        [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"DEVICE_RS485_DISCONNECT"])
-    {
-        AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
-        [alarmDeviceViewController setDetailInfo:notiInfo];
-        alarmDeviceViewController.alarmType = DEVICE_RS485_DISCONNECT;
-        [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"ZONE_APB"])
-    {
-        if ([[[notiInfo objectForKey:@"event"] objectForKey:@"zone_apb"] objectForKey:@"door"])
+    NotificationType notiType = [notiInfo.type notificationTypeEnumFromString];
+    
+    switch (notiType) {
+        case DOOR_OPEN_REQUEST:
+        {
+            AlarmDoorDetailController __weak *alarmDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDoorDetailController"];
+            
+            [alarmDetailViewController setDetailInfo:notiInfo];
+            [self pushChildViewController:alarmDetailViewController parentViewController:self contentView:self.view animated:YES];
+        }
+            break;
+            
+        case DOOR_FORCED_OPEN:
         {
             AlarmForcedOpenDetailController __weak *alarmForceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmForcedOpenDetailController"];
             [alarmForceViewController setDetailInfo:notiInfo];
-            alarmForceViewController.alarmType = ZONE_APB;
+            alarmForceViewController.notiType = notiType;
             [self pushChildViewController:alarmForceViewController parentViewController:self contentView:self.view animated:YES];
         }
-        else
+            break;
+            
+        case DOOR_HELD_OPEN:
+        {
+            AlarmForcedOpenDetailController __weak *alarmForceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmForcedOpenDetailController"];
+            [alarmForceViewController setDetailInfo:notiInfo];
+            alarmForceViewController.notiType = notiType;
+            [self pushChildViewController:alarmForceViewController parentViewController:self contentView:self.view animated:YES];
+        }
+            break;
+            
+        case DEVICE_TAMPERING:
         {
             AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
             [alarmDeviceViewController setDetailInfo:notiInfo];
-            alarmDeviceViewController.alarmType = ZONE_APB;
+            alarmDeviceViewController.notiType = notiType;
             [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
         }
+            break;
+            
+        case DEVICE_REBOOT:
+        {
+            AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
+            [alarmDeviceViewController setDetailInfo:notiInfo];
+            alarmDeviceViewController.notiType = notiType;
+            [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
+        }
+            break;
+            
+        case DEVICE_RS485_DISCONNECT:
+        {
+            AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
+            [alarmDeviceViewController setDetailInfo:notiInfo];
+            alarmDeviceViewController.notiType = notiType;
+            [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
+        }
+            break;
+            
+        case ZONE_APB:
+        {
+            if (notiInfo.event.zone_apb.door)
+            {
+                AlarmForcedOpenDetailController __weak *alarmForceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmForcedOpenDetailController"];
+                [alarmForceViewController setDetailInfo:notiInfo];
+                alarmForceViewController.notiType = notiType;
+                [self pushChildViewController:alarmForceViewController parentViewController:self contentView:self.view animated:YES];
+            }
+            else
+            {
+                AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
+                [alarmDeviceViewController setDetailInfo:notiInfo];
+                alarmDeviceViewController.notiType = notiType;
+                [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
+            }
+        }
+            break;
+            
+        case ZONE_FIRE:
+        {
+            AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
+            [alarmDeviceViewController setDetailInfo:notiInfo];
+            alarmDeviceViewController.notiType = notiType;
+            [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
+        }
+            break;
     }
-    else if ([[notiInfo objectForKey:@"type"] isEqualToString:@"ZONE_FIRE"])
-    {
-        AlarmDeviceDetailController __weak *alarmDeviceViewController = [storyboard instantiateViewControllerWithIdentifier:@"AlarmDeviceDetailController"];
-        [alarmDeviceViewController setDetailInfo:notiInfo];
-        alarmDeviceViewController.alarmType = ZONE_FIRE;
-        [self pushChildViewController:alarmDeviceViewController parentViewController:self contentView:self.view animated:YES];
-    }
-    
     
 }
 
@@ -299,7 +464,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return [alarmArray count];
+    return [notifications count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -307,15 +472,14 @@
     AlarmCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AlarmCell" forIndexPath:indexPath];
     
     // Configure the cell...
-    NSDictionary *dic = [alarmArray objectAtIndex:indexPath.row];
-    [cell setAlarmCell:dic isDeleteMode:isDeleteMode];
+    GetNotification *notification = [notifications objectAtIndex:indexPath.row];
+    [cell setAlarmCell:notification isDeleteMode:isDeleteMode];
     
-    if (indexPath.row == alarmArray.count -1)
+    if (indexPath.row == notifications.count -1)
     {
         if (hasNextPage)
         {
-            [provider getNotifications:limit offset:offset];
-            [self startLoading:self];
+            [self getNotifications:limit offset:offset];
         }
     }
     
@@ -329,15 +493,22 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *dic = [alarmArray objectAtIndex:indexPath.row];
-    [toDeleteArray addObject:[dic valueForKey:@"id"]];
+    
+    GetNotification *notification = [notifications objectAtIndex:indexPath.row];
+    [toDeleteArray addObject:notification.id];
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     TextPopupViewController *textPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"TextPopupViewController"];
-    textPopupCtrl.delegate = self;
+    
     textPopupCtrl.type = ALARM_DELETE;
     [self showPopup:textPopupCtrl parentViewController:self parentView:self.view];
     
+    [textPopupCtrl getResponse:^(TextPopupType type, BOOL isConfirm) {
+        if (isConfirm)
+        {
+            [self deleteNotifications:toDeleteArray];
+        }
+    }];
 }
 
 
@@ -347,34 +518,33 @@
 {
     if (isDeleteMode)
     {
-        NSMutableDictionary *alarmDic = [alarmArray objectAtIndex:indexPath.row];
+        GetNotification *notification = [notifications objectAtIndex:indexPath.row];
         
-        if ([[alarmDic objectForKey:@"selected"] boolValue])
+        if (notification.isSelected)
         {
-            [alarmDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            
-            if ([[alarmDic objectForKey:@"status"] isEqualToString:@"UNREAD"])
+            notification.isSelected = NO;
+            if ([notification.status isEqualToString:@"UNREAD"])
             {
                 toDeletedNewAlarmCount--;
             }
             
-            [toDeleteArray removeObject:[alarmDic valueForKey:@"id"]];
+            [toDeleteArray removeObject:notification.id];
         }
         else
         {
-            if ([[alarmDic objectForKey:@"status"] isEqualToString:@"UNREAD"])
+            if ([notification.status isEqualToString:@"UNREAD"])
             {
                 toDeletedNewAlarmCount++;
             }
             
-            [alarmDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-            [toDeleteArray addObject:[alarmDic valueForKey:@"id"]];
+            notification.isSelected = YES;
+            [toDeleteArray addObject:notification.id];
         }
         deleteTotalCount.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)toDeleteArray.count, (long)totalCount];
         
         [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
         
-        if (toDeleteArray.count == alarmArray.count)
+        if (toDeleteArray.count == notifications.count)
         {
             isSelectedAll = YES;
             [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
@@ -475,119 +645,4 @@
     
 }
 
-
-#pragma mark - PreferenceProviderDelegate
-
-- (void)requestGetNotificationsDidFinish:(NSDictionary*)resultdic
-{
-    [refreshControl endRefreshing];
-    [self finishLoading];
-    totalCount = [[resultdic objectForKey:@"total"] integerValue];
-    totalCountLabel.text = [[resultdic objectForKey:@"total"] stringValue];
-    deleteTotalCount.text = [[resultdic objectForKey:@"total"] stringValue];
-    
-    if ([[resultdic objectForKey:@"records"] isKindOfClass:[NSArray class]])
-    {
-        for (NSDictionary *alarm in [resultdic objectForKey:@"records"])
-        {
-            NSMutableDictionary *tempAlarm = [[NSMutableDictionary alloc] initWithDictionary:alarm];
-            [tempAlarm setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [alarmArray addObject:tempAlarm];
-        }
-    }
-    
-    // 다음 페이지 체크
-    if (alarmArray.count < [[resultdic objectForKey:@"total"] integerValue])
-    {
-        hasNextPage = YES;
-        offset += limit;
-    }
-    else
-    {
-        hasNextPage = NO;
-    }
-    
-    canScrollTop = NO;
-    scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
-    [alarmTableView reloadData];
-}
-
-- (void)requestReadNotificationDidFinish:(NSDictionary*)resultdic
-{
-    isReadAlarm = NO;
-    [self finishLoading];
-    // 알람 종류에 따라 각기 다른 디테일로 이동
-    NSMutableDictionary *alarmDic = [alarmArray objectAtIndex:alarmIndex];
-    [alarmDic setObject:@"READ" forKey:@"status"];
-    NSIndexPath *path = [NSIndexPath indexPathForRow:alarmIndex inSection:0];
-    [alarmTableView reloadRowsAtIndexPaths:@[path] withRowAnimation:UITableViewRowAnimationAutomatic];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:ALARM_COUNT_UPDATE object:@{@"count" :[NSNumber numberWithInteger:toDeletedNewAlarmCount]}];
-    
-    [self moveToAlarmDetail:[alarmArray objectAtIndex:alarmIndex]];
-    toDeletedNewAlarmCount = 0;
-}
-
-- (void)requestDeleteNotificationDidFinish:(NSDictionary*)resultdic
-{
-    [[NSNotificationCenter defaultCenter] postNotificationName:ALARM_COUNT_UPDATE object:@{@"count" :[NSNumber numberWithInteger:toDeletedNewAlarmCount]}];
-    [toDeleteArray removeAllObjects];
-    deleteTotalCount.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)toDeleteArray.count, (long)totalCount];
-    toDeletedNewAlarmCount = 0;
-    
-    isSelectedAll = NO;
-    [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
-    
-    [self finishLoading];
-    [self refreshAlarms];
-}
-
-- (void)requestPreferenceProviderDidFail:(NSDictionary*)errDic
-{
-    isReadAlarm = NO;
-    [refreshControl endRefreshing];
-    [self finishLoading];
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    imagePopupCtrl.delegate = self;
-    
-    if (isDeleteMode)
-    {
-        imagePopupCtrl.type = REQUEST_FAIL;
-    }
-    else
-    {
-        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    }
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-}
-
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    if (isReadAlarm)
-    {
-        // 알람 읽기 실패후 재시도
-        [self readAlarm:alarmIndex];
-    }
-    else
-    {
-        // 알람 삭제 API 호출 (선택된 알람 삭제)
-        [self startLoading:self];
-        [provider deleteNotifications:toDeleteArray];
-    }
-    
-}
-
-#pragma mark - TextPopupDelegate
-- (void)confirmDeleteAlarm
-{
-    // 테이블뷰 스와이프에서 삭제
-    [self startLoading:self];
-    [provider deleteNotifications:toDeleteArray];
-}
 @end

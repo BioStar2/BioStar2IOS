@@ -7,7 +7,6 @@
  */
 
 // ios only
-
 "%ld minute %ld sec" = "%ld Min %ld sec";
 "%ld minute" = "%ld Min";
 "%ld sec" = "%ld sec";
@@ -29,10 +28,39 @@
 "status_active" = "Status Active";
 "status_inactive" = "Status Inactive";
 "time_format" = "Time Format";
-"email_not_setted" = "Please set email on device setting app.";
+"email_not_setted" = "Please set the email on the device setting app.";
 "AC" = "Active";
 "IN" = "Inactive";
 // ios only
+
+
+// push
+"notificationType.message.deviceReboot"               = "%@ was restarted.";
+"notificationType.message.deviceRs485Disconnect"      = "%@ was disconnected.";
+"notificationType.message.deviceTampering"            = "%@ was tampered.";
+"notificationType.message.doorApb"                    = "APB alarm was detected from %@.";
+"notificationType.message.doorForcedOpen"             = "Forced open door was detected from %@";
+"notificationType.message.doorHeldOpen"               = "Held open door was detected from %@";
+"notificationType.message.doorOpenRequest"            = "(%1$@)door open request was made by user(%2$@).";
+"notificationType.message.exception"                  = "Exception";
+"notificationType.message.exceptionManagement"        = "Exception";
+"notificationType.message.leaveManagement"            = "Leave";
+"notificationType.message.zoneApb"                    = "APB alarm was detected from %@.";
+"notificationType.message.zoneFire"                   = "Fire alarm was detected from  %@.";
+
+"notificationType.title.deviceReboot"                 = "Device Reboot";
+"notificationType.title.deviceRs485Disconnect"        = "Device's RS485 connection was disconnected.";
+"notificationType.title.deviceTampering"              = "Device Tampering";
+"notificationType.title.doorApb"                      = "Door APB";
+"notificationType.title.doorForcedOpen"               = "Forced Open Door";
+"notificationType.title.doorHeldOpen"                 = "Held Open Door ";
+"notificationType.title.doorOpenRequest"              = "Door Open Request";
+"notificationType.title.exception"                    = "Exception";
+"notificationType.title.exceptionManagement"          = "Exception";
+"notificationType.title.leaveManagement"              = "Leave";
+"notificationType.title.zoneApb"                      = "APB Zone ";
+"notificationType.title.zoneFire"                     = "Fire Alarm Zone";
+// push
 
 
 "access_group" = "Access Group";
@@ -44,7 +72,7 @@
 "all_door" = "All Doors";
 "all_events" = "All Events";
 "all_users" = "All Users";
-"allow_permission" = "Please allow permission.";
+"allow_permission" = "Please allow permission";
 "already_assigned" = "Already Allocated";
 "app_name" = "BioStar 2";
 "app_version" = "0.9.4";
@@ -84,27 +112,27 @@
 "end_date" = "Expiry date";
 "end_time" = "End time";
 "entry_device" = "Entry Device";
-"error_network" = "Device Network is Disabled or Server Address is Incorrect";
-"error_network2" = "Device Network is Disabled or Server is Temporarily Unavailable";
+"error_network" = "Network is disabled or the server address is incorrect.";
+"error_network2" = "Network is disabled or the server is temporarily unavailable.";
 "error_set_date" = "Expiry date must be later than start date";
-"error_set_end_date" = "Expiry date can't exceed 2030";
+"error_set_end_date" = "Expiry date can not exceed 2030";
 "error_set_start_date" = "Start date must be later than 1999";
 "event" = "Event";
 "exit_button" = "Exit Button";
 "exit_device" = "Exit Device";
 "fail" = "Request Failed";
-"fail_retry" = "Request Failed, Woud You Like to Retry?";
+"fail_retry" = "Request failed, would you like to retry?";
 "fail_verify_finger" = "Fingerprint Verification Failed";
 "filter" = "Filter";
-"finger_on_device" = "Scan Finger on the Selected Device";
-"finger_on_device_same" = "Re-Scan Finger on the Selected Device";
+"finger_on_device" = "Scan your finger on the selected device";
+"finger_on_device_same" = "Rescan your finger on the selected device";
 "fingerprint" = "Fingerprint";
 "forceUpdate" = "Update Required";
 "forced_open" = "Forced Entry Detected";
 "format" = "Format";
 "from_gallery" = "From Gallery";
 "group" = "Group";
-"guide_feature_permission" = "To use this feature, permission is needed";
+"guide_feature_permission" = "Permission is needed to use this feature";
 "held_opened" = "Door Held Open";
 "id" = "ID";
 "inactive" = "Inactive";
@@ -113,8 +141,8 @@
 "inherited_not_change" = "Can Not be Changed";
 "input_port" = "Input Port";
 "invalid_email" = "Invalid Email";
-"invalid_userid" = "Invalid User ID, Please Enter a Number between 1 - 4,294,967,294";
-"latest_version" = "Version is up to Date";
+"invalid_userid" = "Invalid User ID, please enter a number between 1 - 4,294,967,294";
+"latest_version" = "Version is up to date";
 "log_out" = "LOG OUT";
 "login" = "Login";
 "login_empty" = "Missing ID/Password/URL";
@@ -137,22 +165,22 @@
 "new_" = "New";
 "new_notification" = "New Notification";
 "new_user" = "New User";
-"new_version" = "New version is available, would you like to update?";
+"new_version" = "A newer version is available, would you like to update?";
 "no_more_data" = "End of Data";
-"no_permission" = "You don't have sufficient permission";
+"no_permission" = "You do not have the sufficient permissions";
 "none" = "None";
-"none_data" = "There are no available data";
-"none_device" = "Device is not found";
-"none_door" = "Door is not found";
-"none_user" = "User is not found";
+"none_data" = "There is no available data";
+"none_device" = "Device not found";
+"none_user" = "User not found";
+"none_door" = "Door not found";
 "notice_connection_fail" = "Network Connection Failed";
 "notification" = "Notification";
 "notification_time" = "Notification Time";
 "ok" = "OK";
-"only_alpha_num_email" = "Enter only letters, numbers, comma(,) and period(.)";
-"only_alpha_num_special" = "Enter only letters, numbers, and special characters";
+"only_alpha_num_email" = "Enter only letters, numbers, comma(,) or period(.)";
+"only_alpha_num_special" = "Enter only letters, numbers, or special characters";
 "only_number" = "Enter only Numbers";
-"only_number_dash" = "Enter only Numbers and Dash(-),Plus(+)";
+"only_number_dash" = "Enter only enter numbers and dash(-), or plus(+)";
 "open" = "Open";
 "open_door_time" = "Door Open Time";
 "open_time" = "Open Time";
@@ -161,9 +189,9 @@
 "password" = "Password";
 "password_confirm" = "Password Confirm";
 "password_empty" = "Enter Password";
-"password_guide" = "Minimum of 8 characters with one or more alphabet, number required";
-"password_guide_strong" = "Minimum of 8 characters with one or more alphabet(Upper,Lower), number, and special character required";
-"password_invalid" = "Password Don't Match";
+"password_guide" = "Password must contain a minimum of 8 characters that include at lease one letter and one number.";
+"password_guide_strong" = "Password must contain a minimum of 8 characters that include at least one lowercase letter, one uppercase letter, one number and one special character.";
+"password_invalid" = "Password does not match";
 "period" = "Period";
 "permission_setting" = "Permission Setting";
 "pin_upper" = "PIN";
@@ -214,12 +242,12 @@
 "total" = "Total";
 "unlock" = "Unlock";
 "unread" = "New";
-"update_guide" = "Update Available Through Configuration in the Side Menu";
+"update_guide" = "Update is possible through the side menu's configuration settings";
 "user" = "User";
 "user_add" = "Add User";
 "user_create_empty" = "ID is required";
 "user_create_empty_email" = "Enter Email Address";
-"user_create_empty_idpassword" = "ID and Password must be Entered";
+"user_create_empty_idpassword" = "ID and Password must be entered";
 "user_create_success" = "User Successfully Created";
 "user_id" = "User ID";
 "user_modify_success" = "User Successfully Modified";
@@ -228,3 +256,56 @@
 "version_mobile" = "BioStar 2 Mobile Version";
 "view_log" = "View Log";
 "wait" = "Please Wait";
+
+
+/////
+"mobile_card" = "Mobile Smart Card";
+"myprofile_upper" = "MY PROFILE";
+"mobile_card_upper" = "MOBILE SMART CARD";
+"access_on_card" = "Access On Card";
+"secure_card" = "Secure Credential Card";
+"donot_again" = "Do not display again.";
+"guide_register_mobile_card1" = "Check issued mobile smart cards.";
+"guide_register_mobile_card2" = "Use a mobile smart card after registration.";
+"guide_register_mobile_card3" = "Touch a mobile smart card to register.";
+"guide_register_mobile_card4" = "Fingerprint data are saved in your mobile device.";
+"guide_register_mobile_card5" = "When you want to disable a mobile smart card, \n swipe to the left.";
+"register_mobile_card" = "The selected card is registerred.";
+"stop_mobile_card" = "The selected card is disabled.";
+"user_other_device_mobile_card" = "This card is used by another mobile device.";
+"issue_card_count" = "Issue Count";
+"block" = "Block";
+"unblock" = "Unblock";
+"register_card" = "Card Registration";
+"card_type" = "Card Type";
+"register_method" = "Registration Method";
+"card_data_format" = "Card Data Format";
+"card_layout_format" = "Card Layout Format";
+"smartcard_type" = "Smart Card Type";
+"id_code" = "Facility Code";
+"csn" = "CSN";
+"wiegand" = "WIEGAND";
+"smartcard" = "Smart Card";
+"read_card" = "Read Card";
+"registeration_option_direct_input" = "Enter Manually";
+"none_wigand" = "The selected Wiegand format is not set in the device. Set the Wiegand format for the device with the PC version of BioStar.";
+"csn_format_wigand_scan" = "CSN card can not be scanned because the CSN format type is set to Wiegand.";
+"none_registered_fingerprint" = "There is no registered fingerprint data.";
+"none_select_card" = "No card input(selection) was made.";
+"rescan" = "Rescan method";
+"rescan_default" = "Scan quality score : 80 (recommended)";
+"rescan_change" = "Scan quality change";
+"question_block_card" = "Do you want to block the selected card?";
+"question_unblock_card" = "Do you want to unblock the selected card?";
+"question_reregister_card" = "Do you want to allow re-registration with the selected mobile smart card?";
+
+"over_value" = "Max value exceeded.";
+"discern_empty" = "Facility Code is not applied.";
+"none_card_layout_format" = "Smart Card Layout is not applied. ";
+"invalid_card_type" = "Card format is not matched. ";
+"wiegand_format_empty" = "Wiegand format is not applied.";
+"write_card" = "Write Card";
+"invalid_card_id" = "0' is not allowed for the first number of Card ID. ";
+"non_blocked" = "Access-on-card can be deleted after blocking.";
+"add_credential" = "Do you want to add credentials?";
+////

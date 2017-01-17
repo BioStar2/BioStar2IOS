@@ -18,18 +18,22 @@
 
 @interface UsersViewController ()
 
+- (void)getUserList:(NSInteger)listOffset limit:(NSInteger)listLimit groupID:(NSString*)listGroupID query:(NSString*)listQuery;
+
 @end
 
 @implementation UsersViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [self setSharedViewController:self];
     // Do any additional setup after loading the view.
+    selectedUserGroup = nil;
     refreshControl = [[UIRefreshControl alloc] init];
-    //refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"refresh Users"];
     [usersTableView addSubview:refreshControl];
     [refreshControl addTarget:self action:@selector(refreshUsers) forControlEvents:UIControlEventValueChanged];
-    
+    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    titleLabel.text = NSLocalizedString(@"all_users", nil);
     canScrollTop = NO;
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
@@ -48,18 +52,16 @@
     
     users = [[NSMutableArray alloc] init];
     toDeleteUsers = [[NSMutableArray alloc] init];
-    [users removeAllObjects];
     
     provider = UserProviderInstance;
-    provider.delegate = self;
-    [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-    [self startLoading:self];
+    preferenceProvoder = [[PreferenceProvider alloc] init];
+    [self getUserList:offset limit:limit groupID:groupID query:query];
     
-    
-    if (![AuthProvider hasWritePermission:@"USER"])
+    if (![AuthProvider hasWritePermission:USER_PERMISSION])
     {
-        // 추가, 삭제, 필터 버튼 삭제
-        [editButtonView setHidden:YES];
+        // 추가, 삭제
+        [addButton setHidden:YES];
+        [deleteButton setHidden:YES];
     }
 }
 
@@ -97,39 +99,152 @@
 }
 */
 
+- (void)loadUserPhoto:(NSArray*)tempUsers
+{
+    for (User *user in tempUsers)
+    {
+        if (user.photo_exist && nil == user.photo)
+        {
+            
+            NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, user.user_id]];
+            
+            if (![[SDImageCache sharedImageCache] diskImageExistsWithKey:userPhotoKey])
+            {
+                [provider getUserPhoto:user.user_id completeHandler:^(NSDictionary *responseObject, NSError *error) {
+                    if (nil == error)
+                    {
+                        NSData *imageData = [NSData base64DataFromString:[responseObject objectForKey:@"user_image"]];
+                        UIImage *userImage = [UIImage imageWithData:imageData];
+                        
+                        [[SDImageCache sharedImageCache] storeImage:userImage forKey:userPhotoKey toDisk:YES];
+                        
+                        NSInteger index = [users indexOfObject:user];
+                        NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
+                        [usersTableView reloadRowsAtIndexPaths:@[path] withRowAnimation:UITableViewRowAnimationAutomatic];
+                        
+                    }
+                }];
+            }
+        }
+    }
+}
+
+- (void)getUserList:(NSInteger)listOffset limit:(NSInteger)listLimit groupID:(NSString*)listGroupID query:(NSString*)listQuery
+{
+    [self startLoading:self];
+    
+    [provider getUsersOffset:listOffset limit:listLimit groupID:listGroupID query:listQuery completeHandler:^(UserSearchResult *userSearchResult) {
+        
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        if (!isForFilter)
+        {
+            [[NSNotificationCenter defaultCenter] postNotificationName:USER_COUNT_UPDATE object:@{@"count" : [NSNumber numberWithInteger:userSearchResult.total]}];
+        }
+        else
+            isForFilter = NO;
+        
+        [refreshControl endRefreshing];
+        
+        totalCount = userSearchResult.total;
+        
+        totalUserCount.text = [NSString stringWithFormat:@"%ld", (long)userSearchResult.total];
+        [self finishLoading];
+        if (userSearchResult.total == 0)
+        {
+            // 검색결과가 없거나 실제 데이터가 없을 경우
+            hasNextPage = NO;
+            [users removeAllObjects];
+        }
+        else
+        {
+            [users addObjectsFromArray:userSearchResult.records];
+            
+            if (users.count < userSearchResult.total)
+            {
+                hasNextPage = YES;
+                offset += limit;
+            }
+            else
+            {
+                hasNextPage = NO;
+            }
+        }
+        canScrollTop = NO;
+        scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
+        [usersTableView reloadData];
+        
+        [self loadUserPhoto:users];
+        
+    } onError:^(Response *error) {
+        
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        [self showImagePopup:NSLocalizedString(@"fail_retry", nil) magePopupType:MAIN_REQUEST_FAIL content:error.message];
+    }];
+    
+}
+
+- (void)deleteSelectedUsers:(NSArray *)seletedUsers
+{
+    [self startLoading:self];
+    
+    [provider deleteUsers:seletedUsers responseBlock:^(Response *error) {
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        [toDeleteUsers removeAllObjects];
+        [users removeAllObjects];
+        [usersTableView setEditing:NO animated:YES];
+        
+        offset = 0;
+        selectedUserCount.text = [NSString stringWithFormat:@"%lu", (unsigned long)[toDeleteUsers count]];
+        [self getUserList:offset limit:limit groupID:groupID query:query];
+        
+    } onErrorBlock:^(Response *error) {
+        [refreshControl endRefreshing];
+        [self finishLoading];
+        
+        [self showImagePopup:NSLocalizedString(@"fail_retry", nil) magePopupType:DELETE_USERS content:error.message];
+    }];
+}
+
 - (void)refreshUsers
 {
-
     isEditMode = NO;
     [toDeleteUsers removeAllObjects];
-    
-    for (NSMutableDictionary *user in users)
-    {
-        [user setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-    }
     
     offset = 0;
     totalCount = 0;
     
     [users removeAllObjects];
     [usersTableView reloadData];
-    [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-    [self startLoading:self];
+    
+    [self getUserList:offset limit:limit groupID:groupID query:query];
+    
 }
 
 - (void)setDefaultView
 {
     [doneButton setHidden:YES];
     [editButtonView setHidden:NO];
+    if ([AuthProvider hasWritePermission:USER_PERMISSION])
+    {
+        // 추가, 삭제
+        [addButton setHidden:NO];
+        [deleteButton setHidden:NO];
+    }
     [toDeleteUsers removeAllObjects];
     isEditMode = NO;
-    if ([[filterUserGroup objectForKey:@"name"] isEqualToString:@""] || nil == [filterUserGroup objectForKey:@"name"])
+    if ([selectedUserGroup.name isEqualToString:@""] || nil == selectedUserGroup.name)
     {
         titleLabel.text = NSLocalizedString(@"all_users", nil);
     }
     else
     {
-        titleLabel.text = [filterUserGroup objectForKey:@"name"];
+        titleLabel.text = selectedUserGroup.name;
     }
     
     totalUserCount.text = [NSString stringWithFormat:@"%ld", (long)totalCount];
@@ -144,16 +259,15 @@
         [self setDefaultView];
         
         [toDeleteUsers removeAllObjects];
-        for (NSMutableDictionary *user in users)
+        for (User *user in users)
         {
-            [user setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+            user.isSelected = NO;
         }
         selectedUserCount.text = [NSString stringWithFormat:@"%lu", (unsigned long)[toDeleteUsers count]];
         [usersTableView reloadData];
     }
     else
     {
-        [provider setDelegate:nil];
         [NetworkControllerInstance cancelAllRequests];
         
         [users removeAllObjects];
@@ -166,19 +280,61 @@
 
 - (IBAction)addUser:(id)sender
 {
- 
-    
-    
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    UserNewDetailViewController __weak *userEditViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
-    userEditViewController.delegate = self;
-    userEditViewController.type = CREATE_MODE;
-    
-    [self pushChildViewController:userEditViewController parentViewController:self contentView:contentView animated:YES];
-    
-    if (filterUserGroup)
+    if ([PreferenceProvider isUpperVersion])
     {
-        [userEditViewController setUserGroup:filterUserGroup];
+        [self startLoading:self];
+        
+        [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+            UserNewDetailViewController __weak *userEditViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
+            userEditViewController.delegate = self;
+            userEditViewController.type = CREATE_MODE;
+            
+            [self pushChildViewController:userEditViewController parentViewController:self contentView:contentView animated:YES];
+            
+            if (selectedUserGroup)
+            {
+                [userEditViewController setUserGroup:selectedUserGroup];
+            }
+            
+        } onError:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.type = REQUEST_FAIL;
+            [imagePopupCtrl setContent:error.message];
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                
+                if (isConfirm)
+                {
+                    [self addUser:nil];
+                }
+                
+            }];
+            
+        }];
+    }
+    else
+    {
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+        UserNewDetailViewController __weak *userEditViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
+        userEditViewController.delegate = self;
+        userEditViewController.type = CREATE_MODE;
+        
+        [self pushChildViewController:userEditViewController parentViewController:self contentView:contentView animated:YES];
+        
+        if (selectedUserGroup)
+        {
+            [userEditViewController setUserGroup:selectedUserGroup];
+        }
     }
 }
 
@@ -256,23 +412,29 @@
 - (IBAction)showUserGroupFilter:(id)sender
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ListSubInfoPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListSubInfoPopupViewController"];
-    listPopupCtrl.delegate = self;
-    listPopupCtrl.type = USER_GROUP;
+    UserGroupPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"UserGroupPopupViewController"];
+    
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+    
+    [listPopupCtrl getSelectedUserGroup:^(UserGroup *userGroup) {
+        
+        isForFilter = YES;
+        titleLabel.text = userGroup.name;
+        selectedUserGroup = userGroup;
+        groupID = userGroup.id;
+        offset = 0;
+        [users removeAllObjects];
+        
+        [self getUserList:offset limit:limit groupID:groupID query:query];
+
+    }];
 }
 
 - (IBAction)deleteUsers:(id)sender
 {
     if ([toDeleteUsers count] > 0)
     {
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.delegate = self;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
-        imagePopupCtrl.type = DELETE_USERS;
-        [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), toDeleteUsers.count]];
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        [self showImagePopup:NSLocalizedString(@"delete_confirm_question", nil) magePopupType:DELETE_USERS content:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), toDeleteUsers.count]];
         
     }
     else
@@ -285,6 +447,41 @@
     }
 }
 
+- (void)showImagePopup:(NSString*)title magePopupType:(ImagePopupType)type content:(NSString*)content
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+    imagePopupCtrl.titleContent = title;
+    imagePopupCtrl.type = type;
+    [imagePopupCtrl setContent:content];
+    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+    
+    [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+        
+        if (isConfirm)
+        {
+            if (type == DELETE_USERS)
+            {
+                [self deleteSelectedUsers:toDeleteUsers];
+            }
+            else if (type == MAIN_REQUEST_FAIL)
+            {
+                [self getUserList:offset limit:limit groupID:groupID query:query];
+            }
+        }
+        else
+        {
+            if (provider.type == UsersInfo_Request)
+            {
+                if (offset == 0)
+                {
+                    // 최초 유저리스트 못 불러와서 이전 화면으로 가주어야 함.
+                    [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
+                }
+            }
+        }
+    }];
+}
 
 #pragma mark - Table view data source
 
@@ -304,8 +501,8 @@
     UserCell *cell = [tableView dequeueReusableCellWithIdentifier:@"userInfoCell" forIndexPath:indexPath];
 
     // Configure the cell...
-    NSDictionary *dic = [users objectAtIndex:indexPath.row];
-    [cell setCellDictionary:dic];
+
+    [cell setUser:[users objectAtIndex:indexPath.row]];
     
     if (isEditMode)
     {
@@ -316,13 +513,11 @@
         [cell.accView setHidden:NO];
     }
     
-    
     if (indexPath.row == users.count -1)
     {
         if (hasNextPage)
         {
-            [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-            [self startLoading:self];
+            [self getUserList:offset limit:limit groupID:groupID query:query];
         }
     }
     
@@ -331,7 +526,7 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (![AuthProvider hasWritePermission:@"USER"])
+    if (![AuthProvider hasWritePermission:USER_PERMISSION])
     {
         return NO;
     }
@@ -340,14 +535,21 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *dic = [users objectAtIndex:indexPath.row];
-    [toDeleteUsers addObject:[dic valueForKey:@"user_id"]];
+    User *user = [users objectAtIndex:indexPath.row];
+    [toDeleteUsers addObject:user.user_id];
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     TextPopupViewController *textPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"TextPopupViewController"];
-    textPopupCtrl.delegate = self;
+    
     textPopupCtrl.type = USER_DELETE;
     [self showPopup:textPopupCtrl parentViewController:self parentView:self.view];
+    
+    [textPopupCtrl getResponse:^(TextPopupType type, BOOL isConfirm) {
+        if (isConfirm)
+        {
+            [self deleteSelectedUsers:toDeleteUsers];
+        }
+    }];
     
 }
 
@@ -360,18 +562,22 @@
     
     if (isEditMode)
     {
+        User *user = [users objectAtIndex:indexPath.row];
         
-        NSMutableDictionary *userDic = [users objectAtIndex:indexPath.row];
-        
-        if ([[userDic objectForKey:@"selected"] boolValue])
+        if ([user.user_id integerValue] == 1)
         {
-            [userDic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [toDeleteUsers removeObject:[userDic valueForKey:@"user_id"]];
+            return;
+        }
+        
+        if (user.isSelected)
+        {
+            user.isSelected = NO;
+            [toDeleteUsers removeObject:user.user_id];
         }
         else
         {
-            [userDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
-            [toDeleteUsers addObject:[userDic valueForKey:@"user_id"]];
+            user.isSelected = YES;
+            [toDeleteUsers addObject:user.user_id];
         }
         
         totalUserCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)[toDeleteUsers count], (long)totalCount];
@@ -384,92 +590,10 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
         UserNewDetailViewController __weak *userDetailViewController = [storyboard instantiateViewControllerWithIdentifier:@"UserNewDetailViewController"];
         userDetailViewController.delegate = self;
-        NSDictionary *dic = [users objectAtIndex:indexPath.row];
-        [userDetailViewController getUserInfo:[dic valueForKey:@"user_id"]];
+        [userDetailViewController getUserInfo:[users objectAtIndex:indexPath.row].user_id];
         [userDetailViewController setType:VIEW_MODE];
         [self pushChildViewController:userDetailViewController parentViewController:self contentView:contentView animated:YES];
     }
-    
-    
-    
-    
-}
-
-#pragma mark - UserProvider delegate
-
-- (void)requestDidFinishDeleteUser:(NSDictionary*)result
-{
-    [self finishLoading];
-    [toDeleteUsers removeAllObjects];
-    [users removeAllObjects];
-    [usersTableView setEditing:NO animated:YES];
-    
-    offset = 0;
-    selectedUserCount.text = [NSString stringWithFormat:@"%lu", (unsigned long)[toDeleteUsers count]];
-    [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-    [self startLoading:self];
-}
-
-- (void)requestDidFinishGettingUsersInfo:(NSArray*)userArray totclCount:(NSInteger)count
-{
-    if (!isForFilter)
-    {
-        [[NSNotificationCenter defaultCenter] postNotificationName:USER_COUNT_UPDATE object:@{@"count" : [NSNumber numberWithInteger:count]}];
-    }
-    else
-        isForFilter = NO;
-    
-    [refreshControl endRefreshing];
-    
-    totalCount = count;
-    totalUserCount.text = [NSString stringWithFormat:@"%ld", (long)totalCount];
-    [self finishLoading];
-    if (count == 0)
-    {
-        // 검색결과가 없거나 실제 데이터가 없을 경우
-        hasNextPage = NO;
-        [users removeAllObjects];
-    }
-    else
-    {
-        // 선택 삭제를 위해 뮤터블 딕션어리로 교체
-        for (NSDictionary *user in userArray)
-        {
-            NSMutableDictionary *tempUser = [[NSMutableDictionary alloc] initWithDictionary:user];
-            [tempUser setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-            [users addObject:tempUser];
-        }
-        
-        if (users.count < totalCount)
-        {
-            hasNextPage = YES;
-            offset += limit;
-        }
-        else
-        {
-            hasNextPage = NO;
-        }
-    }
-    canScrollTop = NO;
-    scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
-    [usersTableView reloadData];
-    
-}
-
-- (void)requestUserProviderDidFail:(NSDictionary *)errDic
-{
-    [refreshControl endRefreshing];
-    [self finishLoading];
-    
-    // 재시도 할것인지에 대한 팝업 띄워주기
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-    imagePopupCtrl.delegate = self;
-    imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-    [imagePopupCtrl setContent:[errDic objectForKey:@"message"]];
-    
-    [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
     
 }
 
@@ -478,9 +602,10 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    for (NSMutableDictionary *user in users)
+    isForFilter = YES;
+    for (User *user in users)
     {
-        [user setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+        user.isSelected = NO;
     }
     selectedUserCount.text = @"0";
     [toDeleteUsers removeAllObjects];
@@ -489,60 +614,15 @@
     offset = 0;
     [users removeAllObjects];
     [usersTableView reloadData];
-    [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-    [self startLoading:self];
+    
+    [self getUserList:offset limit:limit groupID:groupID query:query];
     
     [textField resignFirstResponder];
     
     return YES;
 }
 
-#pragma mark - TextPopupDelegate
 
-- (void)confirmDeleteUser
-{
-    [provider deleteUsers:toDeleteUsers];
-    [self startLoading:self];
-}
-
-- (void)confirmDeleteUsers
-{
-    [provider deleteUsers:toDeleteUsers];
-    [self startLoading:self];
-}
-
-#pragma mark - ImagePopupDelegate
-
-- (void)confirmImagePopup
-{
-    if (isEditMode)
-    {
-        [provider deleteUsers:toDeleteUsers];
-        [self startLoading:self];
-    }
-    else
-    {
-        [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-        [self startLoading:self];
-    }
-}
-
-- (void)cancelImagePopup
-{
-    switch (provider.type)
-    {
-        case UsersInfo:
-            if (offset == 0)
-            {
-                // 최초 유저리스트 못 불러와서 이전 화면으로 가주어야 함.
-                [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
-            }
-            break;
-        default:
-            break;
-    }
-    
-}
 
 #pragma mark - UserDetailDelegate
 - (void)needToReloadUsers
@@ -550,20 +630,6 @@
     [self refreshUsers];
 }
 
-#pragma mark - ListSubInfoPopupDelegate
-
-- (void)confirmUserGroup:(NSDictionary*)userGroup
-{
-    //query = textField.text;
-    isForFilter = YES;
-    titleLabel.text = [userGroup objectForKey:@"name"];
-    filterUserGroup = userGroup;
-    groupID = [NSString stringWithFormat:@"%ld", (long)[[userGroup objectForKey:@"id"] integerValue]];
-    offset = 0;
-    [users removeAllObjects];
-    [provider getUsersOffset:offset limit:limit groupID:groupID query:query];
-    [self startLoading:self];
-}
 
 #pragma mark - ScrollView Delegate
 

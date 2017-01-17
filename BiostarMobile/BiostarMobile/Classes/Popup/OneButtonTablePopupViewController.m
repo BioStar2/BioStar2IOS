@@ -27,6 +27,9 @@
     // Do any additional setup after loading the view.
     contentListArray = [[NSMutableArray alloc] init];
     
+    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     [self showPopupAnimation:self.containerView];
     selectedIndex = -1;
     
@@ -64,17 +67,33 @@
 }
 */
 
-- (void)setContentListArray:(NSArray*)array
+
+
+- (void)setContentModelArray:(NSArray<SelectModel*>*)array
 {
-    for (NSDictionary *info in array)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:info];
-        [dic setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
-        
-        [contentListArray addObject:dic];
+    [contentListArray addObjectsFromArray:array];
+    [radioTableView reloadData];
+}
+
+- (void)setContentStringArray:(NSArray<NSString*>*)names
+{
+    for (NSString *name in names) {
+        SelectModel *model = [SelectModel new];
+        model.name = name;
+        [contentListArray addObject:model];
     }
     
     [radioTableView reloadData];
+}
+
+- (void)getIndexResponse:(TablePopupIndexResponseBlock)responseBlock
+{
+    self.indexResponseBlock = responseBlock;
+}
+
+- (void)getModelResponse:(TablePopupModelResponseBlock)responseBlock
+{
+    self.modelResponseBlock = responseBlock;
 }
 
 - (IBAction)confirmSelection:(id)sender {
@@ -84,17 +103,20 @@
         switch (_type)
         {
             case MORNITORING:
-                if ([self.delegate respondsToSelector:@selector(didSelectItem:)])
+                if (self.modelResponseBlock)
                 {
-                    [self.delegate didSelectItem:[contentListArray objectAtIndex:selectedIndex]];
+                    self.modelResponseBlock([contentListArray objectAtIndex:selectedIndex]);
+                    self.modelResponseBlock = nil;
                 }
                 break;
                 
             case PHOTO:
-                if ([self.delegate respondsToSelector:@selector(didSelectIndex:)])
+                if (self.indexResponseBlock)
                 {
-                    [self.delegate didSelectIndex:selectedIndex];
+                    self.indexResponseBlock(selectedIndex);
+                    self.indexResponseBlock = nil;
                 }
+                
                 break;
         }
         
@@ -124,10 +146,10 @@
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RadioCell" forIndexPath:indexPath];
     RadioCell *customCell = (RadioCell*)cell;
-    [customCell checkSelected:[[[contentListArray objectAtIndex:indexPath.row] objectForKey:@"selected"] boolValue]];
-    customCell.titleLabel.text = [[contentListArray objectAtIndex:indexPath.row] objectForKey:@"name"];
+    SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
+    [customCell checkSelected:model.isSelected];
+    customCell.titleLabel.text = model.name;
 
-    
     return customCell;
 }
 
@@ -141,20 +163,20 @@
     
     NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
     
-    NSMutableDictionary *currentDic = [contentListArray objectAtIndex:indexPath.row];
+    SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
     
     NSInteger index = 0;
     
-    for (NSMutableDictionary *content in contentListArray)
+    for (SelectModel *model in contentListArray)
     {
-        [content setObject:[NSNumber numberWithBool:NO] forKey:@"selected"];
+        model.isSelected = NO;
         
         [indexPaths addObject:[NSIndexPath indexPathForRow:index inSection:0]];
         index++;
         
     }
     
-    [currentDic setObject:[NSNumber numberWithBool:YES] forKey:@"selected"];
+    model.isSelected = YES;
     
     [tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
 

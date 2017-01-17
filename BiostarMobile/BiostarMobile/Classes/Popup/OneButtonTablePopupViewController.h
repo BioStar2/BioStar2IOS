@@ -17,21 +17,13 @@
 #import <UIKit/UIKit.h>
 #import "BaseViewController.h"
 #import "RadioCell.h"
-
-@protocol OneButtonTableDelegate <NSObject>
-
-@optional
-
-- (void)didSelectItem:(NSDictionary*)selectedDic;
-- (void)didSelectIndex:(NSInteger)selectedIndex;
-
-@end
+#import "SelectModel.h"
 
 typedef enum
 {
     MORNITORING,
     PHOTO,
-} PopupType;
+} OneButtonTablePopupType;
 
 
 @interface OneButtonTablePopupViewController : BaseViewController
@@ -39,18 +31,28 @@ typedef enum
     __weak IBOutlet UITableView *radioTableView;
     __weak IBOutlet UILabel *titleLabel;
     __weak IBOutlet UIView *contentView;
+    __weak IBOutlet UIButton *cancelBtn;
+    __weak IBOutlet UIButton *confirmBtn;
     
-    NSMutableArray *contentListArray;
+    NSMutableArray <SelectModel*> *contentListArray;
     NSInteger selectedIndex;
     
-    
+    SelectModel *selectedModel;
 }
 
-@property (assign, nonatomic) PopupType type;
-@property (weak, nonatomic) IBOutlet UIView *containerView;
-@property (assign, nonatomic) id <OneButtonTableDelegate> delegate;
+typedef void (^TablePopupModelResponseBlock)(SelectModel *selectedModel);
+typedef void (^TablePopupIndexResponseBlock)(NSInteger index);
 
-- (void)setContentListArray:(NSArray*)array;
+@property (assign, nonatomic) OneButtonTablePopupType type;
+@property (weak, nonatomic) IBOutlet UIView *containerView;
+@property (nonatomic, strong) TablePopupModelResponseBlock modelResponseBlock;
+@property (nonatomic, strong) TablePopupIndexResponseBlock indexResponseBlock;
+
+
+- (void)setContentModelArray:(NSArray<SelectModel*>*)array;
+- (void)setContentStringArray:(NSArray<NSString*>*)names;
+- (void)getIndexResponse:(TablePopupIndexResponseBlock)responseBlock;
+- (void)getModelResponse:(TablePopupModelResponseBlock)responseBlock;
 - (IBAction)confirmSelection:(id)sender;
 - (IBAction)cancelCurrentPopup:(id)sender;
 
