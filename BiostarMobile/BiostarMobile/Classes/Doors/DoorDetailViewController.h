@@ -24,6 +24,7 @@
 #import "EventProvider.h"
 #import "MonitorFilterViewController.h"
 #import "PreferenceProvider.h"
+#import "OneButtonPopupViewController.h"
 
 @protocol DoorDetailViewControllerDelegate <NSObject>
 
@@ -42,9 +43,6 @@
     __weak IBOutlet UILabel *doorSubDec;
     __weak IBOutlet UIImageView *doorImage;
     __weak IBOutlet UIButton *doorControlButton;
-    __weak IBOutlet UIButton *logImageButton;
-    __weak IBOutlet UILabel *logLabel;
-    __weak IBOutlet UIButton *logLabelButton;
     
     ListDoorItem *currentDoor;
     BOOL needToReloadDoorList;
@@ -56,7 +54,6 @@
 @property (assign, nonatomic) id <DoorDetailViewControllerDelegate> delegate;
 
 
-- (IBAction)moveToLog:(id)sender;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
 - (void)setDoorInfo:(ListDoorItem*)door;
@@ -66,5 +63,6 @@
 - (void)requestOpen:(NSInteger)openDoorID phoneNumber:(NSString*)phoneNumber;
 - (NSString*)getToastContent;
 - (NSString*)getErrorToastContent:(NSString *)message;
-- (void)showErrorToast:(NSString*)errorMessage;
+- (void)showErrorPopup:(NSString*)errorMessage;
+- (void)showSuccessPopup:(NSString*)title message:(NSString*)message;
 @end

@@ -40,16 +40,13 @@
 @property (weak, nonatomic) IBOutlet UIView *pinDevideView;
 @property (weak, nonatomic) IBOutlet UIImageView *backgroundImage;
 @property (weak, nonatomic) IBOutlet UIVisualEffectView *blurView;
-@property (weak, nonatomic) IBOutlet UIImageView *logButtonImage;
-@property (weak, nonatomic) IBOutlet UIButton *logImageButton;
-@property (weak, nonatomic) IBOutlet UILabel *logLabel;
-@property (weak, nonatomic) IBOutlet UIButton *logLabelButton;
 @property (weak, nonatomic) IBOutlet UIButton *cameraButton;
+@property (weak, nonatomic) IBOutlet UIView *faceView;
+@property (weak, nonatomic) IBOutlet UILabel *faceLabel;
+@property (weak, nonatomic) IBOutlet UILabel *faceCountLabel;
 
 - (void)setTopCell:(User*)user mode:(DetailType)mode;
-- (IBAction)logButtonTouchTown:(id)sender;
-- (IBAction)logButtonTouchUpInside:(id)sender;
-- (IBAction)logButtonTouchUpOutside:(id)sender;
+
 - (UIImage*)getScaledImage:(NSString*)photoString;
 
 @end

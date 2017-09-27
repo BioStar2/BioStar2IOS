@@ -27,21 +27,50 @@
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    
     
     switch (_type)
     {
         case USER_DELETE:
-            titleLabel.text = NSLocalizedString(@"delete_user", nil);
-            contentLabel.text = NSLocalizedString(@"delete_confirm_question", nil);
+        {
+            // 한글 일본어 일때 순서 바꾸기
+            NSString *language = [[NSLocale preferredLanguages] objectAtIndex:0];
+            NSDictionary *languageDic = [NSLocale componentsFromLocaleIdentifier:language];
+            NSString *languageCode = [languageDic objectForKey:@"kCFLocaleLanguageCodeKey"];
+            
+            if ([languageCode isEqualToString:@"ko"] || [languageCode isEqualToString:@"ja"])
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"user", nil) ,NSBaseLocalizedString(@"delete", nil)];
+            }
+            else
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"delete", nil) ,NSBaseLocalizedString(@"user", nil)];
+            }
+            contentLabel.text = NSBaseLocalizedString(@"delete_confirm_question", nil);
             break;
+        }
             
         case ALARM_DELETE:
-            titleLabel.text = NSLocalizedString(@"delete_alarm", nil);
-            contentLabel.text = NSLocalizedString(@"delete_confirm_question", nil);
+        {
+            // 한글 일본어 일때 순서 바꾸기
+            NSString *language = [[NSLocale preferredLanguages] objectAtIndex:0];
+            NSDictionary *languageDic = [NSLocale componentsFromLocaleIdentifier:language];
+            NSString *languageCode = [languageDic objectForKey:@"kCFLocaleLanguageCodeKey"];
+            
+            if ([languageCode isEqualToString:@"ko"] || [languageCode isEqualToString:@"ja"])
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"alarm", nil) ,NSBaseLocalizedString(@"delete", nil)];
+            }
+            else
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"delete", nil) ,NSBaseLocalizedString(@"alarm", nil)];
+            }
+            contentLabel.text = NSBaseLocalizedString(@"delete_confirm_question", nil);
             heightConstraint.constant = 200;
             break;
+        }
     }
 }
 

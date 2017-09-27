@@ -78,61 +78,19 @@
     }
     else
     {
-        [_accImage setHidden:YES];
+        if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+        {
+            [_accImage setHidden:YES];
+            [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+        }
+        else
+        {
+            [_accImage setHidden:NO];
+            [self.contentView setBackgroundColor:[UIColor whiteColor]];
+        }
         [_checkImage setHidden:YES];
-        [self.contentView setBackgroundColor:[UIColor whiteColor]];
+        
     }
-    
-//    if (accessGroup.isSelected)
-//    {
-//        [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
-//        [_checkImage setHidden:NO];
-//        [_accImage setHidden:YES];
-//    }
-//    else
-//    {
-//        if (isEditMode)
-//        {
-//            if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
-//            {
-//                [_accImage setHidden:YES];
-//                [_checkImage setHidden:YES];
-//                [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
-//            }
-//            else
-//            {
-//                [_accImage setHidden:YES];
-//                [_checkImage setHidden:YES];
-//                [self.contentView setBackgroundColor:[UIColor whiteColor]];
-//            }
-//        }
-//        else
-//        {
-//            [_checkImage setHidden:YES];
-//            [_accImage setHidden:NO];
-//        }
-//    }
-    
-//    if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
-//    {
-//        [_accImage setHidden:YES];
-//        [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
-//    }
-//    else
-//    {
-//        if (accessGroup.isSelected)
-//        {
-//            [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
-//            [_checkImage setHidden:NO];
-//            [_accImage setHidden:YES];
-//        }
-//        else
-//        {
-//            [self.contentView setBackgroundColor:[UIColor whiteColor]];
-//            [_checkImage setHidden:YES];
-//            [_accImage setHidden:NO];
-//        }
-//    }
 }
 
 - (NSString*)getTitle

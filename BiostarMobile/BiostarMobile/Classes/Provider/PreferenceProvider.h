@@ -27,7 +27,7 @@
 #import "NotificationSearchResult.h"
 #import "BioStarVersion.h"
 #import "BioStarSetting.h"
-
+#import "LocalDataManager.h"
 
 /**
  *
@@ -103,7 +103,7 @@ typedef void(^SystemSettingBlock)(BioStarSetting *result);
  *
  *  @return NSString Data format string
  */
-+ (NSString*)getDateFormat;
+- (NSString*)getDateFormat;
 
 
 /**
@@ -111,7 +111,7 @@ typedef void(^SystemSettingBlock)(BioStarSetting *result);
  *
  *  @return NSString Time format string
  */
-+ (NSString*)getTimeFormat;
+//+ (NSString*)getTimeFormat;
 
 
 
@@ -214,5 +214,8 @@ typedef void(^SystemSettingBlock)(BioStarSetting *result);
 
 + (BOOL)isUpperVersion;
 
++ (BOOL)isSupportMobileCredentialAndFaceTemplate;
+
++ (BOOL)isSupportCoreSation;
 
 @end

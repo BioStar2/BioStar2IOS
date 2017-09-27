@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 @interface FingerprintScanResult : NSObject
-
-@property (nonatomic, assign) long enroll_quality;
+   
+@property (nonatomic, assign) int enroll_quality;
 @property (nonatomic, strong) NSString *raw_image0;
 @property (nonatomic, strong) NSString *template0;
 @property (nonatomic, strong) NSString *template_image0;

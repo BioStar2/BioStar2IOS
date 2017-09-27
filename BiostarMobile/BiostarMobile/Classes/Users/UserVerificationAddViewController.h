@@ -20,19 +20,22 @@
 #import "UserProvider.h"
 #import "ScanPopupViewController.h"
 #import "VerificationCell.h"
-#import "ListSubInfoPopupViewController.h"
 #import "AccessGroupPopupViewController.h"
 #import "ImagePopupViewController.h"
 #import "DevicePopupViewController.h"
 #import "CardPopupViewController.h"
 #import "ScanQualityPopupViewController.h"
 #import "ScanCardPopupViewController.h"
+#import "FaceScanPopupViewController.h"
+#import "FaceScanSuccessPopupViewController.h"
+
 
 @protocol UserVerificationAddViewControllerDelegate <NSObject>
 
 @optional
 
 - (void)fingerprintWasChanged:(NSArray<FingerprintTemplate*>*)fingerprintTemplates;
+- (void)faceTemplatesWasChanged:(NSArray<FaceTemplate*>*)faceTemplates;
 - (void)accessGroupDidChange:(NSArray<UserItemAccessGroup*>*)groups;
 - (void)cardWasChanged:(NSArray<Card*>*)cards;
 @end
@@ -53,6 +56,7 @@
     NSMutableArray <FingerprintTemplate *>*fingerPrintTemplates;        // 지문 정보들(화면에 테이블로 뿌려주기 위한)
     NSMutableArray <UserItemAccessGroup*> *userAccessGroups;            // access groups
     NSMutableArray <Card*> *userCards;                                  // user cards
+    NSMutableArray <FaceTemplate*> *faceTemplates;
     
     FingerprintTemplate *userFingerPrintTemplate;                       // 스캔 후에 verify 까지 끝난 정보
     FingerprintTemplate *fingerPrintResult;                           // 성공한 첫번째 스캔정보
@@ -68,6 +72,7 @@
     BOOL isForSwitchIndex;
     
     NSUInteger scanQuality;
+    NSUInteger faceScanQuality;
     
     SearchResultDevice *selectedDevice;                                 // 지문 카드스캔을 위한 선택한 디바이스
     
@@ -77,7 +82,8 @@ typedef enum
 {
     FINGERPRINT,
     ACCESS_GROUPS,
-    CARD
+    CARD,
+    FACETEMPLATE
     
 } VerificationType;
 
@@ -93,12 +99,17 @@ typedef enum
 
 - (void)setUserInfo:(User*)user;
 - (void)deleteFingerprintTemplates;
+- (void)deleteFaceTemplates;
 - (void)getUserFingerprintTemplates;
+- (void)getUserFaceTemplates;
 - (void)updateFingerprintTemplages:(FingerprintTemplate*)fingerprintTemplate;
+- (void)updateFaceTemplates:(FaceTemplate*)faceTemplate;
 - (void)addFingerprint;
-- (void)replaceFingerprint:(NSIndexPath*)indexPath;
 - (void)addCard;
+- (void)addFaceTemplate;
+- (void)replaceFingerprint:(NSIndexPath*)indexPath;
 - (void)replaceCard:(NSIndexPath*)indexPath;
+- (void)replaceFaceTemplate:(NSIndexPath*)indexPath;
 - (void)addAccessGroup;
 - (void)replaceAccessGroup:(NSIndexPath*)indexPath;
 - (BOOL)hasEqualCard:(Card*)card;
@@ -106,6 +117,7 @@ typedef enum
 - (void)setCards:(NSArray<Card*>*)cards;
 - (void)setAccessGroup:(NSArray*)accessGroups withUserGroup:(NSArray*)userGroups;
 - (void)showFingerprintScanPopup;
+- (void)showFaceScanPopup;
 
 
 @end

@@ -23,10 +23,10 @@
 #import "User.h"
 #import "MobileCredential.h"
 #import "OneButtonPopupViewController.h"
+#import "PreferenceProvider.h"
 
 
-
-#define MOBILE_CARD 0
+#define MOBILE_CARD 1
 
 @protocol CardAddViewControllerDelegate <NSObject>
 
@@ -52,6 +52,7 @@
     DeviceProvider *deviceProvider;
     CardProvider *cardProvider;
     UserProvider *userProvider;
+    PreferenceProvider *settingProvider;
     SearchResultDevice *selectedDevice;
     DeviceMode deviceMode;
     RegistrationType registrationType;
@@ -68,11 +69,12 @@
     MobileCredential *mobileCredential;
     SecureCredential *secureCredential;
     AccessOnCredential *accessOnCredential;
-    
+    BioStarSetting *acSetting;
 }
 
 @property (nonatomic, assign) id <CardAddViewControllerDelegate> delegate;
 
+- (void)getACSettingInfo;
 - (void)showListPopup:(PopupType)popupType;
 - (void)showInvalidCardTypeToast;
 - (void)showScanCardPopup;

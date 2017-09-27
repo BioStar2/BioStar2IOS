@@ -35,13 +35,13 @@
     
     NSString *timeFormat;
     
-    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+    if ([[LocalDataManager getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[LocalDataManager getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[LocalDataManager getDateFormat], [LocalDataManager getTimeFormat]];
     }
     
     alarmDate.text = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
@@ -82,41 +82,41 @@
     switch (notyType) {
             
         case DOOR_OPEN_REQUEST:
-            alarmDec.text = NSLocalizedString(alarmInfo.event.door_open_request.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.door_open_request.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_01"]];
             break;
             
         case DOOR_FORCED_OPEN:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.door_forced_open.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.door_forced_open.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_02"]];
         }
             break;
             
         case DOOR_HELD_OPEN:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.door_held_open.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.door_held_open.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_door_03"]];
         }
             break;
             
         case DEVICE_TAMPERING:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.device_tampering.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.device_tampering.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
         }
             break;
             
         case DEVICE_REBOOT:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.device_reboot.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.device_reboot.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_01"]];
         }
             break;
             
         case DEVICE_RS485_DISCONNECT:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.device_rs485_disconnect.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.device_rs485_disconnect.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_device_03"]];
         }
             break;
@@ -132,13 +132,13 @@
                 [alarmIcon setImage:[UIImage imageNamed:@"ic_event_zone_03"]];
             }
             
-            alarmDec.text = NSLocalizedString(alarmInfo.event.zone_apb.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.zone_apb.title_loc_key, nil);
         }
             break;
             
         case ZONE_FIRE:
         {
-            alarmDec.text = NSLocalizedString(alarmInfo.event.zone_fire.title_loc_key, nil);
+            alarmDec.text = NSBaseLocalizedString(alarmInfo.event.zone_fire.title_loc_key, nil);
             [alarmIcon setImage:[UIImage imageNamed:@"ic_event_fire_alarm"]];
         }
             break;

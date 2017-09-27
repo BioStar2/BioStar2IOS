@@ -20,9 +20,9 @@
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
-    
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     eventTypes = [[NSMutableArray alloc] init];
     selectedEventTypes = [[NSMutableArray alloc] init];
     [containerView setHidden:YES];
@@ -32,9 +32,9 @@
     
     listTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     eventProvider = [[EventProvider alloc] init];
-    titleLabel.text = NSLocalizedString(@"select_event", nil);
+    titleLabel.text = NSBaseLocalizedString(@"select_event", nil);
     
-    [eventTypes addObjectsFromArray:[eventProvider getEventTypes]];
+    [eventTypes addObjectsFromArray:[EventProvider getLocalEventTypes]];
     searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (long)eventTypes.count];
     [self adjustHeight:eventTypes.count];
 }
@@ -64,7 +64,7 @@
 - (IBAction)showSearchTextFieldView:(id)sender
 {
     [textView setHidden:NO];
-    [searchTextField resignFirstResponder];
+    [searchTextField becomeFirstResponder];
 }
 
 
@@ -73,6 +73,17 @@
 {
     [self.view endEditing:YES];
     [textView setHidden:YES];
+    
+    if ((nil == query || [query isEqualToString:@""]) && didSearch)
+    {
+        didSearch = NO;
+        offset = 0;
+        limit = 50;
+        query = nil;
+        
+        [eventTypes removeAllObjects];
+        [eventTypes addObjectsFromArray:[EventProvider getLocalEventTypes]];
+    }
 }
 
 - (void)adjustHeight:(NSInteger)count
@@ -163,47 +174,82 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    NSMutableArray <EventType*> *searchArray = [[NSMutableArray alloc] init];
-    
-    for (EventType *event in [eventProvider getEventTypes])
+    if (![textField.text isEqualToString:@""])
     {
-        event.isSelected = NO;
+        NSMutableArray <EventType*> *searchArray = [[NSMutableArray alloc] init];
         
-        
-        NSString *name = event.event_type_description;
-        name = [name uppercaseString];
-        
-        query = textField.text;
-        query = [query uppercaseString];
-        
-        NSRange range;
-        range = [name rangeOfString:query];
-        
-        if (range.location != NSNotFound)
+        for (EventType *event in [EventProvider getLocalEventTypes])
         {
-            [searchArray addObject:event];
+            event.isSelected = NO;
+            
+            
+            NSString *name = event.event_type_description;
+            name = [name uppercaseString];
+            
+            query = textField.text;
+            query = [query uppercaseString];
+            
+            NSRange range;
+            range = [name rangeOfString:query];
+            
+            if (range.location != NSNotFound)
+            {
+                [searchArray addObject:event];
+            }
+            
+            NSString *code = [NSString stringWithFormat:@"%ld", (long)event.code];
+            
+            range = [code rangeOfString:query];
+            
+            if (range.location != NSNotFound)
+            {
+                [searchArray addObject:event];
+            }
         }
         
-        NSString *code = [NSString stringWithFormat:@"%ld", (long)event.code];
+        [selectedEventTypes removeAllObjects];
+        [eventTypes removeAllObjects];
+        [eventTypes addObjectsFromArray:searchArray];
+        [listTableView reloadData];
+        didSearch = YES;
+
+        searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (long)selectedEventTypes.count, (long)eventTypes.count];
         
-        range = [code rangeOfString:query];
-        
-        if (range.location != NSNotFound)
-        {
-            [searchArray addObject:event];
-        }
+        [textField resignFirstResponder];
     }
-    
-    [selectedEventTypes removeAllObjects];
-    [eventTypes removeAllObjects];
-    [eventTypes addObjectsFromArray:searchArray];
-    [listTableView reloadData];
-    
-    
-    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld / %ld", (long)selectedEventTypes.count, (long)eventTypes];
-    
-    [textField resignFirstResponder];
     return YES;
 }
 
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    query = @"";
+    return YES;
+}
+
+- (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    NSMutableString *content = [[NSMutableString alloc] initWithString:textField.text];
+    
+    if (![string isEqualToString:@""])
+    {
+        // append
+        @try {
+            [content insertString:string atIndex:range.location];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    else
+    {
+        //delete
+        @try {
+            [content deleteCharactersInRange:range];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    
+    query = content;
+    return YES;
+}
 @end

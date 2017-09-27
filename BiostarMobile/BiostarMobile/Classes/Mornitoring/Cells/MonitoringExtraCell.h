@@ -28,7 +28,7 @@
 @property (weak, nonatomic) IBOutlet UIImageView *accImageView;
 @property (weak, nonatomic) IBOutlet UILabel *eventExtraLabel;
 
-- (void)setContent:(EventLogResult*)eventInfo canMoveDetail:(BOOL)canMoveDetail;
+- (void)setContent:(EventLogResult*)eventInfo;
 - (void)setIcon:(NSDictionary*)eventInfo;
 - (BOOL)isInCondition:(NSInteger)min max:(NSInteger)max code:(NSInteger)code imageName:(NSString*)imageName;
 - (void)setEventImage:(EventLogResult*)logResult;

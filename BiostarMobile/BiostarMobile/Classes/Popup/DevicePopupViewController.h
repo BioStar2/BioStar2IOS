@@ -16,6 +16,7 @@
     __weak IBOutlet NSLayoutConstraint *containerHeightConstraint;
     __weak IBOutlet NSLayoutConstraint *tableViewTopConstraint;
     __weak IBOutlet UILabel *titleLabel;
+    __weak IBOutlet UILabel *totalDecLabel;
     __weak IBOutlet UILabel *searchTotalCountLabel;
     __weak IBOutlet UITableView *listTableView;
     __weak IBOutlet UIView *containerView;
@@ -36,23 +37,27 @@
     
     BOOL multiSelect;
     BOOL hasNextPage;
-    BOOL isForSearch;
+    
     DeviceMode mode;
     NSInteger loadedItemCount;
 }
 
 typedef void (^DevicesBlock)(NSArray <SearchResultDevice*> *devices);
 typedef void (^DeviceBlock)(SearchResultDevice *device);
+typedef void (^CancelBlock)();
 
 
 @property (assign, nonatomic) DeviceMode deviceMode;
 @property (nonatomic, strong) DevicesBlock devicesBlock;
 @property (nonatomic, strong) DeviceBlock deviceBlock;
+@property (nonatomic, strong) CancelBlock cancelBlock;
 
 
 - (void)getDevices:(DevicesBlock)devicesBlock;
 
 - (void)getDevice:(DeviceBlock)deviceBlock;
+
+- (void)getCancelBlock:(CancelBlock)cancelBlock;
 
 - (void)getDevice:(NSString *)searchQuery limit:(NSInteger)searchLimit offset:(NSInteger)searchOffset mode:(DeviceMode)deviceMode;
 

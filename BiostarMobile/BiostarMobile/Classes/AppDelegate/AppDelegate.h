@@ -17,12 +17,21 @@
 #import <UIKit/UIKit.h>
 #import "PreferenceProvider.h"
 #import "Common.h"
-#import "LocalDataManager.h"
+#import <UserNotifications/UserNotifications.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+#define SCAN_INTERVAL                          3
+
+@interface AppDelegate : UIResponder <UIApplicationDelegate, UNUserNotificationCenterDelegate>
+{
+    
+    
+}
 
 @property (strong, nonatomic) UIWindow *window;
 
+
+- (void)deleteCookies;
+- (void)setCookies;
 
 @end
 

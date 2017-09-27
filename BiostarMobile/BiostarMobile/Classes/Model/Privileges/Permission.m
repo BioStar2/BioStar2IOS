@@ -32,7 +32,7 @@
         
         objc_property_t property = properties[i];
         NSString *propertyName = [[NSString alloc]initWithCString:property_getName(property) encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", propertyName);
+        
         [myCopy setValue:[[self valueForKey:propertyName] copy] forKey:propertyName];
     }
     return myCopy;

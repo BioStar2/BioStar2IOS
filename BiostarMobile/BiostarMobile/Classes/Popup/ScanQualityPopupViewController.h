@@ -16,6 +16,7 @@
     __weak IBOutlet UILabel *qualityLabel;
     __weak IBOutlet UIButton *cancelBtn;
     __weak IBOutlet UIButton *confirmBtn;
+    __weak IBOutlet UISlider *qualitySlider;
     
     
     BOOL isRequesting;
@@ -23,6 +24,11 @@
     
 }
 
+typedef enum{
+    FACE_SCAN,
+    FINGERPRINT_SCAN
+    
+} QualityPopupType;
 
 typedef void (^QualityPopupResponseBlock)(NSUInteger quality);
 typedef void (^QualityPopupCancelBlock)();
@@ -33,6 +39,7 @@ typedef void (^QualityPopupCancelBlock)();
 @property (assign, nonatomic) NSInteger scanCount;
 @property (assign, nonatomic) NSInteger templateIndex;
 @property (assign, nonatomic) long deviceID;
+@property (assign, nonatomic) QualityPopupType scanType;
 
 
 

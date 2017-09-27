@@ -15,6 +15,7 @@
 {
     __weak IBOutlet NSLayoutConstraint *containerHeightConstraint;
     __weak IBOutlet UILabel *titleLabel;
+    __weak IBOutlet UILabel *totalDecLabel;
     __weak IBOutlet UILabel *searchTotalCountLabel;
     __weak IBOutlet UITableView *listTableView;
     __weak IBOutlet UIView *containerView;

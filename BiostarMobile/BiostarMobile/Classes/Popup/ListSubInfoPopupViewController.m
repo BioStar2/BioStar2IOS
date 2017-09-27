@@ -30,7 +30,7 @@
     contentDic = [[NSMutableDictionary alloc] init];
     selectedInfoArray = [[NSMutableArray alloc] init];
     verificationInfo = [[NSMutableArray alloc] init];
-    
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     [containerView setHidden:YES];
     hasNextPage = NO;
     isLimited = NO;
@@ -44,8 +44,8 @@
     isForSearch = NO;
     isForSingleSearch = NO;
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     listTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     
@@ -54,7 +54,7 @@
         case ASSIGN_CARD:
         case EXCHANGE_CARD:
             isForSingleSearch = YES;
-            titleLabel.text = NSLocalizedString(@"registeration_option_assign_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"registeration_option_assign_card", nil);
             deviceProvider = [[DeviceProvider alloc] init];
             [self getCards:nil limit:limit offset:offset];
             break;
@@ -185,7 +185,7 @@
 //            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
 //            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
 //            imagePopupCtrl.type = REQUEST_FAIL;
-//            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+//            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
 //            [imagePopupCtrl setContent:[responseObject objectForKey:@"message"]];
 //            
 //            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -226,7 +226,7 @@
 - (IBAction)showSearchTextFieldView:(id)sender
 {
     [textView setHidden:NO];
-    [searchTextField resignFirstResponder];
+    [searchTextField becomeFirstResponder];
 }
 
 - (IBAction)showSingleSearchView:(id)sender
@@ -239,6 +239,7 @@
 {
     [self.view endEditing:YES];
     [textView setHidden:YES];
+    
 }
 
 - (IBAction)cancelSingleSearch:(id)sender
@@ -505,7 +506,7 @@
     {
         [self getCards:query limit:limit offset:offset];
     }
-    
+    didSearch = YES;
     [textField resignFirstResponder];
     return YES;
 }

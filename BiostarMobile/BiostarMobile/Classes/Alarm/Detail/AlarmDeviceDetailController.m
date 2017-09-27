@@ -36,7 +36,7 @@
         {
             case DEVICE_TAMPERING:
             {
-                titleLabel.text = titleLabel.text = NSLocalizedString(self.detailInfo.event.device_tampering.title_loc_key, nil);
+                titleLabel.text = titleLabel.text = NSBaseLocalizedString(self.detailInfo.event.device_tampering.title_loc_key, nil);
                 deviceName.text = self.detailInfo.event.device_tampering.device.name;
                 deviceID = self.detailInfo.event.device_tampering.device.id;
                 
@@ -48,7 +48,7 @@
                 break;
             case DEVICE_REBOOT:
                 
-                titleLabel.text = NSLocalizedString(self.detailInfo.event.device_reboot.title_loc_key, nil);
+                titleLabel.text = NSBaseLocalizedString(self.detailInfo.event.device_reboot.title_loc_key, nil);
                 deviceName.text = self.detailInfo.event.device_reboot.device.name;
                 deviceID = self.detailInfo.event.device_reboot.device.id;
                 
@@ -61,7 +61,7 @@
                 break;
             case DEVICE_RS485_DISCONNECT:
                 
-                titleLabel.text = NSLocalizedString(self.detailInfo.event.device_rs485_disconnect.title_loc_key, nil);
+                titleLabel.text = NSBaseLocalizedString(self.detailInfo.event.device_rs485_disconnect.title_loc_key, nil);
                 deviceName.text = self.detailInfo.event.device_rs485_disconnect.device.name;
                 deviceID = self.detailInfo.event.device_rs485_disconnect.device.id;
                 
@@ -74,7 +74,7 @@
                 break;
             case ZONE_FIRE:
                 
-                titleLabel.text = NSLocalizedString(self.detailInfo.event.zone_fire.title_loc_key, nil);
+                titleLabel.text = NSBaseLocalizedString(self.detailInfo.event.zone_fire.title_loc_key, nil);
                 deviceName.text = self.detailInfo.event.zone_fire.device.name;
                 deviceID = self.detailInfo.event.zone_fire.device.id;
                 
@@ -86,7 +86,7 @@
                 break;
             case ZONE_APB:
                 
-                titleLabel.text = NSLocalizedString(self.detailInfo.event.zone_apb.title_loc_key, nil);
+                titleLabel.text = NSBaseLocalizedString(self.detailInfo.event.zone_apb.title_loc_key, nil);
                 deviceName.text = self.detailInfo.event.zone_apb.device.name;
                 deviceID = self.detailInfo.event.zone_apb.device.id;
                 
@@ -100,36 +100,6 @@
                 break;
         }
     }
-    
-    deviceProvider = [[DeviceProvider alloc] init];
-    
-    if (nil == deviceID)
-    {
-        [logImageButton setHidden:YES];
-        [logButton setHidden:YES];
-        [logLabel setHidden:YES];
-    }
-    else
-    {
-        if ([PreferenceProvider isUpperVersion])
-        {
-            if ([AuthProvider hasReadPermission:DEVICE_PERMISSION])
-            {
-                [self getDevice:deviceID];
-            }
-            else
-            {
-                [logImageButton setHidden:YES];
-                [logButton setHidden:YES];
-                [logLabel setHidden:YES];
-            }
-        }
-        else
-        {
-            [self getDevice:deviceID];
-        }
-        
-    }
 }
 
 - (NSString*)getLocalizedDecription:(NSString*)key args:(NSArray*)args
@@ -142,49 +112,14 @@
         NSMutableData* data = [NSMutableData dataWithLength: sizeof(id) * [args count]];
         [args getObjects: (__unsafe_unretained id *)data.mutableBytes range:range];
         
-        NSString *content = [[NSString alloc] initWithFormat:NSLocalizedString(key, nil) arguments:data.mutableBytes];
+        NSString *content = [[NSString alloc] initWithFormat:NSBaseLocalizedString(key, nil) arguments:data.mutableBytes];
         return content;
     }
     
     return dec;
 }
 
-- (void)getDevice:(NSString*)deviceID
-{
-    [self startLoading:self];
-    
-    [deviceProvider getDevice:deviceID deviceBlock:^(SearchResultDevice *device) {
-        [self finishLoading];
-        
-    } onError:^(Response *error) {
-        [self finishLoading];
-        
-        if ([error.status_code isEqualToString:@"DEVICE_NOT_FOUND"])
-        {
-            [logImageButton setHidden:YES];
-            [logButton setHidden:YES];
-            [logLabel setHidden:YES];
-            
-        }
-        else
-        {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-            [imagePopupCtrl setContent:error.message];
-            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-            
-            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-                if (isConfirm)
-                {
-                    [self getDevice:deviceID];
-                }
-            }];
-        }
-        
-    }];
-}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -203,66 +138,6 @@
 - (IBAction)moveToBack:(id)sender
 {
     [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
-}
-
-- (IBAction)moveToLog:(id)sender
-{
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    MonitoringViewController *mornitorViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitoringViewController"];
-    mornitorViewController.requestType = EVENT_DOOR;
-    
-    SearchResultDevice *device = [[SearchResultDevice alloc] init];
-    
-    NSMutableArray <NSString*> *deviceIDs = [[NSMutableArray alloc] init];
-    NSMutableArray <SearchResultDevice*> *devices = [[NSMutableArray alloc] init];
-    
-    
-    switch (self.notiType)
-    {
-        case DEVICE_TAMPERING:
-            device.id = self.detailInfo.event.device_tampering.device.id;
-            device.name = self.detailInfo.event.device_tampering.device.name;
-            [deviceIDs addObject:self.detailInfo.event.device_tampering.device.id];
-            [devices addObject:device];
-            
-            break;
-        case DEVICE_REBOOT:
-            device.id = self.detailInfo.event.device_reboot.device.id;
-            device.name = self.detailInfo.event.device_reboot.device.name;
-            [deviceIDs addObject:self.detailInfo.event.device_reboot.device.id];
-            [devices addObject:device];
-            
-            break;
-        case DEVICE_RS485_DISCONNECT:
-            device.id = self.detailInfo.event.device_rs485_disconnect.device.id;
-            device.name = self.detailInfo.event.device_rs485_disconnect.device.name;
-            [deviceIDs addObject:self.detailInfo.event.device_rs485_disconnect.device.id];
-            [devices addObject:device];
-            
-            break;
-        case ZONE_FIRE:
-            device.id = self.detailInfo.event.zone_fire.device.id;
-            device.name = self.detailInfo.event.zone_fire.device.name;
-            [deviceIDs addObject:self.detailInfo.event.zone_fire.device.id];
-            [devices addObject:device];
-            
-            break;
-        case ZONE_APB:
-            device.id = self.detailInfo.event.zone_apb.device.id;
-            device.name = self.detailInfo.event.zone_apb.device.name;
-            [deviceIDs addObject:self.detailInfo.event.zone_apb.device.id];
-            [devices addObject:device];
-            
-            break;
-        default:
-            break;
-    }
-    
-    
-    [mornitorViewController setDeviceCondition:deviceIDs];
-    [MonitorFilterViewController setFilterDevices:devices];
-    
-    [self pushChildViewController:mornitorViewController parentViewController:self contentView:self.view animated:YES];
 }
 
 #pragma mark - Table view data source
@@ -286,20 +161,20 @@
     
     NSString *timeFormat;
     
-    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+    if ([[LocalDataManager getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[LocalDataManager getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[LocalDataManager getDateFormat], [LocalDataManager getTimeFormat]];
     }
     
     NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]
                                                      originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
                                                       transDateFormat:timeFormat];
     
-    [cell setContent:NSLocalizedString(@"notification_time", nil) content:content];
+    [cell setContent:NSBaseLocalizedString(@"notification_time", nil) content:content];
 
     return cell;
 }

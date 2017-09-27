@@ -19,49 +19,49 @@
     // Do any additional setup after loading the view.
     
     [self setSharedViewController:self];
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     isMenuSelected = NO;
     doorControlMenus = [[NSMutableArray alloc] init];
     
     [containerView setHidden:YES];
     
-    titleLabel.text = NSLocalizedString(@"door_control", nil);
+    titleLabel.text = NSBaseLocalizedString(@"door_control", nil);
     
     DoorControlMenu *openMenu = [[DoorControlMenu alloc] init];
-    openMenu.name = NSLocalizedString(@"open", nil);
+    openMenu.name = NSBaseLocalizedString(@"open", nil);
     openMenu.isSelected = NO;
     [doorControlMenus addObject:openMenu];
     
     
     DoorControlMenu *lockMenu = [[DoorControlMenu alloc] init];
-    lockMenu.name = NSLocalizedString(@"manual_lock", nil);
+    lockMenu.name = NSBaseLocalizedString(@"manual_lock", nil);
     lockMenu.isSelected = NO;
     [doorControlMenus addObject:lockMenu];
     
     
     DoorControlMenu *unLockMenu = [[DoorControlMenu alloc] init];
-    unLockMenu.name = NSLocalizedString(@"manual_unlock", nil);
+    unLockMenu.name = NSBaseLocalizedString(@"manual_unlock", nil);
     unLockMenu.isSelected = NO;
     [doorControlMenus addObject:unLockMenu];
     
     
     DoorControlMenu *releaseMenu = [[DoorControlMenu alloc] init];
-    releaseMenu.name = NSLocalizedString(@"release", nil);
+    releaseMenu.name = NSBaseLocalizedString(@"release", nil);
     releaseMenu.isSelected = NO;
     [doorControlMenus addObject:releaseMenu];
     
     
     DoorControlMenu *APBMenu = [[DoorControlMenu alloc] init];
-    APBMenu.name = NSLocalizedString(@"clear_apb", nil);
+    APBMenu.name = NSBaseLocalizedString(@"clear_apb", nil);
     APBMenu.isSelected = NO;
     [doorControlMenus addObject:APBMenu];
     
     
     DoorControlMenu *alarmMenu = [[DoorControlMenu alloc] init];
-    alarmMenu.name = NSLocalizedString(@"clear_alarm", nil);
+    alarmMenu.name = NSBaseLocalizedString(@"clear_alarm", nil);
     alarmMenu.isSelected = NO;
     [doorControlMenus addObject:alarmMenu];
     

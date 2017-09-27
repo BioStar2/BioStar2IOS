@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="M4Y-Lb-cyx">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13173"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Roboto-Regular.ttf">
+            <string>Roboto-Regular</string>
+        </array>
+    </customFonts>
+    <scenes>
+        <!--Today View Controller-->
+        <scene sceneID="cwh-vc-ff4">
+            <objects>
+                <viewController id="M4Y-Lb-cyx" customClass="TodayViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="Ft6-oW-KC0"/>
+                        <viewControllerLayoutGuide type="bottom" id="FKl-LY-JtV"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" simulatedAppContext="notificationCenter" id="S3S-Oj-5AN">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="150"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xP7-ui-Lwv">
+                                <rect key="frame" x="15" y="15" width="0.0" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="31" id="TIL-TW-HXe"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="Roboto-Regular" family="Roboto" pointSize="20"/>
+                                <color key="textColor" red="0.34901960780000002" green="0.29411764709999999" blue="0.30980392159999998" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="oBY-kI-CQg">
+                                <rect key="frame" x="256" y="15" width="51" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="49" id="9eO-28-PRr"/>
+                                    <constraint firstAttribute="height" constant="31" id="B2c-MY-OhM"/>
+                                </constraints>
+                                <color key="onTintColor" red="0.38823529410000002" green="0.74117647060000003" blue="0.75686274509999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <action selector="setAutoscan:" destination="M4Y-Lb-cyx" eventType="valueChanged" id="1RZ-WK-3An"/>
+                                </connections>
+                            </switch>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="L1J-HQ-q1F">
+                                <rect key="frame" x="15" y="56" width="290" height="74"/>
+                                <state key="normal" backgroundImage="door_btn_nor"/>
+                                <state key="highlighted" backgroundImage="door_btn_pre"/>
+                                <connections>
+                                    <action selector="scanBLE:" destination="M4Y-Lb-cyx" eventType="touchUpInside" id="wT4-aP-CkO"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="FKl-LY-JtV" firstAttribute="top" secondItem="L1J-HQ-q1F" secondAttribute="bottom" constant="20" id="Hqj-G4-QD0"/>
+                            <constraint firstAttribute="trailing" secondItem="L1J-HQ-q1F" secondAttribute="trailing" constant="15" id="KsB-fS-4DS"/>
+                            <constraint firstItem="L1J-HQ-q1F" firstAttribute="top" secondItem="xP7-ui-Lwv" secondAttribute="bottom" constant="10" id="SUX-QG-xDI"/>
+                            <constraint firstAttribute="trailing" secondItem="oBY-kI-CQg" secondAttribute="trailing" constant="15" id="Une-iw-gQk"/>
+                            <constraint firstItem="oBY-kI-CQg" firstAttribute="top" secondItem="Ft6-oW-KC0" secondAttribute="bottom" constant="15" id="Y5r-42-Ijg"/>
+                            <constraint firstItem="xP7-ui-Lwv" firstAttribute="top" secondItem="Ft6-oW-KC0" secondAttribute="bottom" constant="15" id="gzL-oj-aWi"/>
+                            <constraint firstItem="L1J-HQ-q1F" firstAttribute="leading" secondItem="S3S-Oj-5AN" secondAttribute="leading" constant="15" id="l8w-WK-f1p"/>
+                            <constraint firstItem="xP7-ui-Lwv" firstAttribute="leading" secondItem="S3S-Oj-5AN" secondAttribute="leading" constant="15" id="vWK-fu-pHA"/>
+                        </constraints>
+                    </view>
+                    <extendedEdge key="edgesForExtendedLayout"/>
+                    <nil key="simulatedStatusBarMetrics"/>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <nil key="simulatedBottomBarMetrics"/>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="320" height="150"/>
+                    <connections>
+                        <outlet property="openButton" destination="L1J-HQ-q1F" id="Dcm-H7-ejj"/>
+                        <outlet property="settingLabel" destination="xP7-ui-Lwv" id="Ngu-Hb-bLh"/>
+                        <outlet property="settingSwitch" destination="oBY-kI-CQg" id="b5U-yh-k5V"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vXp-U4-Rya" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="49.600000000000001" y="129.53523238380811"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="door_btn_nor" width="9" height="5"/>
+        <image name="door_btn_pre" width="9" height="5"/>
+    </resources>
+</document>

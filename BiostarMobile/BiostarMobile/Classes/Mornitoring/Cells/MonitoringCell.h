@@ -19,6 +19,7 @@
 #import "CommonUtil.h"
 #import "NSString+EnumParser.h"
 #import "AuthProvider.h"
+#import "LocalDataManager.h"
 
 @interface MonitoringCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIImageView *eventImageView;
@@ -26,7 +27,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *eventDateLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *accImageView;
 
-- (void)setContent:(EventLogResult*)logResult canMoveDetail:(BOOL)canMoveDetail;
+- (void)setContent:(EventLogResult*)logResult;
 - (void)setIcon:(NSDictionary*)eventInfo;
 - (BOOL)isInCondition:(NSInteger)min max:(NSInteger)max code:(NSInteger)code imageName:(NSString*)imageName;
 - (void)setEventImage:(EventLogResult*)logResult;

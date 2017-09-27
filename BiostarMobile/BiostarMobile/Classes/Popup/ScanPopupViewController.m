@@ -29,7 +29,7 @@
     [self showPopupAnimation:containerView];
     deviceProvider = [[DeviceProvider alloc] init];
     
-    [confirmButton setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [confirmButton setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     if (nil == scanFingerPrintTemplate)
     {
         scanFingerPrintTemplate = [FingerprintTemplate new];
@@ -39,27 +39,27 @@
     
     if (scanIndex == 0)
     {
-        titleLabel.text = NSLocalizedString(@"1st_fingerprint", nil);
+        titleLabel.text = [NSString stringWithFormat:@"%ld%@ %@",scanIndex + 1 ,NSBaseLocalizedString(@"st", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     }
     else if (scanIndex == 1)
     {
-        titleLabel.text = NSLocalizedString(@"2nd_fingerprint", nil);
+        titleLabel.text = [NSString stringWithFormat:@"%ld%@ %@",scanIndex + 1 ,NSBaseLocalizedString(@"nd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     }
     else if (scanIndex == 2)
     {
-        titleLabel.text = NSLocalizedString(@"3rd_fingerprint", nil);
+        titleLabel.text = [NSString stringWithFormat:@"%ld%@ %@",scanIndex + 1 ,NSBaseLocalizedString(@"rd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     }
     else
     {
-        titleLabel.text = [NSString stringWithFormat:NSLocalizedString(@"%ldth_fingerprint", nil), scanIndex + 1];
+        titleLabel.text = [NSString stringWithFormat:@"%ld%@ %@",scanIndex + 1 ,NSBaseLocalizedString(@"th", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     }
     
-    descriptionLabel.text = NSLocalizedString(@"finger_on_device", nil);
+    descriptionLabel.text = NSBaseLocalizedString(@"finger_on_device", nil);
     
     if (_scanCount == 1)
     {
         scanImage.image = [UIImage imageNamed:@"user_fp2"];
-        descriptionLabel.text = NSLocalizedString(@"finger_on_device_same", nil);
+        descriptionLabel.text = NSBaseLocalizedString(@"finger_on_device_same", nil);
     }
 }
 
@@ -119,10 +119,9 @@
         if (_scanCount == 1)
         {
             scanFingerPrintTemplate.template1 = result.template0;
-            
             NSString *description = [NSString stringWithFormat:@"%@\n%@"
-                                     , NSLocalizedString(@"verify_finger", nil)
-                                     ,[NSString stringWithFormat:NSLocalizedString(@"quality %ld", nil), result.enroll_quality]];
+                                     , NSBaseLocalizedString(@"verify_finger", nil)
+                                     ,[NSString stringWithFormat:@"%@ %d",NSBaseLocalizedString(@"quality", nil) ,result.enroll_quality]];
             descriptionLabel.text = description;
             [self showPopupAnimation:containerView];
             
@@ -143,8 +142,8 @@
             _scanCount++;
             scanImage.image = [UIImage imageNamed:@"user_fp2"];
             NSString *description = [NSString stringWithFormat:@"%@\n%@"
-                                     ,[NSString stringWithFormat:NSLocalizedString(@"quality %ld", nil), result.enroll_quality]
-                                     ,NSLocalizedString(@"finger_on_device_same", nil)];
+                                     ,[NSString stringWithFormat:@"%@ %d",NSBaseLocalizedString(@"quality", nil) ,result.enroll_quality]
+                                     ,NSBaseLocalizedString(@"finger_on_device_same", nil)];
             
             descriptionLabel.text = description;
             
@@ -155,34 +154,37 @@
         
     } onError:^(Response *error) {
         
-        if ([error.status_code isEqualToString:@"SCAN_QUALITY_IS_LOW"])
-        {
-            // 재 스캔 방법 팝업 띄우기
-            errorMessage = error.message;
-            [self showScanMethodSelectPopup];
-        }
-        else
-        {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-            [imagePopupCtrl setContent:error.message];
-            
-            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-            
-            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-                if (isConfirm)
-                {
-                    [self showPopupAnimation:containerView];
-                    [self requestScanFingerprint:self.deviceID scanQuality:quality];
-                }
-                else
-                {
-                    [self closePopup:self parentViewController:self.parentViewController];
-                }
-            }];
-        }
+        errorMessage = error.message;
+        [self showScanMethodSelectPopup];
+        
+//        if ([error.status_code isEqualToString:@"SCAN_QUALITY_IS_LOW"])
+//        {
+//            // 재 스캔 방법 팝업 띄우기
+//            errorMessage = error.message;
+//            [self showScanMethodSelectPopup];
+//        }
+//        else
+//        {
+//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+//            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+//            [imagePopupCtrl setContent:error.message];
+//
+//            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//
+//            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//                if (isConfirm)
+//                {
+//                    [self showPopupAnimation:containerView];
+//                    [self requestScanFingerprint:self.deviceID scanQuality:quality];
+//                }
+//                else
+//                {
+//                    [self closePopup:self parentViewController:self.parentViewController];
+//                }
+//            }];
+//        }
         
     }];
     
@@ -198,14 +200,14 @@
         if (result.verify_result)
         {
             scanImage.image = [UIImage imageNamed:@"user_fp3"];
-            descriptionLabel.text = NSLocalizedString(@"scan_success", nil);
+            descriptionLabel.text = NSBaseLocalizedString(@"scan_success", nil);
             [confirmButton setHidden:NO];
         }
         else
         {
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
             ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
             [imagePopupCtrl setContent:result.message];
             
             [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -231,7 +233,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

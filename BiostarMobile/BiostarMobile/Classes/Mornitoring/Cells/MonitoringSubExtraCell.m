@@ -31,61 +31,62 @@
     // Configure the view for the selected state
 }
 
-- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo canMoveDetail:(BOOL)canMoveDetail
+- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo
 {
     EventType *eventType = eventInfo.event_type;
-    if (nil == eventType.event_type_description)
-    {
-        NSInteger code = eventType.code;
-        if (code > 4095 && code < 4110)
-        {
-            code = 4096;
-        }
-        else if (code > 4351 && code < 4360)
-        {
-            code = 4352;
-        }
-        else if (code > 4607 && code < 4622)
-        {
-            code = 4608;
-        }
-        else if (code > 4863 && code < 4869)
-        {
-            code = 4864;
-        }
-        else if (code > 5119 && code < 5128)
-        {
-            code = 5120;
-        }
-        
-        NSString *detail = [EventProvider convertEventCodeToDescription:code];
-        if (nil == detail)
-        {
-            _eventTitleLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)code];
-        }
-        else
-        {
-            _eventTitleLabel.text = detail;
-        }
-        
-    }
-    else
-    {
-        _eventTitleLabel.text = eventType.event_type_description;
-    }
+    _eventTitleLabel.text = eventType.event_type_description;
+//    if (nil == eventType.event_type_description)
+//    {
+//        NSInteger code = eventType.code;
+//        if (code > 4095 && code < 4110)
+//        {
+//            code = 4096;
+//        }
+//        else if (code > 4351 && code < 4360)
+//        {
+//            code = 4352;
+//        }
+//        else if (code > 4607 && code < 4622)
+//        {
+//            code = 4608;
+//        }
+//        else if (code > 4863 && code < 4869)
+//        {
+//            code = 4864;
+//        }
+//        else if (code > 5119 && code < 5128)
+//        {
+//            code = 5120;
+//        }
+//
+//        NSString *detail = [EventProvider convertEventCodeToDescription:code];
+//        if (nil == detail)
+//        {
+//            _eventTitleLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)code];
+//        }
+//        else
+//        {
+//            _eventTitleLabel.text = detail;
+//        }
+//
+//    }
+//    else
+//    {
+//        _eventTitleLabel.text = eventType.event_type_description;
+//    }
 
 
     NSDate *calculatedDate = [CommonUtil localDateFromString:eventInfo.datetime originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
     
     NSString *timeFormat;
     
-    if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+    if ([[LocalDataManager getTimeFormat] isEqualToString:@"hh:mm a"])
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+        timeFormat = [NSString stringWithFormat:@"%@ %@",[LocalDataManager getDateFormat], @"hh:mm:ss a"];
     }
     else
     {
-        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+        timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[LocalDataManager getDateFormat], [LocalDataManager getTimeFormat]];
     }
     
     NSString *description = [NSString stringWithFormat:@"%@",
@@ -131,21 +132,6 @@
     EventLevel eventLevel = [logResult.level eventLevelEnumFromString];
     LogType logType = [logResult.type logTypeEnumFromString];
     
-    if (logType == USER)
-    {
-        if ([AuthProvider hasReadPermission:USER_PERMISSION])
-        {
-            [_accImageView setHidden:NO];
-        }
-        else
-        {
-            [_accImageView setHidden:YES];
-        }
-    }
-    else
-    {
-        [_accImageView setHidden:YES];
-    }
     
     switch (eventLevel) {
         case GREEN:

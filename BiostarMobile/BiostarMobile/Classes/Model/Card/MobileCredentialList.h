@@ -7,10 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "Card.h"
+#import "GetMobileCredential.h"
 
 @interface MobileCredentialList : NSObject
 
-@property (nonatomic, strong) NSArray <Card*> *mobile_credential_list;
+@property (nonatomic, strong) NSArray <GetMobileCredential*> *mobile_credential_list;
 
 @end

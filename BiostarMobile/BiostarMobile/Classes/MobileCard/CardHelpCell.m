@@ -17,25 +17,25 @@
     for (NSInteger i = 0; i < 2; i ++)
     {
         UILabel *titleLabel = [titleLabels objectAtIndex:i];
-        titleLabel.text = NSLocalizedString(@"access_on_card", nil);
+        titleLabel.text = NSBaseLocalizedString(@"access_on_card", nil);
         
         UILabel *cardDecLabel = [cardDecLabels objectAtIndex:i];
-        cardDecLabel.text = NSLocalizedString(@"card_id", nil);
+        cardDecLabel.text = NSBaseLocalizedString(@"card_id", nil);
         
         UILabel *cardNumberLabel = [cardNumberLabels objectAtIndex:i];
         cardNumberLabel.text = @"4292967295";
         
         UILabel *credentialLabel = [credentialLabels objectAtIndex:i];
-        credentialLabel.text = NSLocalizedString(@"credential", nil);
+        credentialLabel.text = NSBaseLocalizedString(@"credential", nil);
         
         UILabel *accessGroupDecLabel = [accessGroupDecLabels objectAtIndex:i];
-        accessGroupDecLabel.text = NSLocalizedString(@"access_group", nil);
+        accessGroupDecLabel.text = NSBaseLocalizedString(@"access_group", nil);
         
         UILabel *accessGroupLabel = [accessGroupLabels objectAtIndex:i];
         accessGroupLabel.text = @"brunch Swedeng";
         
         UILabel *periodDecLabel = [periodDecLabels objectAtIndex:i];
-        periodDecLabel.text = NSLocalizedString(@"period", nil);
+        periodDecLabel.text = NSBaseLocalizedString(@"period", nil);
         
         UILabel *periodLabel = [periodLabels objectAtIndex:i];
         periodLabel.text = @"2016.01.01 - 2030.12.31";
@@ -47,21 +47,19 @@
         fingerPrintLabel.text = @"b2";
         
         UILabel *disabledDecLabel = [disabledDecLabels objectAtIndex:i];
-        disabledDecLabel.text = NSLocalizedString(@"disabled_card", nil);
+        disabledDecLabel.text = NSBaseLocalizedString(@"disabled_card", nil);
         
         UILabel *helpDec = [helpDecs objectAtIndex:i];
         if (i == 0)
         {
-            helpDec.text = NSLocalizedString(@"issue_dec", nil);
+            NSString *dec = [NSString stringWithFormat:@"%@\n%@",NSBaseLocalizedString(@"guide_register_mobile_card1", nil) ,NSBaseLocalizedString(@"guide_register_mobile_card3", nil)];
+            helpDec.text = dec;
         }
         else
         {
-            helpDec.text = NSLocalizedString(@"stop_dec", nil);
+            helpDec.text = NSBaseLocalizedString(@"guide_register_mobile_card3", nil);
         }
         
-        
-        
-        UIButton *button = [switchButtons objectAtIndex:i];
         
         UIView *togleView = [togleViews objectAtIndex:i];
         

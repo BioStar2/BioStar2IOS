@@ -25,11 +25,12 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
+    
+    [logoutBtn setTitle:NSBaseLocalizedString(@"log_out", nil) forState:UIControlStateNormal];
     [self setSharedViewController:self];
     buttonDatas = [[NSMutableArray alloc] init];
     sideMenuButtons = [[NSMutableArray alloc] init];
     isSidemenuOpen = NO;
-    
     
     UIScreenEdgePanGestureRecognizer *edgePanGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(handleEdgePan:)];
     edgePanGesture.edges = UIRectEdgeLeft;
@@ -40,7 +41,10 @@
     
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
     NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
-    versionLabel.text = [NSString stringWithFormat:@"V.%@", version];
+    NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
+    
+    NSString *totalVersion = [NSString stringWithFormat:@"%@.%@",version ,buildversion];
+    versionLabel.text = [NSString stringWithFormat:@"V.%@", totalVersion];
     
     authProvider = [[AuthProvider alloc] init];
     
@@ -93,6 +97,21 @@
                                                  name:LOGGED_IN_USER_UPDATEED
                                                object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(settingDidUpdated)
+                                                 name:SETTING_DID_UPDATE
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(needToGetMobileCredendial)
+                                                 name:NEED_TO_GET_MOBILE_CREDENTIAL
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(useFaceTemplateForProfilePicture:)
+                                                 name:USE_FACE_TEMPLATE
+                                               object:nil];
+    
     
     //menuTableView.estimatedRowHeight = 63.0;
     menuTableView.rowHeight = UITableViewAutomaticDimension;
@@ -102,12 +121,7 @@
     badgeNumberLabel.text = [NSString stringWithFormat:@"%ld", (long)badgeCount];
     
     [self setMenuItems];
-#warning 2.4.1 에 해당
-//    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-//    HelpViewController *helpController = [storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
-//    
-//    [self showPopup:helpController parentViewController:self parentView:self.view];
-//    helpController.delegate = self;
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -118,11 +132,12 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self setGradation];
-    
-    [self loadMyprofile];
-    
-    
+    if ([self isHomeScreen])
+    {
+        [self setGradation];
+        [self loadMyprofile];
+        [self getMobileCredential];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -136,16 +151,21 @@
 {
     [super viewWillAppear:animated];
     
+    NSLog(@"main viewWillAppear");
+    transDateFormate = [NSString stringWithFormat:@"%@",[LocalDataManager getDateFormat]];
+    
     timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(updateWatch) userInfo:nil repeats:YES];
     [self updateWatch];
 }
+
+
 
 - (void)showImagePopup:(NSString*)message type:(FailType)failType
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
     imagePopupCtrl.type = REQUEST_FAIL;
-    imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+    imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
     [imagePopupCtrl setContent:message];
     
     [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -174,14 +194,18 @@
 
 - (void)getPreference
 {
-#warning 권한에 상관 없이 셋팅 정보는 다 가져 올 수 있음 cloud 반영시 정상 동작됨
     requestCount++;
     
     [preferenceProvoder getPreferenceWithCompleteHandler:^(Setting *user) {
         [self checkRequestCount];
     } onError:^(Response *error) {
         [self checkRequestCount];
-        [self showImagePopup:error.message type:PREFERENCE_FAIL];
+        
+        if (nil == [LocalDataManager getDateFormat] && nil == [LocalDataManager getDateFormat])
+        {
+            [self showImagePopup:error.message type:PREFERENCE_FAIL];
+        }
+        
     }];
     
 }
@@ -194,10 +218,16 @@
         
         [doorProvider searchDoors:nil limit:10 offset:0 completeBlock:^(GetDoorList *result) {
             [self checkRequestCount];
+            
+            [LocalDataManager setDoorCount:result.total];
+            
             [self setTotalCount:[NSNumber numberWithInteger:result.total] type:DOOR_BUTTON];
         } onError:^(Response *error) {
             [self checkRequestCount];
-            [self showImagePopup:error.message type:DOOR_FAIL];
+            
+            NSInteger doorCount = [LocalDataManager getDoorCount];
+            [self setTotalCount:[NSNumber numberWithInteger:doorCount] type:DOOR_BUTTON];
+            //[self showImagePopup:error.message type:DOOR_FAIL];
         }];
     }
     
@@ -211,7 +241,20 @@
     {
         requestCount++;
         
-        [userProvider getUsersOffset:0 limit:1 groupID:@"1" query:nil completeHandler:^(UserSearchResult *userSearchResult) {
+        NSString *groupID;
+        
+        if ([PreferenceProvider isUpperVersion])
+        {
+            groupID = nil;
+        }
+        else
+        {
+            groupID = @"1";
+        }
+        
+        [userProvider getUsersOffset:0 limit:1 groupID:groupID query:nil completeHandler:^(UserSearchResult *userSearchResult) {
+            
+            [LocalDataManager setUserCount:userSearchResult.total];
             
             [self checkRequestCount];
             
@@ -221,30 +264,29 @@
             
             [self checkRequestCount];
             
-            [self showImagePopup:error.message type:USER_FAIL];
+            NSInteger userCount = [LocalDataManager getUserCount];
+            
+            [self setTotalCount:[NSNumber numberWithInteger:userCount] type:USER_BUTTON];
+            
+            //[self showImagePopup:error.message type:USER_FAIL];
         }];
     }
 }
 
 - (void)setTotalCount:(NSNumber*)count type:(ButtonType)type
 {
-    NSMutableDictionary *sideMenuDic = [[NSMutableDictionary alloc] init];
-    
     NSInteger index = 0;
     ButtonModel *sideMenuButton;
     for (ButtonModel *button in sideMenuButtons)
     {
         if (button.type == type)
         {
-            sideMenuButton = button;
+            sideMenuButton = [button copy];
             sideMenuButton.count = [count unsignedIntegerValue];
+            [sideMenuButtons replaceObjectAtIndex:index withObject:sideMenuButton];
             break;
         }
         index++;
-    }
-    if (sideMenuDic.count > 0)
-    {
-        [sideMenuButtons replaceObjectAtIndex:index withObject:sideMenuButton];
     }
     
     [menuTableView reloadData];
@@ -254,11 +296,18 @@
 {
     requestCount++;
     [eventProvider getEventTypes:^(EventTypeSearchResult *result) {
+        
+        
         [self checkRequestCount];
+        
     } onError:^(Response *error) {
         [self checkRequestCount];
         
-         [self showImagePopup:error.message type:EVENT_FAIL];
+        if (nil == [EventProvider getLocalEventTypes])
+        {
+            [self showImagePopup:error.message type:EVENT_FAIL];
+        }
+        
     }];
     
 }
@@ -286,20 +335,18 @@
 
 - (void)setBadgeViewWidth
 {
-    
     NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:badgeNumberLabel.font, NSFontAttributeName, nil];
     CGFloat width = [[[NSAttributedString alloc] initWithString:badgeNumberLabel.text attributes:attributes] size].width;
     width += 5;
-    if (width < badgeView.frame.size.width)
-    {
-        badgeWidthConstraint.constant = 0;
-    }
-    else
+    
+    if(badgeNumberLabel.text.length > 2)
     {
         badgeWidthConstraint.constant = width / 2;
     }
-    
-    //badgeTrailingConstraint.constant = (width + 16) / 3;
+    else
+    {
+        badgeWidthConstraint.constant = 0;
+    }
     
     NSInteger badgeNumber = [badgeNumberLabel.text integerValue];
     
@@ -352,6 +399,39 @@
     }
 }
 
+- (void)getMobileCredential
+{
+    [userProvider getMyMobileCredentials:^(MobileCredentialList *result) {
+        
+        if (result.mobile_credential_list.count > 0)
+        {
+            [badgeAlertView setHidden:result.mobile_credential_list[0].is_registered];
+            
+            if (!result.mobile_credential_list[0].is_registered)
+            {
+                if (![LocalDataManager getShowHelpViewStatus])
+                {
+                    if ([self isHomeScreen])
+                    {
+                        if (isSidemenuOpen)
+                        {
+                            [self closeSideMenu:10];
+                        }
+                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+                        HelpViewController *helpController = [storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+                        
+                        [self showPopup:helpController parentViewController:self parentView:self.view];
+                        helpController.delegate = self;
+                    }
+                }
+            }
+        }
+        
+    } onErrorBlock:^(Response *error) {
+        
+    }];
+}
+
 - (void)addBadgeViewConstraint:(UIButton*)button
 {
     [badgeView setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -364,7 +444,7 @@
                                                         relatedBy:NSLayoutRelationEqual
                                                            toItem:button
                                                         attribute:NSLayoutAttributeWidth
-                                                       multiplier:0.3
+                                                       multiplier:0.25
                                                          constant:0];
     
     [button addConstraint:badgeWidthConstraint];
@@ -374,7 +454,7 @@
                                                        relatedBy:NSLayoutRelationEqual
                                                           toItem:button
                                                        attribute:NSLayoutAttributeHeight
-                                                      multiplier:0.3
+                                                      multiplier:0.25
                                                         constant:0]];
     
     badgeTrailingConstraint = [NSLayoutConstraint constraintWithItem:badgeView
@@ -472,11 +552,11 @@
 - (void)setMenuItems
 {
     [buttonDatas removeAllObjects];
-    
+    [sideMenuButtons removeAllObjects];
     // 순서대로 my profile, user, door, monitoring, alarm,
     
     ButtonModel *model = [[ButtonModel alloc] init];
-    model.title = NSLocalizedString(@"myprofile_upper", nil);
+    model.title = NSBaseLocalizedString(@"myprofile_upper", nil);
     model.normalImage = [UIImage imageNamed:@"main_myprofile_ic"];
     model.highlightedImage = [UIImage imageNamed:@"main_myprofile_ic_pre"];
     model.type = MYPROFILE_BUTTON;
@@ -486,11 +566,17 @@
     if ([AuthProvider hasReadPermission:USER_PERMISSION])
     {
         ButtonModel *model = [[ButtonModel alloc] init];
-        model.title = NSLocalizedString(@"user_upper", nil);
+        model.title = NSBaseLocalizedString(@"user_upper", nil);
         model.normalImage = [UIImage imageNamed:@"main_user_id"];
         model.highlightedImage = [UIImage imageNamed:@"main_user_id_pre"];
         model.icon = [UIImage imageNamed:@"list_user_ic"];
         model.type = USER_BUTTON;
+        
+        NSUInteger count = [LocalDataManager getUserCount];
+        if (count != 0)
+        {
+            model.count = count;
+        }
         
         [sideMenuButtons addObject:model];
         [buttonDatas addObject:model];
@@ -499,11 +585,17 @@
     if ([AuthProvider hasReadPermission:DOOR_PERMISSION])
     {
         ButtonModel *model = [[ButtonModel alloc] init];
-        model.title = NSLocalizedString(@"door_upper", nil);
+        model.title = NSBaseLocalizedString(@"door_upper", nil);
         model.normalImage = [UIImage imageNamed:@"main_door_ic"];
         model.highlightedImage = [UIImage imageNamed:@"main_door_ic_pre"];
         model.icon = [UIImage imageNamed:@"list_door_ic"];
         model.type = DOOR_BUTTON;
+        
+        NSUInteger count = [LocalDataManager getDoorCount];
+        if (count != 0)
+        {
+            model.count = count;
+        }
         
         [sideMenuButtons addObject:model];
         [buttonDatas addObject:model];
@@ -512,7 +604,7 @@
     if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
     {
         ButtonModel *model = [[ButtonModel alloc] init];
-        model.title = NSLocalizedString(@"monitoring_upper", nil);
+        model.title = NSBaseLocalizedString(@"monitoring_upper", nil);
         model.normalImage = [UIImage imageNamed:@"main_monitor_ic"];
         model.highlightedImage = [UIImage imageNamed:@"main_monitor_ic_pre"];
         model.icon = [UIImage imageNamed:@"list_monitor_ic"];
@@ -525,51 +617,76 @@
     if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
     {
         ButtonModel *model = [[ButtonModel alloc] init];
-        model.title = NSLocalizedString(@"alarm_upper", nil);
+        model.title = NSBaseLocalizedString(@"alarm_upper", nil);
         model.normalImage = [UIImage imageNamed:@"main_alarm_ic"];
         model.highlightedImage = [UIImage imageNamed:@"main_alram_ic_pre"];
         model.icon = [UIImage imageNamed:@"list_alram_ic"];
         model.count = [AuthProvider getLoginUserInfo].unread_notification_count;
         model.type = ALARM_BUTTON;
         
+        [sideMenuButtons addObject:model];
+        [buttonDatas addObject:model];
+    }
+
+    if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
+    {
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"mobile_card_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_card_ic"];
+        model.highlightedImage = [UIImage imageNamed:@"main_card_ic_pre"];
+        model.icon = [UIImage imageNamed:@"list_mobilecard_ic"];
+        model.type = MOBILE_CARD_BUTTON;
         
         [sideMenuButtons addObject:model];
         [buttonDatas addObject:model];
     }
-#warning ble ad 원하는 OS 버전이면 스마트카드 메뉴 보이게
-#warning 2.4.1 에 해당
-//    if (YES)
-//    {
-//        ButtonModel *model = [[ButtonModel alloc] init];
-//        model.title = NSLocalizedString(@"mobile_card_upper", nil);
-//        model.normalImage = [UIImage imageNamed:@"main_card_ic"];
-//        model.highlightedImage = [UIImage imageNamed:@"main_card_ic_pre"];
-//        model.icon = [UIImage imageNamed:@"list_mobilecard_ic"];
-//        model.type = MOBILE_CARD_BUTTON;
-//        
-//
-//        [sideMenuButtons addObject:model];
-//        [buttonDatas addObject:model];
-//    }
     
     if (buttonDatas.count > 3)
     {
         // 두줄 배치
-        bottomConstraint.constant = 0;
+        //bottomConstraint.constant = 0;
+        stackViewBottomConstraint.constant = 0;
     }
     else
     {
         // 한줄 배치
-        bottomConstraint.constant = -60;
+        //bottomConstraint.constant = -60;
+        stackViewBottomConstraint.constant = -100;
     }
     
     buttonsTouchDown = @selector(buttonsTouchDown:);
     buttonsTouchUpOutside = @selector(buttonsTouchUpOutside:);
     buttonsTouchUpInside = @selector(buttonsTouchUpInside:);
+    
+    BOOL isFourButtons = NO;
+    if (buttonDatas.count < 6)
+    {
+        if (buttonDatas.count == 4)
+        {
+            isFourButtons = YES;
+        }
+        
+        NSUInteger emptyButtonCount = 6 - buttonDatas.count;
+        for (int i = 0; i < emptyButtonCount; i++)
+        {
+            ButtonModel *model = [[ButtonModel alloc] init];
+            model.title = @"";
+            model.normalImage = nil;
+            model.highlightedImage = nil;
+            model.icon = nil;
+            model.type = EMPTY_BUTTON;
+            [buttonDatas addObject:model];
+        }
+    }
+    
+    
     for (NSInteger i = 0; i < buttonDatas.count; i ++)
     {
-        UILabel *label = [buttonLabels objectAtIndex:i];
-        UIButton *button = [buttons objectAtIndex:i];
+//        UILabel *label = [buttonLabels objectAtIndex:i];
+//        UIButton *button = [buttons objectAtIndex:i];
+        
+        UILabel *label = [stackViewLabels objectAtIndex:i];
+        UIButton *button = [stackViewButtons objectAtIndex:i];
         button.tag = i;
         label.tag = i;
         
@@ -579,6 +696,19 @@
         [button addTarget:self action:buttonsTouchDown forControlEvents:UIControlEventTouchDown];
         [button addTarget:self action:buttonsTouchUpOutside forControlEvents:UIControlEventTouchUpOutside];
         [button addTarget:self action:buttonsTouchUpInside forControlEvents:UIControlEventTouchUpInside];
+        
+        if (!isFourButtons)
+        {
+            UIView *buttonView = [buttonViews objectAtIndex:i];
+            if (model.type == EMPTY_BUTTON)
+            {
+                [buttonView setHidden:YES];
+            }
+            else
+            {
+                [buttonView setHidden:NO];
+            }
+        }
         
         if (model.type == ALARM_BUTTON)
         {
@@ -590,7 +720,7 @@
         {
             [button addSubview:badgeAlertView];
             [badgeAlertView setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [badgeAlertView setHidden:NO];
+            [badgeAlertView setHidden:YES];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:badgeAlertView
                                                                        attribute:NSLayoutAttributeWidth
                                                                        relatedBy:NSLayoutRelationEqual
@@ -681,25 +811,35 @@
         case MOBILE_CARD_BUTTON:
             [self moveToMobileCard];
             break;
+        case EMPTY_BUTTON:
+            break;
     }
 }
 
 - (void)updateWatch
 {
     NSDate *date = [NSDate date];
+    
+    transDateFormate = [transDateFormate stringByReplacingOccurrencesOfString:@"yyyy/" withString:@""];
+    transDateFormate = [transDateFormate stringByReplacingOccurrencesOfString:@"/yyyy" withString:@""];
+    
+    NSString *tempTransDateFormate = [NSString stringWithFormat:@"a,hh:mm,%@,EEE", transDateFormate];
+    
     NSString *currentTime = [CommonUtil stringFromCurrentLocaleDateString:[date description]
                                                          originDateFormat:@"YYYY-MM-dd HH:mm:ss z"
-                                                          transDateFormat:@"a hh:mm MM/dd, EEE  "];
+                                                          transDateFormat:tempTransDateFormate];
     
-    NSArray *timeArray = [currentTime componentsSeparatedByString:@" "];
+    NSArray *timeArray = [currentTime componentsSeparatedByString:@","];
     
-    NSString *isoCode = [[NSLocale preferredLanguages] objectAtIndex:0];
+    NSString* isoCode = [NSLocale currentLocale].languageCode;
+    
     AMLabel.text = [timeArray objectAtIndex:0];
     timeLabel.text = [timeArray objectAtIndex:1];
     
     if ([isoCode isEqualToString:@"ko"])
     {
         NSString *day = [NSString stringWithFormat:@"%@요일", [timeArray objectAtIndex:3]];
+        day = [day stringByReplacingOccurrencesOfString:@" " withString:@""];
         dateLabel.text = [NSString stringWithFormat:@"%@ %@",[timeArray objectAtIndex:2]
                           ,day];
     }
@@ -718,9 +858,10 @@
 - (void)moveToUserController
 {
     
+    
     if (![AuthProvider hasReadPermission:USER_PERMISSION])
     {
-        [self.view makeToast:NSLocalizedString(@"no_permission", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"no_permission", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -740,6 +881,8 @@
 
 - (void)moveToMobileCard
 {
+    
+    
     [self popToRootViewController];
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
@@ -758,7 +901,7 @@
     
     if (![AuthProvider hasReadPermission:DOOR_PERMISSION])
     {
-        [self.view makeToast:NSLocalizedString(@"no_permission", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"no_permission", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -779,9 +922,10 @@
 - (void)moveToMonitorController
 {
     
+    
     if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
     {
-        [self.view makeToast:NSLocalizedString(@"no_permission", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"no_permission", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -802,6 +946,8 @@
 
 - (void)moveToAlarmController
 {
+    
+    
     [self popToRootViewController];
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
@@ -815,12 +961,12 @@
 - (IBAction)showBuildVersion:(id)sender
 {
 #warning QA 용일때만
-    NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
-    
-    NSString *builtInfo = [NSString stringWithFormat:@"Build number : %@", buildversion];
-    
-    [self.view makeToast:builtInfo];
+//    NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
+//    NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
+//    
+//    NSString *builtInfo = [NSString stringWithFormat:@"Build number : %@", buildversion];
+//    
+//    [self.view makeToast:builtInfo];
 }
 
 
@@ -832,6 +978,10 @@
 
 - (IBAction)moveToHome:(id)sender
 {
+    
+    [self setMenuItems];
+    [self getMobileCredential];
+    [[NSNotificationCenter defaultCenter] postNotificationName:MOVING_TO_ALARM object:nil];
     [self closeSideMenu:10];
     [self popToRootViewController];
 }
@@ -840,6 +990,8 @@
 
 - (IBAction)moveToPreperence:(id)sender
 {
+    
+    
     [self closeSideMenu:10];
     [self popToRootViewController];
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
@@ -863,6 +1015,8 @@
 
 - (IBAction)moveToMyProfile:(id)sender
 {
+    
+    
     [self closeSideMenu:10];
     [self popToRootViewController];
     
@@ -880,7 +1034,6 @@
 
 - (IBAction)logout:(id)sender
 {
-    
     [self startLoading:self];
     [authProvider logout:^(Response *error) {
         
@@ -897,13 +1050,25 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
 
     }];
     
+}
+
+- (IBAction)moveToLicense:(id)sender
+{
+    [self closeSideMenu:10];
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    LicenseViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"LicenseViewController"];
+    
+    [self pushChildViewController:viewController
+             parentViewController:self
+                      contentView:contentView animated:YES];
 }
 
 
@@ -1130,7 +1295,6 @@
 
 - (void)notificationIsOccured:(NSNotification*)userInfo
 {
-    
     badgeCount++;
     
     badgeNumberLabel.text = [NSString stringWithFormat:@"%ld", (long)badgeCount];
@@ -1138,10 +1302,58 @@
     [self setTotalCount:[NSNumber numberWithInteger:badgeCount] type:ALARM_BUTTON];
     [self setBadgeViewWidth];
     
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-    NotiPopupController *notiPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"NotiPopupController"];
-    [notiPopupCtrl setNotiDic:userInfo.object];
-    [self showPopup:notiPopupCtrl parentViewController:self parentView:self.view];
+    NSDictionary *notiDic = userInfo.object;
+    NSString *title = nil;
+    NSString *content = nil;
+    NSString *toastContent = nil;
+    
+    if (notiDic)
+    {
+        if ([[[notiDic objectForKey:@"aps"] objectForKey:@"alert"] isKindOfClass:[NSDictionary class]])
+        {
+            NSDictionary *alert = [[notiDic objectForKey:@"aps"] objectForKey:@"alert"];
+            
+            title = NSBaseLocalizedString([alert objectForKey:@"title-loc-key"], nil);
+            
+            NSArray *args = [alert objectForKey:@"loc-args"];
+            
+            if (nil != args)
+            {
+                NSRange range = NSMakeRange(0, [args count]);
+                NSMutableData* data = [NSMutableData dataWithLength: sizeof(id) * [args count]];
+                [args getObjects: (__unsafe_unretained id *)data.mutableBytes range:range];
+                
+                content = [[NSString alloc] initWithFormat:NSBaseLocalizedString([alert objectForKey:@"loc-key"], nil) arguments:data.mutableBytes];
+            }
+            else
+            {
+                content = NSBaseLocalizedString([alert objectForKey:@"loc-key"], nil);
+            }
+            
+            toastContent = [NSString stringWithFormat:@"%@\n%@",title ,content];
+        }
+    }
+    
+    [self.view makeToast:toastContent
+                duration:1.0
+                position:CSToastPositionTop
+                   image:[UIImage imageNamed:@"toast_popup_i_04"]];
+    
+//    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//    NotiPopupController *notiPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"NotiPopupController"];
+//    [notiPopupCtrl setNotiDic:userInfo.object];
+//    [self showPopup:notiPopupCtrl parentViewController:self parentView:self.view];
+}
+
+- (void)useFaceTemplateForProfilePicture:(NSNotification*)userInfo
+{
+    NSString *updatedUserID = [userInfo.object objectForKey:@"userID"];
+    
+    if ([[AuthProvider getLoginUserInfo].user_id isEqualToString:updatedUserID])
+    {
+        [AuthProvider getLoginUserInfo].photo = [userInfo.object objectForKey:@"photo"];
+        [self loadMyprofile];
+    }
 }
 
 - (void)moveToAlarmByNoti
@@ -1153,6 +1365,22 @@
 {
     [self loadMyprofile];
 }
+
+- (void)settingDidUpdated
+{
+    transDateFormate = [NSString stringWithFormat:@"%@",[LocalDataManager getDateFormat]];
+}
+
+- (void)needToGetMobileCredendial
+{
+    [self loadMyprofile];
+    
+    [self setMenuItems];
+    
+    [self getMobileCredential];
+}
+
+
 
 #pragma mark - Table view data source
 
@@ -1230,6 +1458,8 @@
         case MOBILE_CARD_BUTTON:
             [self moveToMobileCard];
             break;
+        default:
+            break;
     }
 }
 - (BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -1264,7 +1494,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

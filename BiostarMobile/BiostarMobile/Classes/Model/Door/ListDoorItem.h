@@ -35,6 +35,6 @@
 @property (nonatomic, assign) NSInteger open_duration;
 @property (nonatomic, strong) NSString *open_once;
 @property (nonatomic, strong) DoorStatus *status;
-
+@property (nonatomic, assign) BOOL isSelected;
 
 @end

@@ -21,6 +21,7 @@
 #import "Common.h"
 #import "SDImageCache.h"
 #import "PreferenceProvider.h"
+#import "PermissionProvider.h"
 
 @interface UserCell : UITableViewCell 
 {
@@ -33,15 +34,15 @@
 @property (weak, nonatomic) IBOutlet UILabel *name;
 @property (weak, nonatomic) IBOutlet UILabel *userIDLabel;
 @property (weak, nonatomic) IBOutlet UIView *cardView;
-@property (weak, nonatomic) IBOutlet UILabel *cardCount;
+@property (weak, nonatomic) IBOutlet UIView *faceView;
 @property (weak, nonatomic) IBOutlet UIView *fingerView;
-@property (weak, nonatomic) IBOutlet UILabel *FPCount;
 @property (weak, nonatomic) IBOutlet UIView *pinView;
 @property (weak, nonatomic) IBOutlet UIImageView *checkView;
 @property (weak, nonatomic) IBOutlet UIImageView *accView;
 
 
 
-- (void)setUser:(User*)user;
+- (void)setUser:(User*)user isEditMode:(BOOL)isEditMode;
 - (void)loadUserPhoto:(NSString*)userID;
+
 @end

@@ -31,12 +31,13 @@
 #import "User.h"
 #import "UserPopupViewController.h"
 #import "EventPopupViewController.h"
+#import "DoorPopupViewController.h"
 
 @protocol MonitorFilterDelegate <NSObject>
 
 @optional
 
-- (void)searchEventByFilterController:(EventQuery*)filteredQuery;
+- (void)searchEventByFilterController:(EventQuery*)filteredQuery withDoors:(NSArray<ListDoorItem*>*)filteredDoors;
 - (void)saveFilter:(EventQuery*)filteredQuery;
 @end
 
@@ -49,9 +50,12 @@
     NSString *eventCount;
     NSString *deviceDec;
     NSString *deviceCount;
+    NSString *doorDec;
+    NSString *doorCount;
     NSString *userDec;
     NSString *userCount;
     
+    NSArray <ListDoorItem *> *selectedDoors;
     EventProvider *eventProvider;
     EventQuery *searchQuery;
     
@@ -75,10 +79,12 @@
 - (void)setEventsContent:(NSArray <EventType*> *)events;
 - (void)setUserContent:(NSArray <User*> *)users;
 - (void)setDeviceContent:(NSArray <SearchResultDevice*>*)devices;
+- (void)setDoorContent:(NSArray <ListDoorItem*>*)doors;
 - (BOOL)verifyPeriod;
+- (BOOL)verifyStartDate:(NSString*)start withEndDate:(NSString*)end;
 - (void)showVerificationPopup:(NSString*)message;
 + (void)filterReset;
 + (void)setResetFilter:(BOOL)neetToReset;
-+ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices;
+//+ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices;
 + (void)setFilterUsers:(NSArray<User*>*)users;
 @end

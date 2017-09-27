@@ -20,10 +20,23 @@
     [self setSharedViewController:self];
     [containerView setHidden:YES];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
-    titleLabel.text = NSLocalizedString(@"select_operator", nil);
+    // 한글 일본어 일때 순서 바꾸기
+    NSString *language = [[NSLocale preferredLanguages] objectAtIndex:0];
+    NSDictionary *languageDic = [NSLocale componentsFromLocaleIdentifier:language];
+    NSString *languageCode = [languageDic objectForKey:@"kCFLocaleLanguageCodeKey"];
+    
+    if ([languageCode isEqualToString:@"ko"] || [languageCode isEqualToString:@"ja"])
+    {
+        titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"operator", nil) ,NSBaseLocalizedString(@"select", nil)];
+    }
+    else
+    {
+        titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"select", nil) ,NSBaseLocalizedString(@"operator", nil)];
+    }
+    
     permissionProvider = [[PermissionProvider alloc] init];
     permissions = [[NSMutableArray alloc] init];
     privileges = [[NSMutableArray alloc] init];
@@ -69,7 +82,7 @@
         
         CloudRole *nonRole = [CloudRole new];
         nonRole.code = @"NONE";
-        nonRole.role_description = NSLocalizedString(@"none", nil);
+        nonRole.role_description = NSBaseLocalizedString(@"none", nil);
         nonRole.isSelected = NO;
         [permissions addObject:nonRole];
         
@@ -86,7 +99,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -115,11 +128,26 @@
         [self finishLoading];
         
         Permission *permission = [Permission new];
-        permission.name = NSLocalizedString(@"none", nil);
+        permission.name = NSBaseLocalizedString(@"none", nil);
         permission.isSelected = NO;
         [privileges addObject:permission];
         
-        [privileges addObjectsFromArray:permissionResult.records];
+// 커스텀 권한일 경우 user 권한만 추가 할 수 있음
+        User *loginUser = [AuthProvider getLoginUserInfo];
+        if ([loginUser.permission.id isEqualToString:@"1"])
+        {
+            [privileges addObjectsFromArray:permissionResult.records];
+        }
+        else
+        {
+            for (Permission *permission in permissionResult.records)
+            {
+                if ([permission.id isEqualToString:@"255"]) {
+                    [privileges addObject:permission];
+                }
+            }
+        }
+        
         
         [self adjustHeight:permissions.count];
         
@@ -133,7 +161,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

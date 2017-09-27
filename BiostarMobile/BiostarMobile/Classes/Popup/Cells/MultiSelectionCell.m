@@ -31,6 +31,11 @@
 
 - (void)setNumverViewWidth
 {
+    if ([_numberLabel.text isEqualToString:@""])
+    {
+        return;
+    }
+    
     NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:_numberLabel.font, NSFontAttributeName, nil];
     CGFloat width = [[[NSAttributedString alloc] initWithString:_numberLabel.text attributes:attributes] size].width;
     

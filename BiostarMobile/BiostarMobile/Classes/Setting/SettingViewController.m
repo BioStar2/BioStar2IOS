@@ -25,10 +25,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    titleLabel.text = NSLocalizedString(@"preference", nil);
+    titleLabel.text = NSBaseLocalizedString(@"preference", nil);
     [self setSharedViewController:self];
     provider = [[PreferenceProvider alloc] init];
     hasNewVersion = NO;
+    
+    self.BLEisOn = [LocalDataManager getUserMlbileCredentialStatus];
+    self.BLEdistance = [LocalDataManager getBLEDistance];
+    
+    self.justTurnOnUsage = [LocalDataManager getJustTurnOnUsage];
+    
     [self getPreferencd];
 }
 
@@ -64,7 +70,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -73,6 +79,10 @@
             if (isConfirm)
             {
                 [self getPreferencd];
+            }
+            else
+            {
+                [self moveToBack:nil];
             }
         }];
     }];
@@ -105,7 +115,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -123,6 +133,8 @@
 
 - (IBAction)moveToBack:(id)sender
 {
+    [[NSNotificationCenter defaultCenter] postNotificationName:SETTING_WILL_CLOSE object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:NEED_TO_GET_MOBILE_CREDENTIAL object:nil];
     [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
 }
 
@@ -140,6 +152,8 @@
     
     [provider setPreferenceProvider:self.setting CompleteHandler:^(Response *error) {
         
+        [weakSelf finishLoading];
+        
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         OneButtonPopupViewController *successPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
         successPopupCtrl.type = SETTING;
@@ -147,18 +161,26 @@
         
         [successPopupCtrl getResponse:^(OneButtonPopupType type) {
             if (type == SETTING) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:SETTING_DID_UPDATE object:nil];
                 [weakSelf moveToBack:nil];
             }
         }];
 
+        // 성공일때만 BLE 셋팅도 같이 저장하기
+        [LocalDataManager setBLEDistance:weakSelf.BLEdistance];
+        [LocalDataManager setUseMobileCredential:weakSelf.BLEisOn];
+        [LocalDataManager setJustTurnOnUsage:weakSelf.justTurnOnUsage];
         
     } onError:^(Response *error) {
         // 재시도 할것인지에 대한 팝업 띄워주기
+        
+        [weakSelf finishLoading];
+        
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [weakSelf showPopup:imagePopupCtrl parentViewController:weakSelf parentView:weakSelf.view];
@@ -178,42 +200,100 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
+    
+    if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
     {
-        return 3;
+        if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
+        {
+            return 4;
+        }
+        else
+        {
+            return 5;
+        }
     }
     else
     {
-        return 4;
+        if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
+        {
+            return 3;
+        }
+        else
+        {
+            return 4;
+        }
     }
+    
     
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
     NSInteger rowCount = 0;
-    switch (section)
+    if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
     {
-        case 0:
-            rowCount = 1;
-            break;
+        switch (section)
+        {
+            case 0:
+                rowCount = 1;
+                break;
+                
+            case 1:
+                rowCount = 1;
+                break;
+                
+            case 2:
+                rowCount = 2;
+                break;
+                
+            case 3:
+                // BLE setting
+                if (self.BLEisOn)
+                {
+                    rowCount = 2;
+                }
+                else
+                {
+                    rowCount = 1;
+                }
+                
+                break;
             
-        case 1:
-            rowCount = 1;
-            break;
-            
-        case 2:
-            rowCount = 2;
-            break;
-            
-        case 3:
-            rowCount = self.setting.notifications.count;
-            break;
-            
-            
-        default:
-            break;
+            case 4:
+                rowCount = self.setting.notifications.count;
+                break;
+                
+                
+            default:
+                break;
+        }
     }
+    else
+    {
+        switch (section)
+        {
+            case 0:
+                rowCount = 1;
+                break;
+                
+            case 1:
+                rowCount = 1;
+                break;
+                
+            case 2:
+                rowCount = 2;
+                break;
+                
+            case 3:
+                rowCount = self.setting.notifications.count;
+                break;
+                
+                
+            default:
+                break;
+        }
+    }
+    
     return rowCount;
 }
 
@@ -228,7 +308,12 @@
             
             NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
             NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
-            customCell.titleLabel.text = [NSString stringWithFormat:@"V.%@", version];
+            
+            NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
+            
+            NSString *totalVersion = [NSString stringWithFormat:@"%@.%@",version ,buildversion];
+            
+            customCell.titleLabel.text = totalVersion;
             
             if (hasNewVersion)
             {
@@ -261,12 +346,12 @@
             DateTimeCell *customCell = (DateTimeCell*)cell;
             if (indexPath.row == 0)
             {
-                customCell.titleLabel.text = NSLocalizedString(@"date", nil);
+                customCell.titleLabel.text = NSBaseLocalizedString(@"date", nil);
                 customCell.valueLabel.text = [self.setting.date_format lowercaseString];
             }
             else
             {
-                customCell.titleLabel.text = NSLocalizedString(@"time", nil);
+                customCell.titleLabel.text = NSBaseLocalizedString(@"time", nil);
                 customCell.valueLabel.text = [self.setting.time_format lowercaseString];
             }
             return customCell;
@@ -274,6 +359,52 @@
         }
             
         case 3:
+        {
+            // BLE setting cell
+            if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
+            {
+                if (indexPath.row == 0)
+                {
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"BLESettingCell" forIndexPath:indexPath];
+                    BLESettingCell *customCell = (BLESettingCell*)cell;
+                    customCell.delegate = self;
+                    [customCell setBLEUsage:self.BLEisOn];
+                    
+                    return customCell;
+                }
+                else if(indexPath.row == 1)
+                {
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"BLEDistanceCell" forIndexPath:indexPath];
+                    BLEDistanceCell *customCell = (BLEDistanceCell*)cell;
+                    customCell.delegate = self;
+                    [customCell setDistanceLevel:10 withDiscance:self.BLEdistance];
+                    
+                    return customCell;
+                }
+                else
+                {
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"BLESwtichCell" forIndexPath:indexPath];
+                    BLESwtichCell *customCell = (BLESwtichCell*)cell;
+                    customCell.delegate = self;
+                    [customCell setBLESwitchCellContent:@"Just Turn On" usage:self.justTurnOnUsage];
+                    
+                    return customCell;
+                }
+                
+            }
+            else
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell" forIndexPath:indexPath];
+                SwitchCell *customCell = (SwitchCell*)cell;
+                
+                [customCell setSwitchCellContent:self.setting.notifications[indexPath.row] index:indexPath.row];
+                
+                return customCell;
+            }
+            
+            break;
+        }
+        case 4:
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SwitchCell" forIndexPath:indexPath];
             SwitchCell *customCell = (SwitchCell*)cell;
@@ -315,19 +446,31 @@
     switch (section)
     {
         case 0:
-            customCell.sectionTitle.text = NSLocalizedString(@"version_mobile", nil);
+            customCell.sectionTitle.text = NSBaseLocalizedString(@"version_mobile", nil);
             break;
             
         case 1:
-            customCell.sectionTitle.text = NSLocalizedString(@"timezone", nil);
+            customCell.sectionTitle.text = NSBaseLocalizedString(@"timezone", nil);
             break;
             
         case 2:
-            customCell.sectionTitle.text = NSLocalizedString(@"date_time_format", nil);
+            customCell.sectionTitle.text = [NSString stringWithFormat:@"%@/%@ %@",NSBaseLocalizedString(@"date", nil) ,NSBaseLocalizedString(@"time", nil) ,NSBaseLocalizedString(@"format", nil)];
             break;
             
         case 3:
-            customCell.sectionTitle.text = NSLocalizedString(@"notification", nil);
+            if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
+            {
+                customCell.sectionTitle.text = NSBaseLocalizedString(@"mobile_card", nil);
+            }
+            else
+            {
+                customCell.sectionTitle.text = NSBaseLocalizedString(@"notification", nil);
+            }
+            
+            break;
+            
+        case 4:
+            customCell.sectionTitle.text = NSBaseLocalizedString(@"notification", nil);
             break;
             
         default:
@@ -349,7 +492,9 @@
                 // 앱스토어 링크
                 NSString *appName = [NSString stringWithString:[[[NSBundle mainBundle] infoDictionary]   objectForKey:@"CFBundleName"]];
                 NSURL *appStoreURL = [NSURL URLWithString:[NSString stringWithFormat:@"itms-apps://itunes.com/app/%@",[appName stringByReplacingOccurrencesOfString:@" " withString:@""]]];
-                [[UIApplication sharedApplication] openURL:appStoreURL];
+                [[UIApplication sharedApplication] openURL:appStoreURL options:@{UIApplicationOpenURLOptionUniversalLinksOnly: @NO} completionHandler:^(BOOL success) {
+                    
+                }];
             }
         }
             break;
@@ -390,6 +535,35 @@
             break;
     }
 
+}
+
+
+#pragma mark - BLESwitchCellDelegate
+
+- (void)useStatusHasChanged:(UITableViewCell*)cell
+{
+    BLESwtichCell *customCell = (BLESwtichCell*)cell;
+    self.justTurnOnUsage = customCell.settingSwitch.isOn;
+    
+    NSIndexSet *set = [NSIndexSet indexSetWithIndex:3];
+    
+    [settingTableView reloadSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
+}
+
+#pragma mark - BLESettingCellDelegate
+
+- (void)distanceHasChanged:(NSUInteger)distance
+{
+    self.BLEdistance = distance;
+}
+
+- (void)BLEuseStatusHasChanged:(BOOL)isOn
+{
+    self.BLEisOn = isOn;
+    
+    NSIndexSet *set = [NSIndexSet indexSetWithIndex:3];
+    
+    [settingTableView reloadSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
 

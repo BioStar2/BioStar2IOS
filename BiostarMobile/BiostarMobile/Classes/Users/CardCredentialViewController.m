@@ -27,9 +27,9 @@
     isForSwitchIndex = NO;
     isDeleteMode = NO;
     
-    totalDecLabel.text = NSLocalizedString(@"total", nil);;
-    selectTotalDecLabel.text = NSLocalizedString(@"total", nil);;
-    titleLabel.text = NSLocalizedString(@"card", nil);
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);;
+    selectTotalDecLabel.text = NSBaseLocalizedString(@"total", nil);;
+    titleLabel.text = NSBaseLocalizedString(@"card", nil);
     
     if (_isProfileMode)
     {
@@ -44,13 +44,18 @@
     {
         userCards = [[NSMutableArray alloc] init];
     }
-    
+    if (nil == cellHeights)
+        cellHeights = [[NSMutableArray alloc] init];
     
     if (!self.isProfileMode)
     {
         [self getUserCards];
     }
-
+    else
+    {
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+    }
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -90,6 +95,11 @@
         if (nil == userCards)
         {
             userCards = [[NSMutableArray alloc] initWithArray:currentUser.cards];
+            cellHeights = [[NSMutableArray alloc] init];
+            for (int i = 0; i < userCards.count; i++)
+            {
+                [cellHeights addObject:[NSNumber numberWithFloat:77]];
+            }
         }
     }
     
@@ -98,6 +108,8 @@
 
 - (void)getUserCards
 {
+    [cellHeights removeAllObjects];
+    
     [self startLoading:self];
     
     [userProvier getUserCards:currentUser.user_id responseBlock:^(UserCardList *result) {
@@ -108,6 +120,16 @@
         
         [userCards addObjectsFromArray:result.card_list];
         
+        for (int i = 0; i < result.card_list.count; i++)
+        {
+            [cellHeights addObject:[NSNumber numberWithFloat:77]];
+        }
+        
+        if ([self.delegate respondsToSelector:@selector(cardDidChanged:)])
+        {
+            [self.delegate cardDidChanged:userCards];
+        }
+        
         totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
         [contentTableView reloadData];
         
@@ -117,7 +139,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         imagePopupCtrl.type = MAIN_REQUEST_FAIL;
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -126,6 +148,10 @@
             if (isConfirm)
             {
                 [self getUserCards];
+            }
+            else
+            {
+                [self moveToBack:nil];
             }
             
         }];
@@ -139,7 +165,7 @@
     if ([userCards count] >= 8)
     {
         // 8 개 초과 등록 안됨
-        [self.view makeToast:NSLocalizedString(@"max_size", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"max_size", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -157,6 +183,7 @@
 {
     if (isDeleteMode)
     {
+        mobileCard = nil;
         isDeleteMode = NO;
         for (Card *info in userCards)
         {
@@ -185,7 +212,7 @@
 - (IBAction)deleteVerification:(id)sender
 {
     isDeleteMode = YES;
-    titleLabel.text = NSLocalizedString(@"delete_card", nil);
+    titleLabel.text = NSBaseLocalizedString(@"delete_card", nil);
     totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
     
     [editButtonView setHidden:YES];
@@ -203,8 +230,8 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = WARNING;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
-        [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), (unsigned long)toDeleteArray.count]];
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"delete_confirm_question", nil);
+        [imagePopupCtrl setContent:[NSString stringWithFormat:@"%@ %ld", NSBaseLocalizedString(@"selected_count", nil), (unsigned long)toDeleteArray.count]];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
         
         [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
@@ -218,7 +245,7 @@
     }
     else
     {
-        [self.view makeToast:NSLocalizedString(@"selected_none", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"selected_none", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -272,7 +299,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         imagePopupCtrl.type = REQUEST_FAIL;
         [imagePopupCtrl setContent:error.message];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -332,7 +359,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         imagePopupCtrl.type = REQUEST_FAIL;
         [imagePopupCtrl setContent:error.message];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -364,9 +391,12 @@
     } onError:^(Response *error) {
         [self finishLoading];
         
+        card.is_blocked = NO;
+        [contentTableView reloadData];
+        
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         imagePopupCtrl.type = REQUEST_FAIL;
         [imagePopupCtrl setContent:error.message];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -395,9 +425,12 @@
     } onError:^(Response *error) {
         [self finishLoading];
         
+        card.is_blocked = YES;
+        [contentTableView reloadData];
+        
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         imagePopupCtrl.type = REQUEST_FAIL;
         [imagePopupCtrl setContent:error.message];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -429,7 +462,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         imagePopupCtrl.type = REQUEST_FAIL;
         [imagePopupCtrl setContent:error.message];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -460,7 +493,7 @@
             {
                 if (!card.is_blocked)
                 {
-                    [self.view makeToast:NSLocalizedString(@"non_blocked", nil)
+                    [self.view makeToast:NSBaseLocalizedString(@"non_blocked", nil)
                                 duration:1.0 position:CSToastPositionBottom
                                    image:[UIImage imageNamed:@"toast_popup_i_03"]];
                     continue;
@@ -505,8 +538,31 @@
     }
     else
     {
-        isSelectedAll = NO;
-        [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+        NSUInteger unBlockedCount = 0;
+        for (Card *card in userCards)
+        {
+            CardType cardType = [card.type cardTypeEnumFromString];
+            if (cardType == ACCESS_ON)
+            {
+                if (!card.is_blocked)
+                {
+                    unBlockedCount++;
+                }
+            }
+        }
+        
+        if (allCount - selectedCount == unBlockedCount)
+        {
+            isSelectedAll = YES;
+            [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
+        }
+        else
+        {
+            isSelectedAll = NO;
+            [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+        }
+        
+        
     }
 }
 
@@ -523,6 +579,19 @@
     return [userCards count];
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+
+    CGFloat cellHeight = [[cellHeights objectAtIndex:indexPath.row] floatValue];
+    if (cellHeight < 20)
+    {
+        return 77;
+    }
+    CGFloat height = 77 + cellHeight;
+    
+    return height;
+    
+}
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -534,6 +603,9 @@
         MobileCredentialCell *customCell = (MobileCredentialCell*)cell;
         customCell.delegate = self;
         [customCell setContent:card mode:isDeleteMode viewMode:self.isProfileMode];
+        //NSLog(@"mobile : %f", [customCell getIDLabelHeight]);
+        
+        [cellHeights replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithFloat:[customCell getIDLabelHeight]]];
         return customCell;
     }
     else
@@ -542,6 +614,8 @@
         CardCredentialCell *customCell = (CardCredentialCell*)cell;
         customCell.delegate = self;
         [customCell setContent:card mode:isDeleteMode viewMode:self.isProfileMode];
+        //NSLog(@"card : %f", [customCell getIDLabelHeight]);
+        [cellHeights replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithFloat:[customCell getIDLabelHeight]]];
         return customCell;
     }
 
@@ -567,7 +641,7 @@
         {
             if (!card.is_blocked)
             {
-                [self.view makeToast:NSLocalizedString(@"non_blocked", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"non_blocked", nil)
                             duration:1.0 position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 return;
@@ -618,6 +692,10 @@
             
             [self blockCurrentCard:card];
         }
+        else
+        {
+            [contentTableView reloadData];
+        }
     }];
 }
 
@@ -638,6 +716,10 @@
             Card *card = [userCards objectAtIndex:indexPath.row];
             
             [self releaseCurrentCard:card];
+        }
+        else
+        {
+            [contentTableView reloadData];
         }
     }];
     
@@ -664,12 +746,12 @@
 
 - (void)addedCard:(Card*)card
 {
-    [userCards addObject:card];
+    //[userCards addObject:card];
     
-    if ([self.delegate respondsToSelector:@selector(cardDidChanged:)])
-    {
-        [self.delegate cardDidChanged:userCards];
-    }
+//    if ([self.delegate respondsToSelector:@selector(cardDidChanged:)])
+//    {
+//        [self.delegate cardDidChanged:userCards];
+//    }
     isCardChanged = YES;
     [self getUserCards];
 }

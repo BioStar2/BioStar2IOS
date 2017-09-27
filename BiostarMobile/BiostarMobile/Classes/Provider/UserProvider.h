@@ -19,7 +19,7 @@
 #import "BSNetwork.h"
 #import "AuthProvider.h"
 #import "SDImageCache.h"
-#import "Commonutil.h"
+#import "CommonUtil.h"
 #import "Common.h"
 #import "CardSearchResult.h"
 #import "UserGroupSearchResult.h"
@@ -33,6 +33,7 @@
 #import "UserFingerprintRecords.h"
 #import "MobileCredentialRegisterResponse.h"
 #import "UserCardList.h"
+#import "UserFaceTemplateList.h"
 
 #define UserProviderInstance   [[UserProvider alloc] init]
 
@@ -82,6 +83,7 @@ typedef void(^UserMobileCredentialListBlock)(MobileCredentialList *result);
 typedef void(^UserFingerprintTemplatesBlock)(NSArray <FingerprintTemplate*> *result);
 typedef void(^UserPhotoBolck)(NSDictionary *responseObject, NSError *error);
 typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response);
+typedef void(^UserFaceTemplateListBlock)(UserFaceTemplateList *result);
 
 @property (assign, nonatomic, readonly) UserRequestType type;
 
@@ -121,6 +123,8 @@ typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response)
  *  @param handler      NetworkCompleteBolck
  */
 - (void)getUserPhoto:(NSString*)userID completeHandler:(UserPhotoBolck)handler;
+
+- (void)updateUserPhoto:(NSString*)userID photo:(NSString*)photo completeHandler:(ResultBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock;
 
 /**
  *  Modify an user's info
@@ -204,6 +208,15 @@ typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response)
 #pragma mark - User Mobile Credential APIs
 
 /**
+ *  Get Loggered in user mobile_credentials
+ *
+ *  @param responseBlock            ResultBlock
+ *  @param errorBlock               ErrorBlock
+ */
+- (void)getMyMobileCredentials:(UserMobileCredentialListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock;
+
+
+/**
  *  Get user mobile_credentials
  *
  *  @param userID                   User ID
@@ -211,7 +224,6 @@ typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response)
  *  @param errorBlock               ErrorBlock
  */
 - (void)getUserMobileCredentials:(NSString*)userID resultBlock:(UserMobileCredentialListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock;
-
 
 /**
  *  Issue user mobile_credential
@@ -246,14 +258,7 @@ typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response)
 - (void)registerMobileCredential:(NSString*)cardRecoreID UUID:(NSString*)UUID responseBlock:(MobileCredentialBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock;
 
 
-/**
- *  Register user mobile_credential
- *
- *  @param cardRecoreID             cardRecoreID
- *  @param responseBlock            ResultBlock
- *  @param errorBlock               ErrorBlock
- */
-- (void)requestMobileCredentialReissue:(NSString*)cardRecordID responseBlock:(ResultBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock;
+
 
 #pragma mark - User Fingerprint APIs
 
@@ -278,5 +283,29 @@ typedef void(^MobileCredentialBlock)(MobileCredentialRegisterResponse *response)
 
 - (void)updateUserFingerprints:(UserFingerprintRecords*)templateList userID:(NSString*)userID resultBlock:(ResultBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock;
 
+
+
+#pragma mark - User FaceTemplate APIs
+
+/**
+ *  Get user Face templates
+ *
+ *  @param userID                   userID
+ *  @param resultBlock              UserFaceTemplateListBlock
+ *  @param errorBlock               ErrorBlock
+ */
+
+- (void)getUserFaceTemplate:(NSString*)userID resultBlock:(UserFaceTemplateListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock;
+
+/**
+ *  Update user Face templates
+ *
+ *  @param templates                FingerprintTemplate array
+ *  @param userID                   userID
+ *  @param responseBlock            ResultBlock
+ *  @param errorBlock               ErrorBlock
+ */
+
+- (void)updateUserFaceTemplate:(UserFaceTemplateList*)templateList userID:(NSString*)userID resultBlock:(ResultBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock;
 
 @end

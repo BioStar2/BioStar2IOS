@@ -49,7 +49,7 @@ static NetworkController *sharedInstance = nil;
     if (self = [super init])
     {
         NSURLSessionConfiguration *configure = [NSURLSessionConfiguration defaultSessionConfiguration];
-        [configure setTimeoutIntervalForRequest:60];
+        [configure setTimeoutIntervalForRequest:Time_Out_Interval];
         [configure setURLCache:nil];
         
         _URLsession = [NSURLSession sessionWithConfiguration:configure delegate:nil delegateQueue:[NSOperationQueue mainQueue]];

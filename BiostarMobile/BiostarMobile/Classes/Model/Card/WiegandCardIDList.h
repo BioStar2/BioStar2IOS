@@ -10,6 +10,6 @@
 
 @interface WiegandCardIDList : NSObject
 
-@property (nonatomic, assign) NSInteger card_id_max_num;
+@property (nonatomic, strong) NSString *card_id_max_num;
 
 @end

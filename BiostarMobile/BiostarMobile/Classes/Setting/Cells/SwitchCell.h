@@ -23,4 +23,5 @@
 @property (weak, nonatomic) IBOutlet UISwitch *settingSwitch;
 
 - (void)setSwitchCellContent:(NotificationSetting*)notification index:(NSInteger)index;
+
 @end

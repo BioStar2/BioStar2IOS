@@ -19,5 +19,6 @@
 
 - (IBAction)closeHelpView:(id)sender;
 - (IBAction)closeHelpViewContinuously:(id)sender;
+- (IBAction)closeViewContinuously:(id)sender;
 
 @end

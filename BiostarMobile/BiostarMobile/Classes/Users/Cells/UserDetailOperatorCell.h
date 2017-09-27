@@ -16,6 +16,7 @@
 
 #import <UIKit/UIKit.h>
 #import "UserRole.h"
+#import "Common.h"
 
 @interface UserDetailOperatorCell : UITableViewCell
 {

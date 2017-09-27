@@ -13,5 +13,6 @@
 
 @property (nonatomic, strong) NSString *password_strength_level;
 @property (nonatomic, assign) BOOL use_alphanumeric_user_id;
+@property (nonatomic, assign) BOOL support_mobile_credential;
 
 @end

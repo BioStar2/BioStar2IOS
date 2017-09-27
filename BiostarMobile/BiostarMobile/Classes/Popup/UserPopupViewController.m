@@ -19,7 +19,7 @@
     
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
-    
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     users = [[NSMutableArray alloc] init];
     selectedUsers = [[NSMutableArray alloc] init];
     [containerView setHidden:YES];
@@ -27,12 +27,12 @@
     offset = 0;
     limit = 50;
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     listTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     userProvider = [[UserProvider alloc] init];
-    titleLabel.text = NSLocalizedString(@"select_user_original", nil);
+    titleLabel.text = NSBaseLocalizedString(@"select_user_original", nil);
     [self getUsersOffset:offset limit:limit groupID:@"1" query:nil];
 }
 
@@ -109,7 +109,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -134,7 +134,7 @@
 - (IBAction)showSearchTextFieldView:(id)sender
 {
     [textView setHidden:NO];
-    [searchTextField resignFirstResponder];
+    [searchTextField becomeFirstResponder];
 }
 
 
@@ -143,6 +143,16 @@
 {
     [self.view endEditing:YES];
     [textView setHidden:YES];
+    
+    if ((nil == query || [query isEqualToString:@""]) && didSearch)
+    {
+        didSearch = NO;
+        offset = 0;
+        limit = 50;
+        query = nil;
+        
+        [self getUsersOffset:offset limit:limit groupID:@"1" query:nil];
+    }
 }
 
 
@@ -251,13 +261,50 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    query = textField.text;
-    offset = 0;
-    [selectedUsers removeAllObjects];
-    [users removeAllObjects];
-    [self getUsersOffset:offset limit:limit groupID:@"1" query:query];
+    if (![textField.text isEqualToString:@""])
+    {
+        query = textField.text;
+        offset = 0;
+        [selectedUsers removeAllObjects];
+        [users removeAllObjects];
+        [self getUsersOffset:offset limit:limit groupID:@"1" query:query];
+        didSearch = YES;
+        [textField resignFirstResponder];
+    }
     
-    [textField resignFirstResponder];
+    return YES;
+}
+
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    query = @"";
+    return YES;
+}
+
+- (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    NSMutableString *content = [[NSMutableString alloc] initWithString:textField.text];
+    
+    if (![string isEqualToString:@""])
+    {
+        // append
+        @try {
+            [content insertString:string atIndex:range.location];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    else
+    {
+        //delete
+        @try {
+            [content deleteCharactersInRange:range];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    
+    query = content;
     return YES;
 }
 

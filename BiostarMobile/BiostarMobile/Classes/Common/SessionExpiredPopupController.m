@@ -27,14 +27,14 @@
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
     
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     if (self.message)
     {
         contentLabel.text = self.message;
     }
     
-    titleLabel.text = NSLocalizedString(@"info", nil);
+    titleLabel.text = NSBaseLocalizedString(@"info", nil);
     notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
 }
 

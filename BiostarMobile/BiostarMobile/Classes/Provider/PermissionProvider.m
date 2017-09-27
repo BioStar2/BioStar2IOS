@@ -84,4 +84,50 @@
     }];
 }
 
++ (BOOL)isEnableModifyUser:(User*)user
+{
+    NSLog(@"user.permission.id : %@", user.permission.id);
+    
+    if ([user.user_id isEqualToString:@"1"])
+    {
+        return NO;
+    }
+    if (![AuthProvider hasWritePermission:USER_PERMISSION])
+    {
+        return NO;
+    }
+    if (nil != [AuthProvider getLoginUserInfo].permission && [[AuthProvider getLoginUserInfo].user_id isEqualToString:@"1"])
+    {
+        return YES;
+    }
+    if ([[AuthProvider getLoginUserInfo].permission.id isEqualToString:@"1"])
+    {
+        return YES;
+    }
+    if (nil == user.permission || nil == user.permission.id)
+    {
+        return YES;
+    }
+    if ([user.permission.id isEqualToString:@"255"])
+    {
+        return YES;
+    }
+    if ([user.permission.id isEqualToString:@"1"])
+    {
+        return NO;
+    }
+    
+    return NO;
+}
+
++ (BOOL)isEnableDeleteUser:(User*)user
+{
+    if ([user.user_id isEqualToString:[AuthProvider getLoginUserInfo].user_id])
+    {
+        return NO;
+    }
+    
+    return [PermissionProvider isEnableModifyUser:user];
+    
+}
 @end

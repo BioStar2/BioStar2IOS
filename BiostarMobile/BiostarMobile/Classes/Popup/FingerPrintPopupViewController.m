@@ -22,11 +22,11 @@
     [self setSharedViewController:self];
     [containerView setHidden:YES];
     fingerprintIndexs = [[NSMutableArray alloc] init];
-    titleLabel.text = NSLocalizedString(@"fingerprint", nil);
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
-    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld", templates.count];
+    titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)templates.count];
     
     [self adjustHeight:templates.count];
     isLimited = NO;
@@ -125,13 +125,13 @@
     NSString *description;
     
     if (value == 1)
-        description = NSLocalizedString(@"1st_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"st", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else if (value == 2)
-        description = NSLocalizedString(@"2nd_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"nd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else if (value == 3)
-        description = NSLocalizedString(@"3rd_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"rd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else
-        description = [NSString stringWithFormat:NSLocalizedString(@"%ldth_fingerprint", nil), (long)value];
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"th", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     
     customCell.titleLabel.text = description;
     [customCell checkSelected:model.isSelected isLimited:isLimited];
@@ -175,7 +175,7 @@
         isLimited = NO;
     }
     
-    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld/%ld",fingerprintIndexs.count ,templates.count];
+    searchTotalCountLabel.text = [NSString stringWithFormat:@"%ld/%ld",(unsigned long)fingerprintIndexs.count ,(unsigned long)templates.count];
     
     [tableView reloadData];
     

@@ -18,7 +18,7 @@
 #import "BaseViewController.h"
 #import "AlarmDoorDetailNormalCell.h"
 #import "MonitoringViewController.h"
-#import "DeviceProvider.h"
+
 
 @interface AlarmDeviceDetailController : BaseViewController 
 {
@@ -26,19 +26,13 @@
     __weak IBOutlet UILabel *deviceName;
     __weak IBOutlet UILabel *deviceDescription;
     __weak IBOutlet UITableView *detailTableView;
-    __weak IBOutlet UIButton *logImageButton;
-    __weak IBOutlet UIButton *logButton;
-    __weak IBOutlet UILabel *logLabel;
     __weak IBOutlet UIImageView *alarmImage;
     
-    DeviceProvider *deviceProvider;
 }
 
 @property (strong, nonatomic) GetNotification *detailInfo;
 @property (assign, nonatomic) NotificationType notiType;
 
 - (IBAction)moveToBack:(id)sender;
-- (IBAction)moveToLog:(id)sender;
-- (void)getDevice:(NSString*)deviceID;
 - (NSString*)getLocalizedDecription:(NSString*)key args:(NSArray*)args;
 @end

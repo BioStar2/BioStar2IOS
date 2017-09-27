@@ -2,17 +2,17 @@
 //  FaceTemplate.h
 //  BiostarMobile
 //
-//  Created by 정의석 on 2016. 11. 2..
-//  Copyright © 2016년 suprema. All rights reserved.
+//  Created by 정의석 on 2017. 3. 9..
+//  Copyright © 2017년 suprema. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
 @interface FaceTemplate : NSObject
 
-@property (nonatomic, assign) long face_index;
-@property (nonatomic, strong) NSString *template;
-@property (nonatomic, assign) long template_index;
-
-
+@property (nonatomic, strong) NSString *id;
+@property (nonatomic, strong) NSString *index;
+@property (nonatomic, strong) NSString *raw_image;
+@property (nonatomic, strong) NSArray <NSString*> *templates;
+@property (nonatomic, assign) BOOL isSelected;
 @end

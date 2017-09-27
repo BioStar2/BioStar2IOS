@@ -44,6 +44,29 @@
     
 }
 
+- (void)checkSelected:(BOOL)isSelected isSupportMobileCredential:(BOOL)isSupport
+{
+    if (isSelected)
+    {
+        [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
+        [_checkImage setHidden:NO];
+    }
+    else
+    {
+        if (isSupport)
+        {
+            [self.contentView setBackgroundColor:[UIColor whiteColor]];
+            [_checkImage setHidden:YES];
+        }
+        else
+        {
+            [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+            [_checkImage setHidden:YES];
+        }
+        
+    }
+}
+
 - (void)checkSelected:(BOOL)isSelected isLimited:(BOOL)isLimited
 {
     if (!isLimited)

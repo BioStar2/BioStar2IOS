@@ -28,8 +28,8 @@
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
     canScrollTop = NO;
-    titleLabel.text = NSLocalizedString(@"all_door", nil);
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    titleLabel.text = NSBaseLocalizedString(@"all_door", nil);
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     refreshControl = [[UIRefreshControl alloc] init];
@@ -63,11 +63,22 @@
     [self.view endEditing:YES];
     [textFieldView setHidden:YES];
     [countView setHidden:NO];
+    
+    if ((nil == query || [query isEqualToString:@""]) && didSearch)
+    {
+        didSearch = NO;
+        offset = 0;
+        limit = 50;
+        query = nil;
+
+        [self searchDoors:query limit:limit offset:offset];
+    }
 }
 
 - (IBAction)moveToBack:(id)sender
 {
     [self.view endEditing:YES];
+    [[NSNotificationCenter defaultCenter] postNotificationName:NEED_TO_GET_MOBILE_CREDENTIAL object:nil];
     [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
 }
 
@@ -162,7 +173,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -261,24 +272,59 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    [doors removeAllObjects];
-    query = textField.text;
-    
-    NSString *tempQuery = [textField.text stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
-    
-    if ([tempQuery isEqualToString:@""])
+    if (![textField.text isEqualToString:@""])
     {
-        query = nil;
+        [doors removeAllObjects];
+        query = textField.text;
+        
+        NSString *tempQuery = [textField.text stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
+        
+        if ([tempQuery isEqualToString:@""])
+        {
+            query = nil;
+        }
+        offset = 0;
+        isMainRequest = NO;
+        [self searchDoors:query limit:limit offset:offset];
+        didSearch = YES;
+        [textField resignFirstResponder];
     }
-    offset = 0;
-    isMainRequest = NO;
-    [self searchDoors:query limit:limit offset:offset];
-    
-    [textField resignFirstResponder];
     
     return YES;
 }
 
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    query = @"";
+    return YES;
+}
+
+- (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    NSMutableString *content = [[NSMutableString alloc] initWithString:textField.text];
+    
+    if (![string isEqualToString:@""])
+    {
+        // append
+        @try {
+            [content insertString:string atIndex:range.location];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    else
+    {
+        //delete
+        @try {
+            [content deleteCharactersInRange:range];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    
+    query = content;
+    return YES;
+}
 
 #pragma mark - ScrollView Delegate
 

@@ -35,12 +35,13 @@
     isSelectedAll = NO;
     isForSwitchIndex = NO;
     scanQuality = 80;
+    faceScanQuality = 4;
     userProvider = [[UserProvider alloc] init];
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     switch (_type)
     {
         case FINGERPRINT:
-            titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+            titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
             if ([PreferenceProvider isUpperVersion])
             {
                 if (nil == fingerPrintTemplates || fingerPrintTemplates.count == 0)
@@ -60,12 +61,16 @@
             
             break;
         case ACCESS_GROUPS:
-            titleLabel.text = NSLocalizedString(@"access_group", nil);
+            titleLabel.text = NSBaseLocalizedString(@"access_group", nil);
             totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userAccessGroups.count];
             break;
         case CARD:
-            titleLabel.text = NSLocalizedString(@"card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"card", nil);
             totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+            break;
+        case FACETEMPLATE:
+            titleLabel.text = NSBaseLocalizedString(@"face", nil);
+            [self getUserFaceTemplates];
             break;
     }
     
@@ -131,7 +136,7 @@
             if ([fingerPrintTemplates count] >= 10)
             {
                 // 10 개 초과 등록 안됨
-                [self.view makeToast:NSLocalizedString(@"max_size", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"max_size", nil)
                             duration:2.0
                             position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -157,7 +162,7 @@
             if ([userAccessGroups count] >= 16)
             {
                 // 16 개 초과 등록 안됨
-                [self.view makeToast:NSLocalizedString(@"max_size", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"max_size", nil)
                             duration:2.0
                             position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -172,7 +177,7 @@
             if ([userCards count] >= 8)
             {
                 // 8 개 초과 등록 안됨
-                [self.view makeToast:NSLocalizedString(@"max_size", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"max_size", nil)
                             duration:2.0
                             position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -182,6 +187,18 @@
             
             break;
         }
+        case FACETEMPLATE:
+            if ([faceTemplates count] >= 5)
+            {
+                [self.view makeToast:NSBaseLocalizedString(@"max_size", nil)
+                            duration:2.0
+                            position:CSToastPositionBottom
+                               image:[UIImage imageNamed:@"toast_popup_i_03"]];
+                return;
+            }
+            
+            [self addFaceTemplate];
+            break;
     }
 }
 
@@ -192,7 +209,7 @@
         switch (_type)
         {
             case FINGERPRINT:
-                titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
                 for (FingerprintTemplate *info in fingerPrintTemplates)
                 {
                     info.isSelected = NO;
@@ -202,7 +219,7 @@
                 totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
                 break;
             case ACCESS_GROUPS:
-                titleLabel.text = NSLocalizedString(@"access_group", nil);
+                titleLabel.text = NSBaseLocalizedString(@"access_group", nil);
                 for (UserItemAccessGroup *info in userAccessGroups)
                 {
                     info.isSelected = NO;
@@ -213,7 +230,7 @@
                 break;
                 
             case CARD:
-                titleLabel.text = NSLocalizedString(@"card", nil);
+                titleLabel.text = NSBaseLocalizedString(@"card", nil);
                 for (Card *card in userCards)
                 {
                     card.isSelected = NO;
@@ -221,6 +238,16 @@
                 }
                 totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
                 totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)userCards.count];
+                break;
+            case FACETEMPLATE:
+                titleLabel.text = NSBaseLocalizedString(@"face", nil);
+                for (FaceTemplate *template in faceTemplates)
+                {
+                    template.isSelected = NO;
+                    
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
+                totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)faceTemplates.count];
                 break;
         }
 
@@ -244,16 +271,20 @@
     switch (_type)
     {
         case FINGERPRINT:
-            titleLabel.text = NSLocalizedString(@"delete_fingerprint", nil);
+            titleLabel.text = NSBaseLocalizedString(@"delete_fingerprint", nil);
             totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)fingerPrintTemplates.count];
             break;
         case ACCESS_GROUPS:
-            titleLabel.text = NSLocalizedString(@"access_group", nil);
+            titleLabel.text = NSBaseLocalizedString(@"access_group", nil);
             totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userAccessGroups.count];
             break;
         case CARD:
-            titleLabel.text = NSLocalizedString(@"delete_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"delete_card", nil);
             totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
+            break;
+        case FACETEMPLATE:
+            titleLabel.text = NSBaseLocalizedString(@"delete", nil);
+            totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
             break;
     }
 
@@ -272,8 +303,11 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = WARNING;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
-        [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), (unsigned long)toDeleteArray.count]];
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"delete_confirm_question", nil);
+        
+        
+        
+        [imagePopupCtrl setContent:[NSString stringWithFormat:@"%@ %ld", NSBaseLocalizedString(@"selected_count", nil), (unsigned long)toDeleteArray.count]];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
         
         [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
@@ -308,6 +342,9 @@
                         [toDeleteArray removeAllObjects];
                         [contentTableView reloadData];
                         break;
+                    case FACETEMPLATE:
+                        [self deleteFaceTemplates];
+                        break;
                 }
                 
                 
@@ -317,7 +354,7 @@
     }
     else
     {
-        [self.view makeToast:NSLocalizedString(@"selected_none", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"selected_none", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -370,6 +407,16 @@
                 }
                 totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
                 break;
+            case FACETEMPLATE:
+                
+                for (FaceTemplate *template in faceTemplates)
+                {
+                    template.isSelected = YES;
+                    [toDeleteArray addObject:template];
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
+                
+                break;
         }
         [sender setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
     }
@@ -411,6 +458,16 @@
                 totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
                 break;
                 
+            case FACETEMPLATE:
+                
+                for (FaceTemplate *template in faceTemplates)
+                {
+                    template.isSelected = NO;
+                }
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
+                
+                break;
+                
         }
         
         [sender setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
@@ -426,47 +483,123 @@
 
 - (void)getUserFingerprintTemplates
 {
-    [self startLoading:self];
-    
-    [userProvider getUserFingerprints:currentUser.user_id resultBlock:^(NSArray<FingerprintTemplate *> *result) {
-        
-        [self finishLoading];
-        
-        if (nil == fingerPrintTemplates)
+    if (_isProfileMode)
+    {
+        if (currentUser.fingerprint_templates && currentUser.fingerprint_templates.count > 0)
         {
-            fingerPrintTemplates = [[NSMutableArray alloc] initWithArray:result];
+            fingerPrintTemplates = [[NSMutableArray alloc] initWithArray:currentUser.fingerprint_templates];
         }
-        else
-        {
-            [fingerPrintTemplates removeAllObjects];
-            [fingerPrintTemplates addObjectsFromArray:result];
-        }
-        
-        
-        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
         
         [contentTableView reloadData];
+    }
+    else
+    {
+        [self startLoading:self];
         
-    } onErrorBlock:^(Response *error) {
-        
-        [self finishLoading];
-        
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:error.message];
-        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
-        
-        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-            if (isConfirm)
+        [userProvider getUserFingerprints:currentUser.user_id resultBlock:^(NSArray<FingerprintTemplate *> *result) {
+            
+            [self finishLoading];
+            
+            if (nil == fingerPrintTemplates)
             {
-                [self getUserFingerprintTemplates];
+                fingerPrintTemplates = [[NSMutableArray alloc] initWithArray:result];
+            }
+            else
+            {
+                [fingerPrintTemplates removeAllObjects];
+                [fingerPrintTemplates addObjectsFromArray:result];
             }
             
+            
+            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)fingerPrintTemplates.count];
+            
+            [contentTableView reloadData];
+            
+        } onErrorBlock:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:error.message];
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self getUserFingerprintTemplates];
+                }
+                else
+                {
+                    [self moveToBack:nil];
+                }
+                
+            }];
+            
         }];
+    }
+}
+
+- (void)getUserFaceTemplates
+{
+    if (_isProfileMode)
+    {
+        if (currentUser.face_templates && currentUser.face_templates.count > 0)
+        {
+            faceTemplates = [[NSMutableArray alloc] initWithArray:currentUser.face_templates];
+        }
+        [contentTableView reloadData];
+    }
+    else
+    {
+        [self startLoading:self];
         
-    }];
+        [userProvider getUserFaceTemplate:currentUser.user_id resultBlock:^(UserFaceTemplateList *result) {
+            
+            [self finishLoading];
+            
+            if (nil == faceTemplates)
+            {
+                faceTemplates = [[NSMutableArray alloc] initWithArray:result.face_template_list];
+            }
+            else
+            {
+                [faceTemplates removeAllObjects];
+                [faceTemplates addObjectsFromArray:result.face_template_list];
+            }
+            
+            
+            totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)faceTemplates.count];
+            
+            [contentTableView reloadData];
+            
+        } onErrorBlock:^(Response *error) {
+            
+            [self finishLoading];
+            
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+            [imagePopupCtrl setContent:error.message];
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self getUserFaceTemplates];
+                }
+                else
+                {
+                    [self moveToBack:nil];
+                }
+                
+            }];
+            
+        }];
+    }
     
 }
 
@@ -504,7 +637,7 @@
             
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
             ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
             [imagePopupCtrl setContent:error.message];
             imagePopupCtrl.type = MAIN_REQUEST_FAIL;
             [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -534,6 +667,57 @@
     
 }
 
+- (void)deleteFaceTemplates
+{
+    [self startLoading:self];
+    
+    NSMutableArray <FaceTemplate*>*tempTemplates = [[NSMutableArray alloc] initWithArray:faceTemplates];
+    
+    [tempTemplates removeObjectsInArray:toDeleteArray];
+    
+    UserFaceTemplateList *templateList = [UserFaceTemplateList new];
+    templateList.face_template_list = tempTemplates;
+    
+    [userProvider updateUserFaceTemplate:templateList userID:currentUser.user_id resultBlock:^(Response *response) {
+        
+        [self finishLoading];
+        
+        [faceTemplates removeObjectsInArray:toDeleteArray];
+        [toDeleteArray removeAllObjects];
+        
+        totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
+        
+        if ([self.delegate respondsToSelector:@selector(faceTemplatesWasChanged:)])
+        {
+            [self.delegate faceTemplatesWasChanged:faceTemplates];
+        }
+        
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)faceTemplates.count];
+        [contentTableView reloadData];
+        
+        
+    } onErrorBlock:^(Response *error) {
+        
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self deleteFaceTemplates];
+            }
+            
+        }];
+        
+    }];
+    
+}
 
 - (void)updateFingerprintTemplages:(FingerprintTemplate*)fingerprintTemplate
 {
@@ -544,7 +728,16 @@
         UserFingerprintRecords *templateList = [UserFingerprintRecords new];
         
         NSMutableArray <FingerprintTemplate*>*tempTemplates = [[NSMutableArray alloc] initWithArray:fingerPrintTemplates];
-        [tempTemplates addObject:fingerprintTemplate];
+        
+        if (isForSwitchIndex)
+        {
+            [tempTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:fingerprintTemplate];
+        }
+        else
+        {
+            [tempTemplates addObject:fingerprintTemplate];
+        }
+        
         templateList.fingerprint_template_list = tempTemplates;
         
         [userProvider updateUserFingerprints:templateList userID:currentUser.user_id resultBlock:^(Response *response) {
@@ -554,15 +747,17 @@
             userFingerPrintTemplate = fingerprintTemplate;
             userFingerPrintTemplate.is_prepare_for_duress = NO;
             
+            
             if (isForSwitchIndex)
             {
                 [fingerPrintTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:userFingerPrintTemplate];
-                isForSwitchIndex = NO;
             }
             else
             {
                 [fingerPrintTemplates addObject:userFingerPrintTemplate];
             }
+            
+            isForSwitchIndex = NO;
             
             if ([self.delegate respondsToSelector:@selector(fingerprintWasChanged:)])
             {
@@ -577,7 +772,7 @@
             
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
             ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
             [imagePopupCtrl setContent:error.message];
             imagePopupCtrl.type = MAIN_REQUEST_FAIL;
             [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -617,6 +812,81 @@
     
 }
 
+- (void)updateFaceTemplates:(FaceTemplate*)faceTemplate
+{
+    [self startLoading:self];
+    
+    NSMutableArray <FaceTemplate*>*tempTemplates = [[NSMutableArray alloc] initWithArray:faceTemplates];
+    
+    if (isForSwitchIndex)
+    {
+        [tempTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:faceTemplate];
+    }
+    else
+    {
+        // 추가 일때는 id 항목 빼야 함
+        [tempTemplates addObject:faceTemplate];
+    }
+    
+    UserFaceTemplateList *templateList = [UserFaceTemplateList new];
+    templateList.face_template_list = tempTemplates;
+    
+    [userProvider updateUserFaceTemplate:templateList userID:currentUser.user_id resultBlock:^(Response *response) {
+        
+        [self finishLoading];
+        
+        if (isForSwitchIndex)
+        {
+            [faceTemplates replaceObjectAtIndex:toBeSwitchedIndex withObject:faceTemplate];
+        }
+        else
+        {
+            [faceTemplates addObject:faceTemplate];
+        }
+        
+        isForSwitchIndex = NO;
+        
+        if ([self.delegate respondsToSelector:@selector(faceTemplatesWasChanged:)])
+        {
+            [self.delegate faceTemplatesWasChanged:faceTemplates];
+        }
+        
+        totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)faceTemplates.count];
+        [contentTableView reloadData];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        FaceScanSuccessPopupViewController *successPopupController = [storyboard instantiateViewControllerWithIdentifier:@"FaceScanSuccessPopupViewController"];
+        
+        [successPopupController setCurrentUserID:currentUser.user_id];
+        [successPopupController setPhoto:faceTemplate.raw_image];
+        [successPopupController setIndex:scanIndex];
+        [self showPopup:successPopupController parentViewController:self parentView:self.view];
+        
+        
+        
+    } onErrorBlock:^(Response *error) {
+        
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self updateFaceTemplates:faceTemplate];
+            }
+            
+        }];
+        
+    }];
+    
+    
+}
 
 - (void)addFingerprint
 {
@@ -633,27 +903,30 @@
     
 }
 
-
-- (void)replaceFingerprint:(NSIndexPath*)indexPath
+- (void)addFaceTemplate
 {
-    isForSwitchIndex = YES;
-    toBeSwitchedIndex = indexPath.row;
-    scanIndex = indexPath.row;
-    
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
     
-    devicePopupController.deviceMode = FINGERPRINT_MODE;
+    devicePopupController.deviceMode = FACE_TEMPLATE;
     [self showPopup:devicePopupController parentViewController:self parentView:self.view];
     [devicePopupController getDevice:^(SearchResultDevice *device) {
         selectedDevice = device;
-        [self showFingerprintScanPopup];
+        [self showFaceScanPopup];
+        
+    }];
+    
+    [devicePopupController getCancelBlock:^{
+        isForSwitchIndex = NO;
     }];
 }
 
 
+
+
 - (void)replaceAccessGroup:(NSIndexPath*)indexPath
 {
+    toBeSwitchedIndex = indexPath.row;
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     AccessGroupPopupViewController *accessGroupPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"AccessGroupPopupViewController"];
     
@@ -684,7 +957,7 @@
     listPopupCtrl.type = CARD_OPTION;
     
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
-    [listPopupCtrl addOptions:@[NSLocalizedString(@"registeration_option_card_reader", nil) ,NSLocalizedString(@"registeration_option_assign_card", nil)]];
+    [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"registeration_option_card_reader", nil) ,NSBaseLocalizedString(@"registeration_option_assign_card", nil)]];
     
     [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
         
@@ -712,7 +985,7 @@
                     
                     if (hasEqualCard)
                     {
-                        [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
+                        [self.view makeToast:NSBaseLocalizedString(@"already_assigned", nil)
                                     duration:2.0
                                     position:CSToastPositionBottom
                                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -745,7 +1018,7 @@
                 
                 if (hasEqualCard)
                 {
-                    [self.view makeToast:NSLocalizedString(@"already_assigned", nil)
+                    [self.view makeToast:NSBaseLocalizedString(@"already_assigned", nil)
                                 duration:2.0
                                 position:CSToastPositionBottom
                                    image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -768,6 +1041,23 @@
 }
 
 
+- (void)replaceFingerprint:(NSIndexPath*)indexPath
+{
+    isForSwitchIndex = YES;
+    toBeSwitchedIndex = indexPath.row;
+    scanIndex = indexPath.row;
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    DevicePopupViewController *devicePopupController = [storyboard instantiateViewControllerWithIdentifier:@"DevicePopupViewController"];
+    
+    devicePopupController.deviceMode = FINGERPRINT_MODE;
+    [self showPopup:devicePopupController parentViewController:self parentView:self.view];
+    [devicePopupController getDevice:^(SearchResultDevice *device) {
+        selectedDevice = device;
+        [self showFingerprintScanPopup];
+    }];
+}
+
 - (void)replaceCard:(NSIndexPath*)indexPath
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
@@ -788,6 +1078,14 @@
     
 }
 
+- (void)replaceFaceTemplate:(NSIndexPath*)indexPath
+{
+    isForSwitchIndex = YES;
+    toBeSwitchedIndex = indexPath.row;
+    scanIndex = indexPath.row;
+    
+    [self addFaceTemplate];
+}
 
 - (void)addAccessGroup
 {
@@ -812,6 +1110,90 @@
     }];
 }
 
+
+- (void)showFaceScanPopup
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+    FaceScanPopupViewController *scanPopupController = [storyboard instantiateViewControllerWithIdentifier:@"FaceScanPopupViewController"];
+    
+    if (!isForSwitchIndex)
+    {
+        if (nil == faceTemplates || [faceTemplates count] == 0)
+        {
+            scanIndex = 0;
+        }
+        else
+        {
+            scanIndex = faceTemplates.count;
+        }
+    }
+    
+    [scanPopupController setScanIndex:scanIndex];
+    [scanPopupController setDeviceID:selectedDevice.id];
+    [scanPopupController setScanQuality:faceScanQuality];
+    [self showPopup:scanPopupController parentViewController:self parentView:self.view];
+    
+    [scanPopupController getFaceTemplate:^(FaceTemplate *scanedFaceTemplate) {
+        
+        [self updateFaceTemplates:scanedFaceTemplate];
+        
+    }];
+    
+    [scanPopupController getErrorBlock:^(Response *error) {
+        
+        // low quality failed
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = LOW_QUALITY;
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            
+            if (isConfirm)
+            {
+                // 재스캔 방식 팝업
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+                ListPopupViewController *listPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ListPopupViewController"];
+                listPopupCtrl.type = PEROID;
+                [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
+                
+                NSString *defaultDec = NSBaseLocalizedString(@"rescan_default", nil);
+                defaultDec = [defaultDec stringByReplacingOccurrencesOfString:@"80" withString:@"4"];
+                
+                [listPopupCtrl addOptions:@[defaultDec,
+                                            NSBaseLocalizedString(@"rescan_change", nil)]];
+                
+                [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
+                    
+                    if (index == 0)
+                    {
+                        faceScanQuality = 4;
+                        [self showFaceScanPopup];
+                    }
+                    else
+                    {
+                        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+                        ScanQualityPopupViewController *qualityPopup = [storyboard instantiateViewControllerWithIdentifier:@"ScanQualityPopupViewController"];
+                        qualityPopup.scanType = FACE_SCAN;
+                        [self showPopup:qualityPopup parentViewController:self parentView:self.view];
+                        
+                        [qualityPopup getResponse:^(NSUInteger quality) {
+                            
+                            faceScanQuality = quality;
+                            
+                            [self showFaceScanPopup];
+                        }];
+                        
+                    }
+                }];
+            }
+        }];
+        
+    }];
+    
+}
 
 - (void)showFingerprintScanPopup
 {
@@ -850,7 +1232,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = LOW_QUALITY;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:errorMessage];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
         
@@ -864,8 +1246,8 @@
                 listPopupCtrl.type = PEROID;
                 [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
                 
-                [listPopupCtrl addOptions:@[NSLocalizedString(@"rescan_default", nil),
-                                            NSLocalizedString(@"rescan_change", nil)]];
+                [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"rescan_default", nil),
+                                            NSBaseLocalizedString(@"rescan_change", nil)]];
                 
                 [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
                    
@@ -878,7 +1260,7 @@
                     {
                         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
                         ScanQualityPopupViewController *qualityPopup = [storyboard instantiateViewControllerWithIdentifier:@"ScanQualityPopupViewController"];
-                        
+                        qualityPopup.scanType = FINGERPRINT_SCAN;
                         [self showPopup:qualityPopup parentViewController:self parentView:self.view];
                         
                         [qualityPopup getResponse:^(NSUInteger quality) {
@@ -938,8 +1320,35 @@
     }
     else
     {
-        isSelectedAll = NO;
-        [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+        if (_type == ACCESS_GROUPS)
+        {
+            NSUInteger unAddableCount = 0;
+            for (UserItemAccessGroup *accessGroup in userAccessGroups)
+            {
+                if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
+                {
+                    // 편집 불가한 항목 상속받은 유저 그룹
+                    unAddableCount++;
+                }
+            }
+            
+            if (allCount - selectedCount == unAddableCount)
+            {
+                isSelectedAll = YES;
+                [selectAllButton setImage:[UIImage imageNamed:@"check_box"] forState:UIControlStateNormal];
+            }
+            else
+            {
+                isSelectedAll = NO;
+                [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+            }
+            
+        }
+        else
+        {
+            isSelectedAll = NO;
+            [selectAllButton setImage:[UIImage imageNamed:@"check_box_blank"] forState:UIControlStateNormal];
+        }
     }
 }
 
@@ -971,6 +1380,9 @@
         case CARD:
             return [userCards count];
             break;
+        case FACETEMPLATE:
+            return [faceTemplates count];
+            break;
     }
 }
 
@@ -989,13 +1401,13 @@
             NSString *description;
             
             if (value == 1)
-                description = [NSString stringWithFormat:NSLocalizedString(@"1st_fingerprint", nil), (long)value];
+                description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"st", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
             else if (value == 2)
-                description = [NSString stringWithFormat:NSLocalizedString(@"2nd_fingerprint", nil), (long)value];
+                description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"nd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
             else if (value == 3)
-                description = [NSString stringWithFormat:NSLocalizedString(@"3rd_fingerprint", nil), (long)value];
+                description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"rd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
             else
-                description = [NSString stringWithFormat:NSLocalizedString(@"%ldth_fingerprint", nil), (long)value];
+                description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"th", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
             
             customCell.titleLabel.text = description;
             
@@ -1031,6 +1443,39 @@
                 [customCell.accImage setHidden:NO];
             }
             [customCell setCheckSeleted:userCards[indexPath.row].isSelected];
+            break;
+        case FACETEMPLATE:
+        {
+            NSInteger value = indexPath.row + 1;
+            NSString *description;
+            
+            if (value == 1)
+                description = [NSString stringWithFormat:@"%ld%@ %@",
+                               (long)value, NSBaseLocalizedString(@"st", nil), NSBaseLocalizedString(@"face", nil)];
+            else if (value == 2)
+                description = [NSString stringWithFormat:@"%ld%@ %@",
+                               (long)value, NSBaseLocalizedString(@"nd", nil), NSBaseLocalizedString(@"face", nil)];
+            else if (value == 3)
+                description = [NSString stringWithFormat:@"%ld%@ %@",
+                               (long)value, NSBaseLocalizedString(@"rd", nil), NSBaseLocalizedString(@"face", nil)];
+            else
+                description = [NSString stringWithFormat:@"%ld%@ %@",
+                               (long)value, NSBaseLocalizedString(@"th", nil), NSBaseLocalizedString(@"face", nil)];
+            
+            customCell.titleLabel.text = description;
+            
+            if (self.isProfileMode)
+            {
+                [customCell.accImage setHidden:YES];
+            }
+            else
+            {
+                [customCell.accImage setHidden:NO];
+                [customCell setCheckSeleted:faceTemplates[indexPath.row].isSelected];
+            }
+            
+            
+        }
             break;
         
     }
@@ -1084,9 +1529,9 @@
             if([accessGroup.included_by_user_group isEqualToString:@"YES"] || [accessGroup.included_by_user_group isEqualToString:@"BOTH"])
             {
                 // 편집 불가한 항목 상속받은 유저 그룹
-                [self.view makeToast:NSLocalizedString(@"inherited_not_change", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"inherited_not_change", nil)
                             duration:2.0 position:CSToastPositionBottom
-                               title:NSLocalizedString(@"inherited", nil)
+                               title:NSBaseLocalizedString(@"inherited", nil)
                                image:[UIImage imageNamed:@"toast_popup_i_05"]];
                 return;
             }
@@ -1132,6 +1577,7 @@
                 {
                     [toDeleteArray removeObject:card];
                 }
+                
                 [self checkAllSelected:userCards.count selectedCount:toDeleteArray.count];
                 
                 totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)userCards.count];
@@ -1143,6 +1589,35 @@
                 [self replaceCard:indexPath];
                 
             }
+            break;
+        case FACETEMPLATE:
+            
+            if (totalCountView.hidden)
+            {
+                // FACETEMPLATE 삭제 모드
+                FaceTemplate *template = [faceTemplates objectAtIndex:indexPath.row];
+                
+                template.isSelected = !template.isSelected;
+                if (template.isSelected)
+                {
+                    [toDeleteArray addObject:template];
+                }
+                else
+                {
+                    [toDeleteArray removeObject:template];
+                }
+                [self checkAllSelected:faceTemplates.count selectedCount:toDeleteArray.count];
+                
+                totalCount.text = [NSString stringWithFormat:@"%ld / %ld",(unsigned long)toDeleteArray.count, (unsigned long)faceTemplates.count];
+                [tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+            }
+            else
+            {
+                // FACETEMPLATE 교체 모드
+                [self replaceFaceTemplate:indexPath];
+                
+            }
+            
             break;
             
     }

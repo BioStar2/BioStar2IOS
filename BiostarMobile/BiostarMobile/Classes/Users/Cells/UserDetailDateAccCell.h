@@ -16,6 +16,7 @@
 
 #import <UIKit/UIKit.h>
 #import "CommonUtil.h"
+#import "PreferenceProvider.h"
 
 @interface UserDetailDateAccCell : UITableViewCell
 

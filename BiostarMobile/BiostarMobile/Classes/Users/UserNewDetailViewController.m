@@ -43,6 +43,11 @@
                 [editButtonView setHidden:YES];
                 [doneButton setHidden:YES];
             }
+            
+            if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
+            {
+                [logButton setHidden:YES];
+            }
             if (nil != userID)
             {
                 [self getUser:userID];
@@ -51,16 +56,21 @@
             break;
             
         case CREATE_MODE:
+            [logButton setHidden:YES];
             toUpdateUser = [User new];
             toUpdateUser.access_groups = @[];
             [self setDefaultPeriod];
-            titleLabel.text = NSLocalizedString(@"new_user", nil);
+            titleLabel.text = NSBaseLocalizedString(@"new_user", nil);
             [editButtonView setHidden:YES];
             [doneButton setHidden:NO];
             break;
             
         case PROFILE_MODE:
-            titleLabel.text = NSLocalizedString(@"myprofile", nil);
+            if (![AuthProvider hasReadPermission:MONITORING_PERMISSION])
+            {
+                [logButton setHidden:YES];
+            }
+            titleLabel.text = NSBaseLocalizedString(@"myprofile", nil);
             [editButtonView setHidden:YES];
             [doneButton setHidden:NO];
             [self getMyProfile];
@@ -79,7 +89,7 @@
         
     } onError:^(Response *error) {
         [self finishLoading];
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSBaseLocalizedString(@"fail_retry", nil) message:error.message];
         
     }];
     
@@ -161,6 +171,11 @@
                                              selector:@selector(keyboardWillHide:)
                                                  name:UIKeyboardWillHideNotification
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(useFaceTemplateForProfilePicture:)
+                                                 name:USE_FACE_TEMPLATE
+                                               object:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -169,6 +184,8 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
     
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:USE_FACE_TEMPLATE object:nil];
 }
 /*
 #pragma mark - Navigation
@@ -197,6 +214,11 @@
     }
     else
     {
+        if (_type == PROFILE_MODE)
+        {
+            [[NSNotificationCenter defaultCenter] postNotificationName:NEED_TO_GET_MOBILE_CREDENTIAL object:nil];
+        }
+        
         [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
     }
     
@@ -206,28 +228,28 @@
 {
     if ([[ID substringToIndex:1] isEqualToString:@"0"])
     {
-        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"invalid_userid", nil)];
         return NO;
     }
     long long maxID = 4294967294;
     
-    if ([self isAllDigits:ID])
+    if ([CommonUtil isAllDigits:ID])
     {
         long long longUserID = [ID longLongValue];
         if (longUserID > maxID)
         {
-            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"invalid_userid", nil)];
             return NO;
         }
         else if (longUserID == 0)
         {
-            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty", nil)];
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"user_create_empty", nil)];
             return NO;
         }
     }
     else
     {
-        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_userid", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"invalid_userid", nil)];
         return NO;
     }
     
@@ -236,12 +258,7 @@
     return YES;
 }
 
-- (BOOL)isAllDigits:(NSString*)content
-{
-    NSCharacterSet* nonNumbers = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
-    NSRange r = [content rangeOfCharacterFromSet: nonNumbers];
-    return r.location == NSNotFound && content.length > 0;
-}
+
 
 - (BOOL)verifyUserID
 {
@@ -249,7 +266,7 @@
     {
         if ([toUpdateUser.user_id isEqualToString:@""] || nil == toUpdateUser.user_id)
         {
-            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty", nil)];
+            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"user_create_empty", nil)];
             return NO;
         }
         
@@ -277,7 +294,7 @@
     }
     if (![CommonUtil matchingByRegex:@"^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z‌​]{2,4})$" withField:toUpdateUser.email])
     {
-        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"invalid_email", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"invalid_email", nil)];
         return NO;
     }
 
@@ -296,7 +313,7 @@
     
     if (comparing == NSOrderedDescending || comparing == NSOrderedSame)
     {
-        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"error_set_date", nil)];
+        [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"error_set_date", nil)];
         return NO;
     }
     
@@ -305,24 +322,48 @@
 
 - (BOOL)verifyOperator
 {
-    if (toUpdateUser.roles.count > 0)
+    if ([PreferenceProvider isUpperVersion])
     {
-        if (nil == toUpdateUser.login_id || [toUpdateUser.login_id isEqualToString:@""])
+        if (toUpdateUser.permission)
         {
-            [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"user_create_empty_idpassword", nil)];
-            return NO;
-        }
-        
-        if (!toUpdateUser.password_exist)
-        {
-            if (nil == toUpdateUser.password || [toUpdateUser.password isEqualToString:@""])
+            if (nil == toUpdateUser.login_id || [toUpdateUser.login_id isEqualToString:@""])
             {
-                [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSLocalizedString(@"password_empty", nil)];
+                [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"user_create_empty_idpassword", nil)];
                 return NO;
             }
+            
+            if (!toUpdateUser.password_exist)
+            {
+                if (nil == toUpdateUser.password || [toUpdateUser.password isEqualToString:@""])
+                {
+                    [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"password_empty", nil)];
+                    return NO;
+                }
+            }
         }
-        
     }
+    else
+    {
+        if (toUpdateUser.roles.count > 0)
+        {
+            if (nil == toUpdateUser.login_id || [toUpdateUser.login_id isEqualToString:@""])
+            {
+                [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"user_create_empty_idpassword", nil)];
+                return NO;
+            }
+            
+            if (!toUpdateUser.password_exist)
+            {
+                if (nil == toUpdateUser.password || [toUpdateUser.password isEqualToString:@""])
+                {
+                    [self showOneButtonPopup:USER_INFO_VERIFICATION_FAIL withMessage:NSBaseLocalizedString(@"password_empty", nil)];
+                    return NO;
+                }
+            }
+            
+        }
+    }
+    
     
     return YES;
 }
@@ -347,10 +388,10 @@
             {
                 [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
             }
-            else
-            {
-                [self loadUserInfo:currentUser];
-            }
+//            else
+//            {
+//                [self loadUserInfo:currentUser];
+//            }
         }
         else if (type == CREATE_USER)
         {
@@ -409,19 +450,28 @@
 
 - (void)showPinPopup:(PinPopupType)type
 {
-    [self startLoading:self];
     
-    [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
-        [self finishLoading];
+    if (toUpdateUser.pin_exist)
+    {
+        toUpdateUser.pin_exist = NO;
+        toUpdateUser.pin = @"";
         
-        [self showPinPopupAfterAPICall:type];
-    } onError:^(Response *error) {
-        [self finishLoading];
-
-        [self showPinPopupAfterAPICall:type];
-    }];
-    
-    
+        [detailTableView reloadData];
+    }
+    else
+    {
+        [self startLoading:self];
+        
+        [preferenceProvoder getBiostarACSetting:^(BioStarSetting *result) {
+            [self finishLoading];
+            
+            [self showPinPopupAfterAPICall:type];
+        } onError:^(Response *error) {
+            [self finishLoading];
+            
+            [self showPinPopupAfterAPICall:type];
+        }];
+    }
 }
 
 - (void)showPinPopupAfterAPICall:(PinPopupType)type
@@ -452,18 +502,36 @@
 
 - (void)getUser:(NSString*)ID
 {
+    
     [self startLoading:self];
     
     [provider getUser:ID userBlock:^(User *userResult) {
         [self finishLoading];
+        
+        if (![PermissionProvider isEnableModifyUser:userResult])
+        {
+            [editButton setHidden:YES];
+        }
+        
         [self loadUserInfo:userResult];
     } onError:^(Response *error) {
         // 재시도 할것인지에 대한 팝업 띄워주기
         [self finishLoading];
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSBaseLocalizedString(@"fail_retry", nil) message:error.message];
     }];
     
     
+}
+
+- (IBAction)moveToMonitoring:(id)sender
+{
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    MonitoringViewController *mornitorViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitoringViewController"];
+    mornitorViewController.requestType = EVENT_USER;
+    [mornitorViewController setUserCondition:@[currentUser.user_id]];
+    
+    [MonitorFilterViewController setFilterUsers:@[currentUser]];
+    [self pushChildViewController:mornitorViewController parentViewController:self contentView:self.view animated:YES];
 }
 
 - (void)modifyUser:(User*)user
@@ -471,6 +539,8 @@
     [self startLoading:self];
     [provider modifyUser:user responseBlock:^(Response *error) {
         [self finishLoading];
+        
+        [self showOneButtonPopup:UPDATE_USER withMessage:nil];
         
         isUpdatedOrDeleted = YES;
         _type = VIEW_MODE;
@@ -487,6 +557,7 @@
         }
         currentUser = nil;
         currentUser = [toUpdateUser copy];
+        titleLabel.text = currentUser.name;
         
         NSString *userPhotoKey = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
         
@@ -505,8 +576,16 @@
         
     } onErrorBlock:^(Response *error) {
         [self finishLoading];
-        // 재시도 할것인지에 대한 팝업 띄워주기
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
+        
+        [oneButtonPopupCtrl setPopupContent:error.message];
+        
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
+    
     }];
 }
 
@@ -538,6 +617,8 @@
                     _type = MODIFY_MODE;
                     currentUser = [user copy];
                     [detailTableView reloadData];
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:rowCount inSection:2];
+                    [detailTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
                     
                     [editButtonView setHidden:YES];
                     [doneButton setHidden:NO];
@@ -551,14 +632,20 @@
         }
         else
         {
-            [self showOneButtonPopup:CREATE_USER withMessage:nil];
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+            oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
+            
+            [oneButtonPopupCtrl setPopupContent:error.message];
+            
+            [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
         }
         
         
     } onErrorBlock:^(Response *error) {
         [self finishLoading];
         // 재시도 할것인지에 대한 팝업 띄워주기
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSBaseLocalizedString(@"fail_retry", nil) message:error.message];
         
     }];
     
@@ -607,8 +694,17 @@
         
     } onErrorBlock:^(Response *error) {
         [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
+        
+        [oneButtonPopupCtrl setPopupContent:error.message];
+        
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
         // 재시도 할것인지에 대한 팝업 띄워주기
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+//        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSBaseLocalizedString(@"fail_retry", nil) message:error.message];
         
     }];
     
@@ -636,7 +732,7 @@
         [self finishLoading];
         
         // 재시도 할것인지에 대한 팝업 띄워주기
-        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSLocalizedString(@"fail_retry", nil) message:error.message];
+        [self showImageButtonPopup:MAIN_REQUEST_FAIL title:NSBaseLocalizedString(@"fail_retry", nil) message:error.message];
     }];
     
     
@@ -699,20 +795,12 @@
             [self finishLoading];
             
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-            imagePopupCtrl.type = REQUEST_FAIL;
-            [imagePopupCtrl setContent:error.message];
-            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+            oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
             
-            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-                
-                if (isConfirm)
-                {
-                    [self updateUserInfo:nil];
-                }
-                
-            }];
+            [oneButtonPopupCtrl setPopupContent:error.message];
+            
+            [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
             
         }];
     }
@@ -766,22 +854,7 @@
 {
     if ([PreferenceProvider isUpperVersion])
     {
-//        if (![AuthProvider hasReadPermission:@"ACCESS_GROUP"])
-//        {
-//            NSString *popupContent = [NSString stringWithFormat:@"%@\n%@",NSLocalizedString(@"guide_feature_permission", nil) , @"ACCESS_GROUP"];
-//            
-//            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-//            OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
-//            oneButtonPopupCtrl.type = PERMISSION_DENIED;
-//            oneButtonPopupCtrl.popupContent = popupContent;
-//            [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
-//            
-//            [oneButtonPopupCtrl getResponse:^(OneButtonPopupType type) {
-//                
-//            }];
-//            
-//            return;
-//        }
+
         
         [self startLoading:self];
         
@@ -805,7 +878,7 @@
             
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
             ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-            imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
             imagePopupCtrl.type = REQUEST_FAIL;
             [imagePopupCtrl setContent:error.message];
             [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -835,21 +908,6 @@
     }
     
 }
-
-
-- (IBAction)moveToLog:(id)sender
-{
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    MonitoringViewController *mornitorViewController = [storyboard instantiateViewControllerWithIdentifier:@"MonitoringViewController"];
-    mornitorViewController.requestType = EVENT_USER;
-    
-    [MonitorFilterViewController setFilterUsers:@[currentUser]];
-    
-    [mornitorViewController setUserCondition:@[currentUser.user_id]];
-    [self pushChildViewController:mornitorViewController parentViewController:self contentView:self.view animated:YES];
-    
-}
-
 
 - (IBAction)showStartDatePopup:(id)sender
 {
@@ -979,7 +1037,7 @@
     OneButtonTablePopupViewController *oneButtonPopup = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonTablePopupViewController"];
     oneButtonPopup.type = PHOTO;
     [self showPopup:oneButtonPopup parentViewController:self parentView:self.view];
-    [oneButtonPopup setContentStringArray:@[NSLocalizedString(@"take_picture", nil), NSLocalizedString(@"from_photo", nil), NSLocalizedString(@"delete_picture", nil)]];
+    [oneButtonPopup setContentStringArray:@[NSBaseLocalizedString(@"take_picture", nil), NSBaseLocalizedString(@"from_photo", nil), NSBaseLocalizedString(@"delete_picture", nil)]];
     
     [oneButtonPopup getIndexResponse:^(NSInteger index) {
         switch (index)
@@ -1081,6 +1139,9 @@
         case CARD:
             [verificationViewController setCards:toUpdateUser.cards];
             break;
+        case FACETEMPLATE:
+            [verificationViewController setUserInfo:toUpdateUser];
+            break;
     }
     
     [self pushChildViewController:verificationViewController parentViewController:self contentView:self.view animated:YES];
@@ -1096,8 +1157,7 @@
         
         if (_type == PROFILE_MODE)
         {
-            [self moveToVerificationViewController:FINGERPRINT];
-            return;
+            verificationViewController.isProfileMode = YES;
         }
         else
         {
@@ -1166,7 +1226,7 @@
     {
         [permissionPopupCtrl getSelectedPermissionBlock:^(Permission *permission) {
             
-            if ([permission.name isEqualToString:NSLocalizedString(@"none", nil)])
+            if ([permission.name isEqualToString:NSBaseLocalizedString(@"none", nil)])
             {
                 toUpdateUser.permission = nil;
                 toUpdateUser.login_id = nil;
@@ -1187,7 +1247,7 @@
     else
     {
         [permissionPopupCtrl getSelectedRoleBlock:^(CloudRole *role) {
-            if ([role.role_description isEqualToString:NSLocalizedString(@"none", nil)])
+            if ([role.role_description isEqualToString:NSBaseLocalizedString(@"none", nil)])
             {
                 NSArray *roles = @[];
                 toUpdateUser.roles = roles;
@@ -1216,8 +1276,8 @@
     
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
     
-    [listPopupCtrl addOptions:@[NSLocalizedString(@"start_date", nil),
-                                NSLocalizedString(@"end_date", nil)]];
+    [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"start_date", nil),
+                                NSBaseLocalizedString(@"end_date", nil)]];
     
     
     [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
@@ -1230,6 +1290,14 @@
             [self showExpireDatePopup:nil];
         }
     }];
+}
+
+- (void)useFaceTemplateForProfilePicture:(NSNotification*)userInfo
+{
+    currentUser.photo = [userInfo.object objectForKey:@"photo"];
+    toUpdateUser.photo = [userInfo.object objectForKey:@"photo"];
+    
+    [detailTableView reloadData];
 }
 
 #pragma mark - KeyBoard Noti
@@ -1256,7 +1324,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    NSInteger rowCount = 0;
+    
     switch (section)
     {
         case 0:
@@ -1281,28 +1349,57 @@
             rowCount = 3;
             break;
         case 2: // 크리덴셜
-            if (_type == VIEW_MODE)
+            if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
             {
-                if (currentUser.pin_exist)
+                if (_type == VIEW_MODE)
                 {
-                    rowCount = 3;
+                    if (currentUser.pin_exist)
+                    {
+                        rowCount = 4;
+                    }
+                    else
+                        rowCount = 3;
+                }
+                else if(_type == CREATE_MODE)
+                {
+                    if ([PreferenceProvider isUpperVersion])
+                    {
+                        rowCount = 1;
+                    }
+                    else
+                    {
+                        rowCount = 3;
+                    }
                 }
                 else
-                    rowCount = 2;
-            }
-            else if(_type == CREATE_MODE)
-            {
-                if ([PreferenceProvider isUpperVersion])
-                {
-                    rowCount = 1;
-                }
-                else
-                {
-                    rowCount = 3;
-                }
+                    rowCount = 4;
             }
             else
-                rowCount = 3;
+            {
+                if (_type == VIEW_MODE)
+                {
+                    if (currentUser.pin_exist)
+                    {
+                        rowCount = 3;
+                    }
+                    else
+                        rowCount = 2;
+                }
+                else if(_type == CREATE_MODE)
+                {
+                    if ([PreferenceProvider isUpperVersion])
+                    {
+                        rowCount = 1;
+                    }
+                    else
+                    {
+                        rowCount = 3;
+                    }
+                }
+                else
+                    rowCount = 3;
+            }
+            
             break;
         
     }
@@ -1315,7 +1412,7 @@
     // 폰트 때문에 뷰에서 섹션 타이틀 정해줘야 할 필요 있음.
     if (section == 2)
     {
-        return NSLocalizedString(@"credential", nil);
+        return NSBaseLocalizedString(@"credential", nil);
     }
     else
         return nil;
@@ -1353,17 +1450,17 @@
                     {
                         case VIEW_MODE:
                         case PROFILE_MODE:
+                        case MODIFY_MODE:
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"user_id", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"user_id", nil);
                             customCell.contentField.text = currentUser.user_id;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
                             break;
                         }
-                        case MODIFY_MODE:
                         case CREATE_MODE:
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
@@ -1385,7 +1482,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"name", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"name", nil);
                             customCell.contentField.text = currentUser.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1417,7 +1514,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"email", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"email", nil);
                             customCell.contentField.text = currentUser.email;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1454,7 +1551,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"telephone", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"telephone", nil);
                             customCell.contentField.text = currentUser.phone_number;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1549,7 +1646,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"group", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"group", nil);
                             customCell.contentField.text = currentUser.user_group.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1571,7 +1668,7 @@
                             {
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                                 UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                                customCell.titleLabel.text = NSLocalizedString(@"group", nil);
+                                customCell.titleLabel.text = NSBaseLocalizedString(@"group", nil);
                                 customCell.contentField.text = currentUser.user_group.name;
                                 [customCell.contentField setEnabled:NO];
                                 [customCell.contentField setSecureTextEntry:NO];
@@ -1629,7 +1726,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"group", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"group", nil);
                             customCell.contentField.text = currentUser.user_group.name;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
@@ -1675,8 +1772,17 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"status", nil);
-                            customCell.contentField.text = NSLocalizedString(currentUser.status, nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"status", nil);
+                            NSString *status;
+                            if ([currentUser.status isEqualToString:@"AC"])
+                            {
+                                status = NSBaseLocalizedString(@"active", nil);
+                            }
+                            else
+                            {
+                                status = NSBaseLocalizedString(@"inactive", nil);
+                            }
+                            customCell.contentField.text = status;
                             [customCell.contentField setEnabled:NO];
                             [customCell.contentField setSecureTextEntry:NO];
                             return customCell;
@@ -1706,7 +1812,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailDateCell" forIndexPath:indexPath];
                             UserDetailDateCell *customCell = (UserDetailDateCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"period", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"period", nil);
                             [customCell setStartDate:currentUser.start_datetime andExpireDate:currentUser.expiry_datetime];
                             return customCell;
                             break;
@@ -1716,7 +1822,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailDateAccCell" forIndexPath:indexPath];
                             UserDetailDateAccCell *customCell = (UserDetailDateAccCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"period", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"period", nil);
                             [customCell setStartDate:toUpdateUser.start_datetime andExpireDate:toUpdateUser.expiry_datetime];
                             return customCell;
                         }
@@ -1732,7 +1838,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"access_group", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"access_group", nil);
                             NSInteger count = 0;
                             
                             count += (unsigned long)currentUser.access_groups.count;
@@ -1789,7 +1895,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
                             
                             if ([PreferenceProvider isUpperVersion])
                             {
@@ -1822,7 +1928,7 @@
                             {
                                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                                 UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                                customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                                customCell.titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
                                 
                                 if ([PreferenceProvider isUpperVersion])
                                 {
@@ -1846,7 +1952,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
                             
                             if ([PreferenceProvider isUpperVersion])
                             {
@@ -1875,7 +1981,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"card", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"card", nil);
                             if ([PreferenceProvider isUpperVersion])
                             {
                                 NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.card_count];
@@ -1897,7 +2003,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
                             UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"card", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"card", nil);
                             if ([PreferenceProvider isUpperVersion])
                             {
                                 NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.card_count];
@@ -1917,7 +2023,80 @@
                     
                     break;
                 }
-                case 2:
+                case 2: //PIN 또는 face template
+                {
+                    if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
+                    {
+                        switch (_type) //face template
+                        {
+                            case VIEW_MODE:
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
+                                UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
+                                customCell.titleLabel.text = NSBaseLocalizedString(@"face", nil);
+                                
+                                NSString *faceTemplateCount = [NSString stringWithFormat:@"%ld", (unsigned long)currentUser.face_template_count];
+                                
+                                customCell.contentField.text = faceTemplateCount;
+                                [customCell.contentField setEnabled:NO];
+                                [customCell.contentField setSecureTextEntry:NO];
+                                return customCell;
+                                break;
+                            }
+                            case MODIFY_MODE:
+                            case CREATE_MODE:
+                            case PROFILE_MODE:
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailAcclCell" forIndexPath:indexPath];
+                                UserDetailAcclCell *customCell = (UserDetailAcclCell*)cell;
+                                customCell.titleLabel.text = NSBaseLocalizedString(@"face", nil);
+                                
+                                NSString *cardCount = [NSString stringWithFormat:@"%ld", (unsigned long)toUpdateUser.face_template_count];
+                                
+                                customCell.contentField.text = cardCount;
+                                
+                                [customCell.contentField setEnabled:NO];
+                                [customCell.contentField setSecureTextEntry:NO];
+                                return customCell;
+                            }
+                                break;
+                        }
+                    }
+                    else
+                    {   // PIN
+                        switch (_type)
+                        {
+                            case VIEW_MODE:
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
+                                UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
+                                customCell.titleLabel.text = NSBaseLocalizedString(@"pin_upper", nil);
+                                
+                                customCell.contentField.text = @"1234";
+                                [customCell.contentField setEnabled:NO];
+                                [customCell.contentField setSecureTextEntry:YES];
+                                
+                                return customCell;
+                                break;
+                            }
+                            case MODIFY_MODE:
+                            case CREATE_MODE:
+                            case PROFILE_MODE:
+                            {
+                                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailSwitchCell" forIndexPath:indexPath];
+                                UserDetailSwitchCell *customCell = (UserDetailSwitchCell*)cell;
+                                customCell.delegate = self;
+                                [customCell setCellPinContent:toUpdateUser.pin_exist];
+                                
+                                return customCell;
+                            }
+                                break;
+                        }
+                    }
+                    
+                }
+                    break;
+                case 3: //PIN
                 {
                     switch (_type)
                     {
@@ -1925,7 +2104,7 @@
                         {
                             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UserDetailNormalCell" forIndexPath:indexPath];
                             UserDetailNormalCell *customCell = (UserDetailNormalCell*)cell;
-                            customCell.titleLabel.text = NSLocalizedString(@"pin_upper", nil);
+                            customCell.titleLabel.text = NSBaseLocalizedString(@"pin_upper", nil);
                             
                             customCell.contentField.text = @"1234";
                             [customCell.contentField setEnabled:NO];
@@ -2025,7 +2204,7 @@
     
     if (_type == VIEW_MODE)     // 뷰모드 일때
     {
-        if ([cellTitle isEqualToString:NSLocalizedString(@"email", nil)])
+        if ([cellTitle isEqualToString:NSBaseLocalizedString(@"email", nil)])
         {
             if ([MFMailComposeViewController canSendMail])
             {
@@ -2042,22 +2221,25 @@
             }
             else
             {
-                [self.view makeToast:NSLocalizedString(@"email_not_setted", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"email_not_setted", nil)
                             duration:2.0
                             position:CSToastPositionTop
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
             }
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"telephone", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"telephone", nil)])
         {
             if (nil != currentUser.phone_number)
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", currentUser.phone_number]]];
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", currentUser.phone_number]] options:@{UIApplicationOpenURLOptionUniversalLinksOnly: @NO} completionHandler:^(BOOL success) {
+                    
+                }];
+
         }
     }
     else
     {
         // 편집, 추가, 프로필
-        if ([cellTitle isEqualToString:NSLocalizedString(@"operator", nil)])
+        if ([cellTitle isEqualToString:NSBaseLocalizedString(@"operator", nil)])
         {
             if (_type == PROFILE_MODE) {
                 return;
@@ -2065,39 +2247,43 @@
             // 권한
             [self showPermissionPopup];
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"password", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"password", nil)])
         {
             [self showPinPopup:PASSWORD];
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"group", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"group", nil)])
         {
             if (_type != PROFILE_MODE)
             {
                 [self showUserGroupPopup];
             }
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"period", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"period", nil)])
         {
             if (_type != PROFILE_MODE)
             {
                 [self showPeriodPopup];
             }
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"access_group", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"access_group", nil)])
         {
             [self moveToVerificationViewController:ACCESS_GROUPS];
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"fingerprint", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"fingerprint", nil)])
         {
             [self moveToFingerPrintCredentialViewController];
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"card", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"card", nil)])
         {
             [self moveToCardCredentialViewController];
         }
-        else if ([cellTitle isEqualToString:NSLocalizedString(@"pin_upper", nil)])
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"pin_upper", nil)])
         {
             [self showPinPopup:PIN];
+        }
+        else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"face", nil)])
+        {
+            [self moveToVerificationViewController:FACETEMPLATE];
         }
     }
 }
@@ -2159,9 +2345,23 @@
 
 - (void)maxValueIsOver
 {
-    [self.view makeToast:NSLocalizedString(@"over_value", nil)
-           duration:2.0 position:CSToastPositionTop
+    [self.view makeToast:NSBaseLocalizedString(@"over_value", nil)
+           duration:1.0 position:CSToastPositionTop
               image:[UIImage imageNamed:@"toast_popup_i_03"]];
+}
+
+- (void)phoneNumberIsInvalid
+{
+    [self.view makeToast:NSBaseLocalizedString(@"only_number_dash", nil)
+                duration:1.0 position:CSToastPositionTop
+                   image:[UIImage imageNamed:@"toast_popup_i_03"]];
+}
+
+- (void)loginIDInvalid
+{
+    [self.view makeToast:NSBaseLocalizedString(@"only_alpha_num_special", nil)
+                duration:1.0 position:CSToastPositionTop
+                   image:[UIImage imageNamed:@"toast_popup_i_03"]];
 }
 
 #pragma mark - UserVerificationAddViewControllerDelegate
@@ -2171,7 +2371,7 @@
     if ([PreferenceProvider isUpperVersion])
     {
         isUpdatedOrDeleted = YES;
-        toUpdateUser.fingerprint_template_count = [NSString stringWithFormat:@"%ld", fingerprintTemplates.count];
+        toUpdateUser.fingerprint_template_count = [NSString stringWithFormat:@"%ld", (unsigned long)fingerprintTemplates.count];
         currentUser.fingerprint_template_count = toUpdateUser.fingerprint_template_count;
     }
     else
@@ -2179,6 +2379,14 @@
         toUpdateUser.fingerprint_templates = fingerprintTemplates;
     }
     
+    [detailTableView reloadData];
+}
+
+- (void)faceTemplatesWasChanged:(NSArray<FaceTemplate*>*)faceTemplates
+{
+    isUpdatedOrDeleted = YES;
+    currentUser.face_template_count = faceTemplates.count;
+    toUpdateUser.face_template_count = faceTemplates.count;
     [detailTableView reloadData];
 }
 
@@ -2210,7 +2418,7 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     // 사진 찍었거나 선택후 편집 까지 마치면 호출됨
-    NSLog(@"%@", info);
+    
     UIImage *editedImage = [info objectForKey:@"UIImagePickerControllerEditedImage"];
 
     UIImage* scaledImage = [CommonUtil imageCompress:editedImage fileSize:MAX_IMAGE_FILE_SIZE];

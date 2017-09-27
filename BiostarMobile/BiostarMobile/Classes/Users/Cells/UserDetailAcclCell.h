@@ -29,7 +29,8 @@
 - (void)userTelephoneDidChange:(NSString*)telephone;
 - (void)userLogin_IDDidChange:(NSString*)loginID;
 - (void)maxValueIsOver;
-
+- (void)loginIDInvalid;
+- (void)phoneNumberIsInvalid;
 @end
 
 #define ID_MAXLENGTH 10
@@ -42,6 +43,7 @@
 @interface UserDetailAcclCell : UITableViewCell
 {
     User* currentUser;
+    __weak IBOutlet UIImageView *arrowImage;
 }
 
 @property (assign, nonatomic) id <UserDetailAccCellDelegate> delegate;
@@ -53,6 +55,7 @@
 - (void)setCellContent:(User*)user cellType:(CellType)type viewMode:(DetailType)mode hasOperator:(BOOL)hasOperator;
 - (BOOL)validateLoginID:(NSString*)string;
 - (BOOL)validateUserID:(NSString*)string;
+- (BOOL)validatePhoenNumber:(NSString*)string;
 - (NSString*)getTitle;
 
 @end

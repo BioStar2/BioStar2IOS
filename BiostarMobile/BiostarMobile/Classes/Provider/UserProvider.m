@@ -49,6 +49,7 @@
             
             if ([PreferenceProvider isUpperVersion])
             {
+                
                 // V2
                 [mappingProvider mapFromDictionaryKey:@"permissions" toPropertyKey:@"permissions" withObjectType:[PermissionItem class] forClass:[Permission class]];
                 
@@ -93,7 +94,11 @@
     _type = UsersInfo_Request;
     
     NSMutableDictionary *param = [[NSMutableDictionary alloc] init];
-    [param setObject:groupID forKey:@"group_id"];
+    if (nil != groupID)
+    {
+        [param setObject:groupID forKey:@"group_id"];
+    }
+    
     [param setObject:[NSString stringWithFormat:@"%ld", (long)limit] forKey:@"limit"];
     [param setObject:[NSString stringWithFormat:@"%ld", (long)offset] forKey:@"offset"];
     
@@ -189,6 +194,28 @@
         handler(responseObject, error);
     }];
     
+}
+
+- (void)updateUserPhoto:(NSString*)userID photo:(NSString*)photo completeHandler:(ResultBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock
+{
+    NSString *jsonString = photo;
+    
+    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USER_PHOTO, userID]];
+    
+    [network request:url withParam:jsonString method:PHOTO_PUT completionHandler:^(NSDictionary *responseObject, NSError *error) {
+        
+        Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
+        
+        if (nil == error)
+        {
+            responseBlock(response);
+        }
+        else
+        {
+            errorBlock(response);
+        }
+        
+    }];
 }
 
 - (void)modifyUser:(User*)user responseBlock:(ResultBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock
@@ -356,6 +383,19 @@
             [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[UserGroup class] forClass:[UserGroupSearchResult class]];
             
             UserGroupSearchResult *result = [mapper objectFromSource:responseObject toInstanceOfClass:[UserGroupSearchResult class]];
+            
+            NSArray *sortedArray = [result.records  sortedArrayUsingComparator:
+                                    ^NSComparisonResult(UserGroup *obj1, UserGroup *obj2){
+                                        
+                                        const char *obj1Name = [[obj1.name lowercaseString] UTF8String];
+                                        const char *obj2Name = [[obj2.name lowercaseString] UTF8String];
+                                        
+                                        int order = strcmp(obj1Name, obj2Name);
+                                        return order;
+                                    }];
+            
+            result.records = sortedArray;
+            
             resultBlock(result);
         }
         else
@@ -494,6 +534,31 @@
 
 #pragma mark - User Mobile Credential APIs
 
+- (void)getMyMobileCredentials:(UserMobileCredentialListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock
+{
+    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, API_MY_PROFILE_MOBILE_CREDENTIAL];
+    
+    [network request:url withParam:nil method:GET completionHandler:^(NSDictionary *responseObject, NSError *error) {
+        
+        if (nil == error)
+        {
+            [mappingProvider mapFromDictionaryKey:@"access_groups" toPropertyKey:@"access_groups" withObjectType:[UserItemAccessGroup class] forClass:[GetMobileCredential class]];
+            
+            [mappingProvider mapFromDictionaryKey:@"mobile_credential_list" toPropertyKey:@"mobile_credential_list" withObjectType:[GetMobileCredential class] forClass:[MobileCredentialList class]];
+            
+            MobileCredentialList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[MobileCredentialList class]];
+            
+            resultBlock(result);
+        }
+        else
+        {
+            Response *error = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
+            errorBlock(error);
+        }
+        
+    }];
+}
+
 - (void)getUserMobileCredentials:(NSString*)userID resultBlock:(UserMobileCredentialListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock
 {
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USERS_MOBILE_CREDENTIAL, userID]];
@@ -502,7 +567,7 @@
         
         if (nil == error)
         {
-            [mappingProvider mapFromDictionaryKey:@"mobile_credential_list" toPropertyKey:@"mobile_credential_list" withObjectType:[Card class] forClass:[MobileCredentialList class]];
+            [mappingProvider mapFromDictionaryKey:@"mobile_credential_list" toPropertyKey:@"mobile_credential_list" withObjectType:[GetMobileCredential class] forClass:[MobileCredentialList class]];
             
             MobileCredentialList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[MobileCredentialList class]];
             
@@ -605,24 +670,7 @@
     }];
 }
 
-- (void)requestMobileCredentialReissue:(NSString*)cardRecordID responseBlock:(ResultBlock)responseBlock onErrorBlock:(ErrorBlock)errorBlock
-{
-    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USERS_REQUEST_REIISSUE_MOBILE_CREDENTIAL, cardRecordID]];
-    
-    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
-        
-        Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
-        
-        if (nil == error)
-        {
-            responseBlock(response);
-        }
-        else
-        {
-            errorBlock(response);
-        }
-    }];
-}
+
 
 #pragma mark - User Fingerprint APIs
 
@@ -687,6 +735,80 @@
     }];
 }
 
+#pragma mark - User Face Templates APIs
+
+- (void)getUserFaceTemplate:(NSString*)userID resultBlock:(UserFaceTemplateListBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock
+{
+    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USERS_FACE_TEMPLATES, userID]];
+    
+    [network request:url withParam:nil method:GET completionHandler:^(NSDictionary *responseObject, NSError *error) {
+        
+        if (nil == error)
+        {
+            [mappingProvider mapFromDictionaryKey:@"face_template_list" toPropertyKey:@"face_template_list" withObjectType:[FaceTemplate class] forClass:[UserFaceTemplateList class]];
+            
+            UserFaceTemplateList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[UserFaceTemplateList class]];
+            
+            resultBlock(result);
+        }
+        else
+        {
+            Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
+            errorBlock(response);
+        }
+        
+    }];
+}
+
+- (void)updateUserFaceTemplate:(UserFaceTemplateList*)templateList userID:(NSString*)userID resultBlock:(ResultBlock)resultBlock onErrorBlock:(ErrorBlock)errorBlock
+{
+    NSError *jsonError;
+    
+    NSMutableArray *face_template_list = [NSMutableArray new];
+    for (FaceTemplate *template in templateList.face_template_list)
+    {
+        NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] initWithDictionary:[mapper dictionaryFromObject:template]];
+        
+        if ([template.id integerValue] == 0)
+        {
+            [tempDic removeObjectForKey:@"id"];
+        }
+        
+        [face_template_list addObject:tempDic];
+    }
+    
+    NSDictionary *updateUserFaceTemplateList = @{@"face_template_list" : face_template_list};
+    
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:updateUserFaceTemplateList options:NSJSONWritingPrettyPrinted error:&jsonError];
+    
+    if (nil != jsonError)
+    {
+        Response *response = [Response new];
+        response.message = [jsonError localizedDescription];
+        errorBlock(response);
+        
+        return;
+    }
+    
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    
+    NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_USERS_FACE_TEMPLATES, userID]];
+    
+    [network request:url withParam:jsonString method:PUT completionHandler:^(NSDictionary *responseObject, NSError *error) {
+        
+        Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
+        
+        if (nil == error)
+        {
+            resultBlock(response);
+        }
+        else
+        {
+            errorBlock(response);
+        }
+        
+    }];
+}
 
 
 @end

@@ -54,6 +54,35 @@ typedef NS_ENUM(NSInteger, LogType) {
 - (LogType)logTypeEnumFromString;
 
 
+typedef NS_ENUM(NSInteger, BLEStatus) {
+    BROADCAST_BLE_SUCESS                  = 0,
+    BROADCAST_BLE_ERROR_CONNECT           = 1,
+    BROADCAST_BLE_ERROR_DATA              = 2,
+    BROADCAST_BLE_CONNECT                 = 3,
+    BROADCAST_NONE                        = 4
+};
+
+- (BLEStatus)BLEStatusTypeEnumFromString;
++ (NSString*)BLEStatusTypeStringFromEnum:(BLEStatus)type;
+
+typedef NS_ENUM(NSInteger, BLEConnectionStatus) {
+    READY_TO_SCAN                         = 0,
+    SCANNING,
+    TRYING_TO_SCAN,
+    CONNECTING,
+    CONNECTED,
+    FAIL_TO_CONNECT,
+    DISCONNECTED,
+    DISCONNECTED_WITH_ERROR,
+    STATUS_NONE,
+    SUCCESS_TRANSACTION,
+    FAILED_TRANSACTION,
+    POWER_OFF
+};
+
+- (BLEConnectionStatus)BLEConnectionStatusTypeEnumFromString;
++ (NSString*)BLEConnectionStatusTypeStringFromEnum:(BLEConnectionStatus)type;
+
 
 @end
 

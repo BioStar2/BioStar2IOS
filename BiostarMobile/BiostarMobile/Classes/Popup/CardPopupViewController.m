@@ -20,8 +20,8 @@
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     cards = [[NSMutableArray alloc] init];
     [containerView setHidden:YES];
@@ -33,7 +33,7 @@
     
     listTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     
-    titleLabel.text = NSLocalizedString(@"registeration_option_assign_card", nil);
+    titleLabel.text = NSBaseLocalizedString(@"registeration_option_assign_card", nil);
     
     cardProvider = [[CardProvider alloc] init];
     if (deviceMode == CSN_CARD_MODE)
@@ -133,7 +133,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -203,7 +203,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -276,7 +276,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -299,7 +299,7 @@
 - (IBAction)showSearchTextFieldView:(id)sender
 {
     [textView setHidden:NO];
-    [searchTextField resignFirstResponder];
+    [searchTextField becomeFirstResponder];
 }
 
 
@@ -308,6 +308,26 @@
 {
     [self.view endEditing:YES];
     [textView setHidden:YES];
+    
+    if ((nil == query || [query isEqualToString:@""]) && didSearch)
+    {
+        didSearch = NO;
+        offset = 0;
+        limit = 50;
+        
+        if (deviceMode == CSN_CARD_MODE)
+        {
+            [self getCSNCards:nil limit:limit offset:offset];
+        }
+        else if (deviceMode == WIEGAND_CARD_MODE)
+        {
+            [self getWiegandCards:nil limit:limit offset:offset];
+        }
+        else if (deviceMode == SMART_CARD_MODE)
+        {
+            [self getSmartCards:nil limit:limit offset:offset];
+        }
+    }
 }
 
 
@@ -396,35 +416,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     Card *currentCard = [cards objectAtIndex:indexPath.row];
-    CardType cardType = [currentCard.type cardTypeEnumFromString];
     
-//    switch (deviceMode) {
-//        case CSN_CARD_MODE:
-//            if (cardType != CSN)
-//            {
-//                return;
-//            }
-//            break;
-//        case CSN_WIEGAND:
-//        case WIEGAND_CARD_MODE:
-//            if (cardType != WIEGAND)
-//            {
-//                return;
-//            }
-//            
-//            break;
-//            
-//        case SMART_CARD_MODE:
-//            if (cardType != SECURE_CREDENTIAL || cardType != ACCESS_ON)
-//            {
-//                return;
-//            }
-//            break;
-//            
-//        default:
-//            return;
-//            break;
-//    }
     
     for (Card *card in cards)
     {
@@ -446,21 +438,57 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    query = textField.text;
-    offset = 0;
-    isForSearch = YES;
-    
-    if (deviceMode == CSN_CARD_MODE)
+    if (![textField.text isEqualToString:@""])
     {
-        [self getCSNCards:query limit:limit offset:offset];
-    }
-    else if (deviceMode == WIEGAND_CARD_MODE)
-    {
-        [self getWiegandCards:query limit:limit offset:offset];
+        query = textField.text;
+        offset = 0;
+        isForSearch = YES;
+        
+        if (deviceMode == CSN_CARD_MODE)
+        {
+            [self getCSNCards:query limit:limit offset:offset];
+        }
+        else if (deviceMode == WIEGAND_CARD_MODE)
+        {
+            [self getWiegandCards:query limit:limit offset:offset];
+        }
+        didSearch = YES;
+        [textField resignFirstResponder];
     }
     
-    [textField resignFirstResponder];
     return YES;
 }
 
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    query = @"";
+    return YES;
+}
+
+- (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    NSMutableString *content = [[NSMutableString alloc] initWithString:textField.text];
+    
+    if (![string isEqualToString:@""])
+    {
+        // append
+        @try {
+            [content insertString:string atIndex:range.location];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    else
+    {
+        //delete
+        @try {
+            [content deleteCharactersInRange:range];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    
+    query = content;
+    return YES;
+}
 @end

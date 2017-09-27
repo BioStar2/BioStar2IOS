@@ -24,6 +24,7 @@
 #import "VerifyFingerprintResult.h"
 #import "CardSearchResult.h"
 #import "PreferenceProvider.h"
+#import "FaceTemplate.h"
 #import "Common.h"
 /**
  *
@@ -67,6 +68,9 @@ typedef void(^SearchDeviceCompleteBolck)(SearchDeviceListResult *result, NSArray
  *
  */
 typedef void(^DeviceCompleteBolck)(SearchResultDevice *device);
+
+
+typedef void(^FaceScanCompleteBolck)(FaceTemplate *faceTemplate);
 
 
 
@@ -142,5 +146,7 @@ typedef void(^CardScanBolck)(Card *scanCard);
 
 - (void)scanCard:(NSString*)deviceID scanBlock:(CardScanBolck)scanBlock onError:(ErrorBlock)errorBlock;
 
+
+- (void)scanFace:(NSString*)deviceID quality:(NSUInteger)quality scanBlock:(FaceScanCompleteBolck)scanBlock onError:(ErrorBlock)errorBlock;
 
 @end

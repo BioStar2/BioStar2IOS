@@ -170,7 +170,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/Cells/MonitoringExtraCell.m"
-            timestampString = "497427533.703512"
+            timestampString = "526370574.281011"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "31"
@@ -202,12 +202,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/Cells/MonitoringExtraCell.m"
-            timestampString = "497427533.703512"
+            timestampString = "526370574.281097"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "102"
-            endingLineNumber = "102"
-            landmarkName = "-setContent:canMoveDetail:"
+            startingLineNumber = "113"
+            endingLineNumber = "113"
+            landmarkName = "-setContent:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -218,27 +218,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Users/UserNewDetailViewController.m"
-            timestampString = "506228422.85726"
+            timestampString = "527665255.813307"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2308"
-            endingLineNumber = "2308">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Setting/Cells/SwitchCell.m"
-            timestampString = "497426483.805253"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "28"
-            endingLineNumber = "28"
-            landmarkName = "-setSelected:animated:"
-            landmarkType = "7">
+            startingLineNumber = "2485"
+            endingLineNumber = "2485"
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -277,29 +263,13 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Alarm/Detail/AlarmDoorDetailController.m"
-            timestampString = "506004464.786351"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "171"
-            endingLineNumber = "171"
-            landmarkName = "-setDefaultEventType"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Common/CommonUtil.m"
-            timestampString = "482923049.866799"
+            timestampString = "527669196.103714"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "53"
-            endingLineNumber = "53"
-            landmarkName = "@implementation CommonUtil"
+            startingLineNumber = "54"
+            endingLineNumber = "54"
+            landmarkName = "CommonUtil"
             landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
@@ -342,12 +312,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Doors/DoorDetailViewController.m"
-            timestampString = "506250180.597374"
+            timestampString = "508749888.151773"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "492"
-            endingLineNumber = "492"
-            landmarkName = "-tableView:cellForRowAtIndexPath:"
+            startingLineNumber = "457"
+            endingLineNumber = "457"
+            landmarkName = "-showErrorPopup:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -358,11 +328,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/MonitoringViewController.m"
-            timestampString = "506000783.962132"
+            timestampString = "527668998.617604"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "427"
-            endingLineNumber = "427"
+            startingLineNumber = "339"
+            endingLineNumber = "339"
             landmarkName = "-moveToDetail:ID:event:"
             landmarkType = "7">
          </BreakpointContent>
@@ -390,11 +360,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Users/UserNewDetailViewController.m"
-            timestampString = "506228218.724618"
+            timestampString = "527665255.813536"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "371"
-            endingLineNumber = "371"
+            startingLineNumber = "412"
+            endingLineNumber = "412"
             landmarkName = "-showImageButtonPopup:title:message:"
             landmarkType = "7">
          </BreakpointContent>
@@ -406,11 +376,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Users/UserNewDetailViewController.m"
-            timestampString = "506228422.85726"
+            timestampString = "527665255.81358"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2312"
-            endingLineNumber = "2312">
+            startingLineNumber = "2488"
+            endingLineNumber = "2488">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -420,11 +390,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Provider/DoorProvider.m"
-            timestampString = "502771415.233399"
+            timestampString = "527491565.760967"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "137"
-            endingLineNumber = "137"
+            startingLineNumber = "111"
+            endingLineNumber = "111"
             landmarkName = "-getDoor:completeBlock:onError:"
             landmarkType = "7">
          </BreakpointContent>
@@ -447,28 +417,12 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Model/Card/AccessOnCredential.m"
-            timestampString = "503302734.876721"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "15"
-            endingLineNumber = "15"
-            landmarkName = "-getFingerprintDescription"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/Cells/MonitoringCell.m"
-            timestampString = "506000493.341179"
+            timestampString = "526370574.281304"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "214"
-            endingLineNumber = "214"
+            startingLineNumber = "198"
+            endingLineNumber = "198"
             landmarkName = "-setIcon:"
             landmarkType = "7">
          </BreakpointContent>
@@ -480,11 +434,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/Cells/MonitoringExtraCell.m"
-            timestampString = "506000493.341179"
+            timestampString = "526370574.281355"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "218"
-            endingLineNumber = "218"
+            startingLineNumber = "213"
+            endingLineNumber = "213"
             landmarkName = "-setIcon:"
             landmarkType = "7">
          </BreakpointContent>
@@ -496,11 +450,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BiostarMobile/Classes/Mornitoring/Cells/MonitoringSubExtraCell.m"
-            timestampString = "503382187.671348"
+            timestampString = "526526720.436057"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "238"
-            endingLineNumber = "238"
+            startingLineNumber = "223"
+            endingLineNumber = "223"
             landmarkName = "-setIcon:"
             landmarkType = "7">
          </BreakpointContent>
@@ -511,93 +465,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/MobileCard/MobileCardViewController.m"
-            timestampString = "503471627.71099"
+            filePath = "BiostarMobile/Classes/Common/AESLib/NSData+AES.m"
+            timestampString = "509948727.09162"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "142"
-            endingLineNumber = "142"
-            landmarkName = "-requestReissueMobileCredential:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/MobileCard/MobileCardViewController.m"
-            timestampString = "503471627.71099"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "150"
-            endingLineNumber = "150"
-            landmarkName = "-requestReissueMobileCredential:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/UserProvider.m"
-            timestampString = "505907289.81666"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "612"
-            endingLineNumber = "612"
-            landmarkName = "-requestMobileCredentialReissue:responseBlock:onErrorBlock:"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "-[UserProvider requestMobileCredentialReissue:responseBlock:onErrorBlock:]"
-                  moduleName = "BiostarMobile"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/usjung/Documents/iOS_Project/BioStar2AC/BiostarMobile/BiostarMobile/Classes/Provider/UserProvider.m"
-                  timestampString = "506307882.390359"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "612"
-                  endingLineNumber = "612"
-                  offsetFromSymbolStart = "404">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "__74-[UserProvider requestMobileCredentialReissue:responseBlock:onErrorBlock:]_block_invoke"
-                  moduleName = "BiostarMobile"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/usjung/Documents/iOS_Project/BioStar2AC/BiostarMobile/BiostarMobile/Classes/Provider/UserProvider.m"
-                  timestampString = "506307882.391558"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "612"
-                  endingLineNumber = "612"
-                  offsetFromSymbolStart = "24">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/UserProvider.m"
-            timestampString = "505907289.81666"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "614"
-            endingLineNumber = "614"
-            landmarkName = "-requestMobileCredentialReissue:responseBlock:onErrorBlock:"
+            startingLineNumber = "28"
+            endingLineNumber = "28"
+            landmarkName = "-AES128Operation:key:iv:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -607,77 +481,13 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/BSNetwork.m"
-            timestampString = "505204440.484242"
+            filePath = "BiostarMobile/Classes/Mornitoring/MonitorFilterViewController.m"
+            timestampString = "527664780.539704"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "87"
-            endingLineNumber = "87"
-            landmarkName = "-request:withParam:method:completionHandler:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/DoorProvider.m"
-            timestampString = "505628905.778181"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "343"
-            endingLineNumber = "343"
-            landmarkName = "-reqeustOpen:phoneNumber:onComplete:onError:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/DoorProvider.m"
-            timestampString = "505628907.544329"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "363"
-            endingLineNumber = "363"
-            landmarkName = "-reqeustOpen:phoneNumber:onComplete:onError:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Users/UserNewDetailViewController.m"
-            timestampString = "506228218.724618"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "248"
-            endingLineNumber = "248"
-            landmarkName = "-verifyUserID"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "BiostarMobile/Classes/Provider/DeviceProvider.m"
-            timestampString = "506307849.181135"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "65"
-            endingLineNumber = "65"
-            landmarkName = "-getDevices:limit:offset:mode:deviceBlock:onError:"
+            startingLineNumber = "854"
+            endingLineNumber = "854"
+            landmarkName = "-tableView:cellForRowAtIndexPath:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

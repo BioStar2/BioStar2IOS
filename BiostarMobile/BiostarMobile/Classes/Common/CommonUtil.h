@@ -17,7 +17,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "Common.h"
-#import "KeychainItemWrapper.h"
+
+#define FBENCRYPT_ALGORITHM     kCCAlgorithmAES128
+#define FBENCRYPT_BLOCK_SIZE    kCCBlockSizeAES128
+#define FBENCRYPT_KEY_SIZE      kCCKeySizeAES128
 
 @interface CommonUtil : NSObject
 
@@ -136,6 +139,16 @@
 + (CGSize)findHeightForText:(NSString *)text havingWidth:(CGFloat)widthValue andFont:(UIFont *)font;
 
 
-+ (NSString*)getUUID;
++ (BOOL)isAllDigits:(NSString*)content;
 
+static inline char itoh(int i);
+NSString * NSDataToHex(NSData *data);
+
++ (NSUInteger)getIngetegerFromHexString:(NSString*)hexString;
+
++ (NSData*)encryptData:(NSData*)data key:(NSData*)key iv:(NSData*)iv;
+
++(UIImage*)drawFront:(UIImage*)image text:(NSString*)text atPoint:(CGPoint)point font:(UIFont*)font atRect:(CGRect)rect;
+
++(UIImage*)drawText:(NSString*)text inImage:(UIImage*)image atPoint:(CGPoint)point;
 @end

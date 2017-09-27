@@ -17,7 +17,8 @@ typedef NS_ENUM(NSInteger, ButtonType) {
     ALARM_BUTTON                    = 2,
     MYPROFILE_BUTTON                = 3,
     DOOR_BUTTON                     = 4,
-    MOBILE_CARD_BUTTON              = 5
+    MOBILE_CARD_BUTTON              = 5,
+    EMPTY_BUTTON                    = 6
 };
 
 

@@ -79,11 +79,17 @@
             
             switch (self.mode)
             {
-#warning 2.4.1 에서 ALL_DEVICES_MODE 어디에서 사용하는지 확인 필요
-#warning 2.4.1 에서 READING_CARD_MODE 에서는 카드 device.device_type.scan_card true 인 장치만 추가해서 보여주게 수정해야 함
-                case ALL_DEVICES_MODE:
-                case READING_CARD_MODE:
+                case ALL_DEVICES_MODE: // 모니터링에서 필터에 장치 선택시
                     [deviceCollections addObjectsFromArray:result.records];
+                    break;
+                case READING_CARD_MODE:
+                    for (SearchResultDevice *device in result.records)
+                    {
+                        if (device.device_type.scan_card)
+                        {
+                            [deviceCollections addObject:device];
+                        }
+                    }
                     break;
                 case FINGERPRINT_MODE:
                     
@@ -91,9 +97,19 @@
                     {
                         if ([PreferenceProvider isUpperVersion])
                         {
-                            if(device.device_type.scan_fingerprint && [device.rs485 typeEnumFromString] != SLAVE)
+                            if(device.device_type.scan_fingerprint && device.rs485)
                             {
-                                [deviceCollections addObject:device];
+                                if ([PreferenceProvider isSupportCoreSation])
+                                {
+                                    [deviceCollections addObject:device];
+                                }
+                                else
+                                {
+                                    if ([device.rs485 typeEnumFromString] != SLAVE)
+                                    {
+                                        [deviceCollections addObject:device];
+                                    }
+                                }
                             }
                         }
                         else
@@ -104,6 +120,15 @@
                             }
                         }
                         
+                    }
+                    break;
+                case FACE_TEMPLATE:
+                    for (SearchResultDevice *device in result.records)
+                    {
+                        if(device.device_type.scan_face && [device.rs485 typeEnumFromString] != SLAVE)
+                        {
+                            [deviceCollections addObject:device];
+                        }
                     }
                     break;
                 case CARD_MODE:
@@ -126,30 +151,32 @@
                                 [deviceCollections addObject:device];
                             }
                         }
-                        
-//                        if(!device.csn_wiegand_format && device.wiegand_format_list.count == 0)
-//                        {
-//                            [deviceCollections addObject:device];
-//                        }
                     }
                     break;
                     
                 case WIEGAND_CARD_MODE:
                     for (SearchResultDevice *device in result.records)
                     {
-                        if(device.csn_wiegand_format || device.wiegand_format_list.count != 0)
+                        if(device.device_type.scan_card)
                         {
-                            [deviceCollections addObject:device];
+                            if(device.csn_wiegand_format || device.wiegand_format_list.count != 0)
+                            {
+                                [deviceCollections addObject:device];
+                            }
                         }
+                        
                     }
                     break;
                     
                 case SMART_CARD_MODE:
                     for (SearchResultDevice *device in result.records)
                     {
-                        if(device.smart_card_layout)
+                        if(device.device_type.scan_card)
                         {
-                            [deviceCollections addObject:device];
+                            if(device.smart_card_layout)
+                            {
+                                [deviceCollections addObject:device];
+                            }
                         }
                     }
                     break;
@@ -321,5 +348,41 @@
 }
 
 
+- (void)scanFace:(NSString*)deviceID quality:(NSUInteger)quality scanBlock:(FaceScanCompleteBolck)scanBlock onError:(ErrorBlock)errorBlock
+{
+    
+    NSDictionary *param = @{@"pose_sensitivity" : [NSNumber numberWithUnsignedInteger:quality]};
+    
+    NSError *jsonError;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:param options:kNilOptions error:&jsonError];
+    
+    if (nil != jsonError)
+    {
+        Response *response = [Response new];
+        response.message = [jsonError localizedDescription];
+        errorBlock(response);
+        
+        return;
+    }
+    
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    
+    NSString* url = [NSString stringWithFormat:@"%@%@/%@%@", [NetworkController sharedInstance].serverURL, API_DEVICES, deviceID, API_DEVICE_SCAN_FACE];
+    
+    [network request:url withParam:jsonString method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+        
+        if (nil ==error)
+        {
+            FaceTemplate *result = [mapper objectFromSource:responseObject toInstanceOfClass:[FaceTemplate class]];
+            scanBlock(result);
+        }
+        else
+        {
+            Response *error = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
+            errorBlock(error);
+        }
+    }];
+    
+}
 
 @end

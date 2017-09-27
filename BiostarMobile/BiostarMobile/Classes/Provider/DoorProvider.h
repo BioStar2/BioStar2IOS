@@ -47,7 +47,6 @@ typedef void(^DoorCompleteBolck)(ListDoorItem *door);
 
 - (void)searchDoors:(NSString*)query limit:(NSInteger)limit offset:(NSInteger)offset completeBlock:(DoorsCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock;
 
-//- (void)getDoors:(DoorsCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock;
 
 /**
  *  Get a door

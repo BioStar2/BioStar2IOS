@@ -11,5 +11,7 @@
 @interface MobileCredentialRegisterResponse : Response
 
 @property (nonatomic, strong) NSString *raw;
+@property (nonatomic, strong) NSString *smart_card_layout_primary_key; 
+@property (nonatomic, strong) NSString *smart_card_layout_second_key;
 
 @end

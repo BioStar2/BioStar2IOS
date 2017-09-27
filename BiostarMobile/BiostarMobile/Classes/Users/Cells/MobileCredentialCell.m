@@ -13,8 +13,6 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     // Initialization code
-    [blockButton setTitle:NSLocalizedString(@"block", nil) forState:UIControlStateNormal];
-    [releaseButton setTitle:NSLocalizedString(@"unblock", nil) forState:UIControlStateNormal];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -23,31 +21,51 @@
     // Configure the view for the selected state
 }
 
+- (CGFloat)getIDLabelHeight
+{
+    NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:cardIDLabel.font, NSFontAttributeName, nil];
+    
+    CGSize maximumLabelSize = CGSizeMake(319, FLT_MAX);
+    CGRect expectedLabelSize = [cardIDLabel.text boundingRectWithSize:maximumLabelSize options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading attributes:attributes context:nil];
+    if (cardIDLabel.frame.size.height < expectedLabelSize.size.height)
+    {
+        return expectedLabelSize.size.height;
+    }
+    else
+    {
+        if (cardIDLabel.frame.size.height >= expectedLabelSize.size.height)
+        {
+            return expectedLabelSize.size.height;
+        }
+        return 0;
+    }
+}
+
 - (void)setContent:(Card*)card mode:(BOOL)isDeleteMode viewMode:(BOOL)isProfile
 {
     currentCard = card;
-    cardIDLabel.text = ([card.issue_count integerValue] > 1) ? [NSString stringWithFormat:@"%@(%@ %@)", card.card_id, NSLocalizedString(@"issue_card_count", nil), card.issue_count ]: card.card_id;
+    cardIDLabel.text = ([card.issue_count integerValue] > 1) ? [NSString stringWithFormat:@"%@(%@ %@)", card.card_id, NSBaseLocalizedString(@"issue_card_count", nil), card.issue_count ]: card.card_id;
     
     CardType cardType = [card.type cardTypeEnumFromString];
     
     switch (cardType) {
         case CSN:
-            cardTypeLabel.text = NSLocalizedString(@"csn", nil);
+            cardTypeLabel.text = NSBaseLocalizedString(@"csn", nil);
             break;
             
         case WIEGAND:
         case CSN_WIEGAND:
-            cardTypeLabel.text = NSLocalizedString(@"wiegand", nil);
+            cardTypeLabel.text = NSBaseLocalizedString(@"wiegand", nil);
             break;
             
         case SECURE_CREDENTIAL:
             if (card.is_mobile_credential)
             {
-                cardTypeLabel.text = [NSString stringWithFormat:@"%@(%@)",NSLocalizedString(@"secure_card", nil) ,NSLocalizedString(@"mobile", nil)];
+                cardTypeLabel.text = [NSString stringWithFormat:@"%@(%@)",NSBaseLocalizedString(@"secure_card", nil) ,NSBaseLocalizedString(@"mobile", nil)];
             }
             else
             {
-                cardTypeLabel.text = NSLocalizedString(@"secure_card", nil);
+                cardTypeLabel.text = NSBaseLocalizedString(@"secure_card", nil);
             }
             
             break;
@@ -55,27 +73,34 @@
         case ACCESS_ON:
             if (card.is_mobile_credential)
             {
-                cardTypeLabel.text = [NSString stringWithFormat:@"%@(%@)",NSLocalizedString(@"access_on_card", nil) ,NSLocalizedString(@"mobile", nil)];
+                cardTypeLabel.text = [NSString stringWithFormat:@"%@(%@)",NSBaseLocalizedString(@"access_on_card", nil) ,NSBaseLocalizedString(@"mobile", nil)];
             }
             else
             {
-                cardTypeLabel.text = NSLocalizedString(@"access_on_card", nil);
+                cardTypeLabel.text = NSBaseLocalizedString(@"access_on_card", nil);
             }
             
             break;
     }
     
-    
-    [blockButton setHidden:card.is_blocked];
-    [releaseButton setHidden:!card.is_blocked];
+    [statusSwitch setOn:!card.is_blocked];
     
     if (isDeleteMode)
     {
         UIColor *BGColor;
-        if (card.is_blocked)
+        if (!card.is_blocked)
         {
-            BGColor = card.isSelected ? UIColorFromRGB(0xf7ce86) : UIColorFromRGB(0xdcdcdc);
-            [self.contentView setBackgroundColor:BGColor];
+            if (cardType == ACCESS_ON)
+            {
+                BGColor = card.isSelected ? UIColorFromRGB(0xf7ce86) : UIColorFromRGB(0xdcdcdc);
+                [self.contentView setBackgroundColor:BGColor];
+            }
+            else
+            {
+                BGColor = card.isSelected ? UIColorFromRGB(0xf7ce86) : [UIColor whiteColor];
+                [self.contentView setBackgroundColor:BGColor];
+            }
+            
         }
         else
         {
@@ -84,17 +109,19 @@
         }
         
         [checkImage setHidden:!card.isSelected];
-        [blockButton setHidden:YES];
-        [releaseButton setHidden:YES];
+        [statusSwitch setHidden:YES];
+        
         [statusButton setHidden:YES];
     }
     else
     {
         [checkImage setHidden:YES];
-        UIColor *BGColor = card.is_blocked ? UIColorFromRGB(0xdcdcdc) : [UIColor whiteColor];
-        [self.contentView setBackgroundColor:BGColor];
-        [blockButton setHidden:card.is_blocked];
-        [releaseButton setHidden:!card.is_blocked];
+        
+//        UIColor *BGColor = card.is_blocked ? UIColorFromRGB(0xdcdcdc) : [UIColor whiteColor];
+//        [self.contentView setBackgroundColor:BGColor];
+        [self.contentView setBackgroundColor:[UIColor whiteColor]];
+        
+        [statusSwitch setHidden:NO];
         [statusButton setHidden:NO];
         
         if (card.is_registered)
@@ -109,37 +136,39 @@
     
     if (isProfile)
     {
-        [blockButton setHidden:YES];
-        [releaseButton setHidden:YES];
+        [statusSwitch setEnabled:NO];
     }
     
 }
 
-- (IBAction)block:(id)sender
-{
-    if ([self.delegate respondsToSelector:@selector(blockCard:)])
-    {
-        [self.delegate blockCard:self];
-    }
-}
 
-- (IBAction)release:(id)sender
+- (IBAction)blockOrReleaseCard:(UISwitch *)sender
 {
-    if ([self.delegate respondsToSelector:@selector(releaseCard:)])
+    if (sender.isOn)
     {
-        [self.delegate releaseCard:self];
+        if ([self.delegate respondsToSelector:@selector(releaseCard:)])
+        {
+            [self.delegate releaseCard:self];
+        }
+    }
+    else
+    {
+        if ([self.delegate respondsToSelector:@selector(blockCard:)])
+        {
+            [self.delegate blockCard:self];
+        }
     }
 }
 
 - (IBAction)requestReregisterMobileCard:(id)sender
 {
-    if (currentCard.is_registered)
-    {
-        if ([self.delegate respondsToSelector:@selector(requestReregisterMobileCard:)])
-        {
-            [self.delegate requestReregisterMobileCard:currentCard];
-        }
-    }
+//    if (currentCard.is_registered)
+//    {
+//        if ([self.delegate respondsToSelector:@selector(requestReregisterMobileCard:)])
+//        {
+//            [self.delegate requestReregisterMobileCard:currentCard];
+//        }
+//    }
 }
 
 @end

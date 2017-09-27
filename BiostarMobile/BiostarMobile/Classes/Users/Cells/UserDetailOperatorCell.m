@@ -31,14 +31,14 @@
 
 - (void)setOperatorCellContent:(NSArray*)operators isEditMode:(BOOL)flag
 {
-    titleLabel.text = NSLocalizedString(@"operator", nil);
+    titleLabel.text = NSBaseLocalizedString(@"operator", nil);
     NSString *permission;
     [numberView setHidden:YES];
     UserRole *role;
     switch (operators.count)
     {
         case 0:
-            permission = NSLocalizedString(@"none", nil);
+            permission = NSBaseLocalizedString(@"none", nil);
             [numberView setHidden:YES];
             if (flag)
             {
@@ -103,12 +103,12 @@
 
 - (void)setPermission:(NSString*)name isEditMode:(BOOL)flag
 {
-    titleLabel.text = NSLocalizedString(@"operator", nil);
+    titleLabel.text = NSBaseLocalizedString(@"operator", nil);
     [numberView setHidden:YES];
     
     if (nil == name)
     {
-        contentLabel.text = NSLocalizedString(@"none", nil);
+        contentLabel.text = NSBaseLocalizedString(@"none", nil);
     }
     else
     {

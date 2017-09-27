@@ -9,5 +9,6 @@
 //"NSPhotoLibraryUsageDescription" = "To change or add user's photo, access photo library";
 //"NSCameraUsageDescription" = "To change or add user's photo, access camera";
 
-"NSPhotoLibraryUsageDescription" = "";
-"NSCameraUsageDescription" = "";
+"NSPhotoLibraryUsageDescription" = "In order to enroll a user photo, access to the camera and the album.";
+"NSCameraUsageDescription" = "In order to enroll a user photo, access to the camera and the album.";
+"NSBluetoothPeripherealUsageDescription" = "In order to use mobile card, set to use BLE.";

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Common.h"
 
 @interface CardHelpCell : UITableViewCell
 {

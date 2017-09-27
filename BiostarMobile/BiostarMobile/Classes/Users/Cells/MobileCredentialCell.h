@@ -24,8 +24,7 @@
 
 @interface MobileCredentialCell : UITableViewCell
 {
-    __weak IBOutlet UIButton *blockButton;
-    __weak IBOutlet UIButton *releaseButton;
+    __weak IBOutlet UISwitch *statusSwitch;
     __weak IBOutlet UILabel *cardTypeLabel;
     __weak IBOutlet UILabel *cardIDLabel;
     __weak IBOutlet UIImageView *checkImage;
@@ -36,8 +35,7 @@
 @property (nonatomic, weak) id <MobileCredentialCellDelegate> delegate;
 
 - (void)setContent:(Card*)card mode:(BOOL)isDeleteMode viewMode:(BOOL)isProfile;
-- (IBAction)block:(id)sender;
-- (IBAction)release:(id)sender;
+- (IBAction)blockOrReleaseCard:(UISwitch *)sender;
 - (IBAction)requestReregisterMobileCard:(id)sender;
-
+- (CGFloat)getIDLabelHeight;
 @end

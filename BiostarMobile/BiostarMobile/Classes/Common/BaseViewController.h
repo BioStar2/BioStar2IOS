@@ -33,9 +33,14 @@
     UIRefreshControl *refreshControl;
     BOOL isLoading;
     UIViewController *currentController;
+    BOOL didSearch;
+    BOOL isHome;
 }
 
 @property (nonatomic, strong) SessionExpiredPopupController *sessionPopupController;
+
+
+- (NSString *)localizedBaseString:(NSString *)key comment:(NSString *)comment;
 
 - (void)setSharedViewController:(BaseViewController*)controller;
 
@@ -46,7 +51,7 @@
  */
 - (void)startLoading:(UIViewController*)parentViewController;
 
-
+- (BOOL)isHomeScreen;
 /**
  *  Hide loading view
  *

@@ -21,7 +21,7 @@
 {
     __weak IBOutlet UIView *containerView;
     __weak IBOutlet UILabel *titleLabel;
-    __weak IBOutlet UILabel *contentLabel;
+    __weak IBOutlet UITextView *contentTextView;
     __weak IBOutlet UIView *contentView;
     __weak IBOutlet UIButton *cancelBtn;
     __weak IBOutlet UIButton *confirmBtn;

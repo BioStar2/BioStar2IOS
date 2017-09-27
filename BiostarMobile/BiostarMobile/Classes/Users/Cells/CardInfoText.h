@@ -13,6 +13,7 @@
 #import "PreferenceProvider.h"
 #import "SearchResultDevice.h"
 #import "NSString+EnumParser.h"
+#import "JKBigDecimal.h"
 
 @protocol CardInfoTextCellDelegate <NSObject>
 
@@ -20,14 +21,14 @@
 
 - (void)textfieldContentDidChanged:(NSString*)content;
 - (void)wiegandContentDidChanged:(NSString*)content cell:(UITableViewCell*)cell;
-- (void)maxValueIsOver:(NSInteger)maxValue;
+- (void)maxValueIsOver:(NSString*)maxValue;
 - (void)zeroValueNotAllowed;
 
 @end
 
 #define CSN_MAXLENGTH 32
 #define WIEGAND_MAXLENGTH 5
-#define SMART_MAXLENGTH 24
+#define SMART_MAXLENGTH 57
 
 @interface CardInfoText : UITableViewCell <UITextFieldDelegate>
 {
@@ -40,14 +41,14 @@
     
     NSMutableArray *formatNames;
     DeviceMode deviceMode;
-    NSInteger maxValue;
+    NSString *maxValue;
 }
 
 @property (nonatomic, weak) id <CardInfoTextCellDelegate> delegate;
 
 - (void)setTitle:(NSString*)title content:(NSString*)content;
 - (void)setTitle:(NSString*)title field:(NSString*)content;
-- (void)setTitle:(NSString*)title field:(NSString*)content maxValue:(NSInteger)value;
+- (void)setTitle:(NSString*)title field:(NSString*)content maxValue:(NSString*)value;
 - (void)setTitle:(NSString*)title smartCardType:(NSString*)cardType;
 - (void)setCardInfoType:(RegistrationType)registrationType deviceMode:(DeviceMode)mode;
 - (void)setOnlyContent;

@@ -34,16 +34,16 @@
     if ([PreferenceProvider isUpperVersion])
     {
         if ([[PreferenceProvider getBioStarSetting].password_strength_level isEqualToString:@"STRONG"])
-            contentLabel.text = NSLocalizedString(@"password_guide_strong", nil);
+            contentLabel.text = NSBaseLocalizedString(@"password_guide_strong", nil);
         else
-            contentLabel.text = NSLocalizedString(@"password_guide", nil);
+            contentLabel.text = NSBaseLocalizedString(@"password_guide", nil);
     }
     else
     {
         if ([[AuthProvider getLoginUserInfo].password_strength_level isEqualToString:@"STRONG"])
-            contentLabel.text = NSLocalizedString(@"password_guide_strong", nil);
+            contentLabel.text = NSBaseLocalizedString(@"password_guide_strong", nil);
         else
-            contentLabel.text = NSLocalizedString(@"password_guide", nil);
+            contentLabel.text = NSBaseLocalizedString(@"password_guide", nil);
     }
     
     

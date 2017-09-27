@@ -22,26 +22,39 @@
     deviceProvider = [[DeviceProvider alloc] init];
     cardProvider = [[CardProvider alloc] init];
     
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
-    descriptionLabel.text = NSLocalizedString(@"card_on_device", nil);
+    descriptionLabel.text = NSBaseLocalizedString(@"card_on_device", nil);
     scanImage.image = [UIImage imageNamed:@"user_card1"];
     
     if (_deviceMode != SMART_CARD_MODE)
     {
         if ([PreferenceProvider isUpperVersion])
         {
-            titleLabel.text = NSLocalizedString(@"read_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"read_card", nil);
         }
         else
         {
-            titleLabel.text = NSLocalizedString(@"add_card", nil);
+            // 한글 일본어 일때 순서 바꾸기
+            NSString *language = [[NSLocale preferredLanguages] objectAtIndex:0];
+            NSDictionary *languageDic = [NSLocale componentsFromLocaleIdentifier:language];
+            NSString *languageCode = [languageDic objectForKey:@"kCFLocaleLanguageCodeKey"];
+            
+            if ([languageCode isEqualToString:@"ko"] || [languageCode isEqualToString:@"ja"])
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"card", nil) ,NSBaseLocalizedString(@"add", nil)];
+            }
+            else
+            {
+                titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"add", nil) ,NSBaseLocalizedString(@"card", nil)];
+            }
+            
         }
         [self scanCard:self.deviceID];
     }
     else
     {
-        titleLabel.text = NSLocalizedString(@"write_card", nil);
+        titleLabel.text = NSBaseLocalizedString(@"write_card", nil);
         if ([_cardType integerValue] == 0)
         {
             [self scanScureCard:self.secureCredential];
@@ -121,7 +134,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -167,7 +180,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -215,7 +228,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

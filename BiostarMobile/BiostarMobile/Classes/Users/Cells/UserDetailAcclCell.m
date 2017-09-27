@@ -38,7 +38,7 @@
     switch (_type)
     {
         case CELL_USER_NAME:
-            _titleLabel.text = NSLocalizedString(@"name", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"name", nil);
             _contentField.text = user.name;
             [_contentField setEnabled:YES];
             [_contentField setKeyboardType:UIKeyboardTypeDefault];
@@ -47,7 +47,7 @@
             
         case CELL_USER_ID:
         {
-            _titleLabel.text = NSLocalizedString(@"user_id", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"user_id", nil);
             _contentField.text = user.user_id;
             
             if ([PreferenceProvider isUpperVersion])
@@ -81,7 +81,7 @@
         }
             break;
         case CELL_USER_EMAIL:
-            _titleLabel.text = NSLocalizedString(@"email", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"email", nil);
             [_contentField setKeyboardType:UIKeyboardTypeEmailAddress];
             _contentField.text = user.email;
             [_contentField setSecureTextEntry:NO];
@@ -93,7 +93,7 @@
                 
             break;
         case CELL_USER_TELEPHONE:
-            _titleLabel.text = NSLocalizedString(@"telephone", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"telephone", nil);
             _contentField.text = user.phone_number;
             [_contentField setSecureTextEntry:NO];
             [_contentField setKeyboardType:UIKeyboardTypePhonePad];
@@ -105,7 +105,7 @@
             
             break;
         case CELL_USER_LOGIN_ID:
-            _titleLabel.text = NSLocalizedString(@"login_id", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"login_id", nil);
             _contentField.text = user.login_id;
             [_contentField setEnabled:YES];
             [_contentField setKeyboardType:UIKeyboardTypeDefault];
@@ -114,7 +114,7 @@
             break;
         case CELL_USER_PASSWORD:
         {
-            _titleLabel.text = NSLocalizedString(@"password", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"password", nil);
             if (user.password_exist)
             {
                 if (nil != user.password)
@@ -136,9 +136,11 @@
         }
             break;
         case CELL_USER_GROUP:
-            _titleLabel.text = NSLocalizedString(@"group", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"group", nil);
             
-            _contentField.text = user.user_group.name ? user.user_group.name : NSLocalizedString(@"all_users", nil);
+//            _contentField.text = user.user_group.name ? user.user_group.name : NSBaseLocalizedString(@"all_users", nil);
+
+            _contentField.text = user.user_group.name;
             
             [_contentField setEnabled:NO];
             [_contentField setSecureTextEntry:NO];
@@ -146,7 +148,7 @@
             break;
             
         case CELL_USER_ACCESS_GROUP:
-            _titleLabel.text = NSLocalizedString(@"access_group", nil);
+            _titleLabel.text = NSBaseLocalizedString(@"access_group", nil);
             
             NSInteger count = 0;
             
@@ -164,15 +166,16 @@
 {
     if (hasOperator)
     {
-        _titleLabel.text = NSLocalizedString(@"login_id", nil);
+        _titleLabel.text = NSBaseLocalizedString(@"login_id", nil);
         _contentField.text = user.login_id;
         [_contentField setEnabled:YES];
         
     }
     else
     {
-        _titleLabel.text = NSLocalizedString(@"group", nil);
-        _contentField.text = user.user_group.name ? user.user_group.name : NSLocalizedString(@"all_users", nil);
+        _titleLabel.text = NSBaseLocalizedString(@"group", nil);
+        //_contentField.text = user.user_group.name ? user.user_group.name : NSBaseLocalizedString(@"all_users", nil);
+        _contentField.text = user.user_group.name;
         
         [_contentField setEnabled:NO];
     }
@@ -191,6 +194,31 @@
     return isValid;
 }
 
+- (BOOL)validateUserID:(NSString*)string
+{
+    if ([string isEqualToString:@""])
+    {
+        return YES;
+    }
+    NSString *abnRegex = @"[A-Za-z0-9-_]+"; // check for one or more occurrence of string you can also use * instead + for ignoring null value
+    NSPredicate *abnTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", abnRegex];
+    BOOL isValid = [abnTest evaluateWithObject:string];
+    
+    return isValid;
+}
+
+- (BOOL)validatePhoenNumber:(NSString*)string
+{
+    if ([string isEqualToString:@""])
+    {
+        return YES;
+    }
+    NSString *abnRegex = @"[0-9\\-\\+]+"; // check for one or more occurrence of string you can also use * instead + for ignoring null value
+    NSPredicate *abnTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", abnRegex];
+    BOOL isValid = [abnTest evaluateWithObject:string];
+    
+    return isValid;
+}
 
 #pragma mark - UITextFieldDelegate
 
@@ -235,18 +263,7 @@
     }
 }
 
-- (BOOL)validateUserID:(NSString*)string
-{
-    if ([string isEqualToString:@""])
-    {
-        return YES;
-    }
-    NSString *abnRegex = @"[A-Za-z0-9-_]+"; // check for one or more occurrence of string you can also use * instead + for ignoring null value
-    NSPredicate *abnTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", abnRegex];
-    BOOL isValid = [abnTest evaluateWithObject:string];
-    
-    return isValid;
-}
+
 
 - (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
@@ -265,7 +282,15 @@
             BOOL isUnderMaxLength = newLength <= ALPHABET_ID_MAXLENGTH || returnKey;
             if (isUnderMaxLength)
             {
-                return [self validateUserID:string];
+                BOOL isValidID = [self validateUserID:string];
+                if (!isValidID)
+                {
+                    if ([self.delegate respondsToSelector:@selector(loginIDInvalid)])
+                    {
+                        [self.delegate loginIDInvalid];
+                    }
+                }
+                return isValidID;
             }
             else
             {
@@ -289,7 +314,17 @@
         if (result)
         {
             result = [self validateLoginID:string];
+            
+            if (!result)
+            {
+                if ([self.delegate respondsToSelector:@selector(loginIDInvalid)])
+                {
+                    [self.delegate loginIDInvalid];
+                }
+            }
         }
+        
+        
         
         return result;
 
@@ -298,12 +333,17 @@
     {
         BOOL result = newLength <= TEHEPHONE_MAXLENGTH || returnKey;
         
-        if (!result)
+        if (result)
         {
-            if ([self.delegate respondsToSelector:@selector(maxValueIsOver)])
+            result = [self validatePhoenNumber:string];
+            if (!result)
             {
-                [self.delegate maxValueIsOver];
+                if ([self.delegate respondsToSelector:@selector(maxValueIsOver)])
+                {
+                    [self.delegate phoneNumberIsInvalid];
+                }
             }
+            return result;
         }
         
         return result;
@@ -311,6 +351,7 @@
     else if (_type == CELL_USER_EMAIL)
     {
         BOOL result = newLength <= EMAIL_MAXLENGTH || returnKey;
+        
         
         if (!result)
         {

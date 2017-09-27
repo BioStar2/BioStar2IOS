@@ -27,8 +27,8 @@
     // Do any additional setup after loading the view.
     contentListArray = [[NSMutableArray alloc] init];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     [self showPopupAnimation:self.containerView];
     selectedIndex = -1;
@@ -36,11 +36,11 @@
     switch (_type)
     {
         case MORNITORING:
-                titleLabel.text = NSLocalizedString(@"select_link", nil);
+                titleLabel.text = NSBaseLocalizedString(@"select_link", nil);
             break;
             
         case PHOTO:
-                titleLabel.text = NSLocalizedString(@"edit_photo", nil);
+                titleLabel.text = NSBaseLocalizedString(@"edit_photo", nil);
             break;
     }
 

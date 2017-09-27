@@ -23,9 +23,9 @@
     
     [self setSharedViewController:self];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     isMenuSelected = NO;
     limitCount = 16;
     isLimited = NO;
@@ -35,7 +35,7 @@
     selectedAccessGroups = [[NSMutableArray alloc] init];
     accessProvider = [[AccessGroupProvider alloc] init];
     
-    titleLabel.text = NSLocalizedString(@"select_access_group", nil);
+    titleLabel.text = NSBaseLocalizedString(@"select_access_group", nil);
     switch (self.type)
     {
         case EXCHANGE_ACCESS_GROUP:
@@ -108,7 +108,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

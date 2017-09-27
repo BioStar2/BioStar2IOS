@@ -32,33 +32,33 @@
     contentListArray = [[NSMutableArray alloc] init];
     selectedIndex = NOT_SELECTED;
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     switch (_type)
     {
         case CARD_OPTION:
-            titleLabel.text = NSLocalizedString(@"registeration_option", nil);
+            titleLabel.text = NSBaseLocalizedString(@"registeration_option", nil);
             break;
         case PEROID:
-            titleLabel.text = NSLocalizedString(@"select_option", nil);
+            titleLabel.text = NSBaseLocalizedString(@"select_link", nil);
             break;
         case CARD_TYPE:
-            titleLabel.text = NSLocalizedString(@"card_type", nil);
+            titleLabel.text = NSBaseLocalizedString(@"card_type", nil);
             break;
         case REGISTRATION_POPUP:
-            titleLabel.text = NSLocalizedString(@"registeration_option", nil);
+            titleLabel.text = NSBaseLocalizedString(@"registeration_option", nil);
             break;
         case SMART_CARD_POPUP:
-            titleLabel.text = NSLocalizedString(@"smartcard_type", nil);
+            titleLabel.text = NSBaseLocalizedString(@"smartcard_type", nil);
             break;
         case WIGAND_CARD_POPUP:
             cardProvider = [[CardProvider alloc] init];
             [self getWiegandCardFormats];
-            titleLabel.text = NSLocalizedString(@"smartcard_type", nil);
+            titleLabel.text = NSBaseLocalizedString(@"smartcard_type", nil);
             break;
         case SCAN_METHOD:
-            titleLabel.text = NSLocalizedString(@"rescan", nil);
+            titleLabel.text = NSBaseLocalizedString(@"rescan", nil);
             break;
     }
 }
@@ -178,7 +178,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         imagePopupCtrl.type = REQUEST_FAIL;
@@ -215,9 +215,16 @@
     RadioCell *customCell = (RadioCell*)cell;
     
     SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
-    [customCell checkSelected:model.isSelected];
-    
     customCell.titleLabel.text = model.name;
+    
+    if ([model.name isEqualToString:NSBaseLocalizedString(@"mobile_card_upper", nil)])
+    {
+        [customCell checkSelected:model.isSelected isSupportMobileCredential:self.setiing.support_mobile_credential];
+    }
+    else
+    {
+        [customCell checkSelected:model.isSelected];
+    }
     
     return customCell;
 }
@@ -231,6 +238,14 @@
     NSMutableArray *indexPaths = [[NSMutableArray alloc] init];
     
     SelectModel *model = [contentListArray objectAtIndex:indexPath.row];
+    
+    if ([model.name isEqualToString:NSBaseLocalizedString(@"mobile_card_upper", nil)])
+    {
+        if (!self.setiing.support_mobile_credential)
+        {
+            return;
+        }
+    }
     
     NSInteger index = 0;
     

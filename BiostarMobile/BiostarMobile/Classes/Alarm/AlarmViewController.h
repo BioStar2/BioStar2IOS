@@ -46,6 +46,7 @@
     BOOL canScrollTop;
     BOOL isSelectedAll;
     BOOL isReadAlarm;
+    BOOL isMainRequest;
     
     NSInteger totalCount;
     NSInteger alarmIndex;

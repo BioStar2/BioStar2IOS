@@ -28,6 +28,7 @@
 #import "ImagePopupViewController.h"
 #import "EventQuery.h"
 #import "SelectModel.h"
+#import "MornitoringPopupViewController.h"
 
 typedef enum{
     NONE_SELECT,
@@ -61,12 +62,13 @@ typedef enum{
     MonitorFilterViewController *filterViewController;
     EventQuery *searchQuery;
     NSString *userID;
-    NSInteger requestCount;
+    
     BOOL hasNextPage;
+    BOOL isMainRequest;
     float firstYPosition;
     float secondYPosition;
     BOOL canScrollTop;
-    BOOL canMoveToDetail;       // 사용자 디테일, 도어 디테일에서 이동했을때 무한뎁스 막기 위한 용도
+    
 }
 
 @property (assign, nonatomic) RequestType requestType;

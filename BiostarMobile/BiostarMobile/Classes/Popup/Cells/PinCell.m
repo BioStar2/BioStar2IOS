@@ -38,12 +38,12 @@
         pinVialue.tag = row;
         if (row == 0)
         {
-            titleLabel.text = NSLocalizedString(@"password", nil);
+            titleLabel.text = NSBaseLocalizedString(@"password", nil);
             [pinVialue becomeFirstResponder];
         }
         else
         {
-            titleLabel.text = NSLocalizedString(@"password_confirm", nil);
+            titleLabel.text = NSBaseLocalizedString(@"password_confirm", nil);
         }
     }
     else
@@ -52,12 +52,12 @@
         switch (row)
         {
             case 1:
-                titleLabel.text = NSLocalizedString(@"password", nil);
+                titleLabel.text = NSBaseLocalizedString(@"password", nil);
                 [pinVialue becomeFirstResponder];
                 break;
                 
             case 2:
-                titleLabel.text = NSLocalizedString(@"password_confirm", nil);
+                titleLabel.text = NSBaseLocalizedString(@"password_confirm", nil);
                 break;
         }
     }

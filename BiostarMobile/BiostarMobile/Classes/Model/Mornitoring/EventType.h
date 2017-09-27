@@ -11,8 +11,8 @@
 @interface EventType : NSObject
 
 
-@property (nonatomic, assign) BOOL alertable;
 @property (nonatomic, assign) BOOL isSelected;
+@property (nonatomic, assign) BOOL alertable;
 @property (nonatomic, assign) NSInteger code;
 @property (nonatomic, strong) NSString *event_type_description;
 @property (nonatomic, assign) BOOL enable_alert;

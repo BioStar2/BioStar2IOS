@@ -11,6 +11,7 @@
 @interface DateFormat : NSObject
 
 @property (nonatomic, strong) NSString *date_format;
+@property (nonatomic, strong) NSString *display_date_format;
 @property (nonatomic, assign) BOOL isSelected;
 
 @end

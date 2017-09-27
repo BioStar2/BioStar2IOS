@@ -19,6 +19,8 @@
 NSArray <User* >*filterUsers = nil;
 NSArray <SearchResultDevice*> *filterDevices = nil;
 NSArray <EventType*> *filterEvents = nil;
+NSArray <ListDoorItem *> *filterDoors = nil;
+
 BOOL needToResetFilter = NO;
 
 @interface MonitorFilterViewController ()
@@ -31,7 +33,7 @@ BOOL needToResetFilter = NO;
     [super viewDidLoad];
     [self setSharedViewController:self];
     // Do any additional setup after loading the view.
-    titleLabel.text = NSLocalizedString(@"filter", nil);
+    titleLabel.text = NSBaseLocalizedString(@"filter", nil);
     [self.view setBackgroundColor:[UIColor clearColor]];
     
     if (nil == searchQuery)
@@ -42,16 +44,16 @@ BOOL needToResetFilter = NO;
     [self setDefaultValue];
 }
 
-+ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices
-{
-    filterDevices = devices;
-}
-
+//+ (void)setFilterDevices:(NSArray<SearchResultDevice*>*)devices
+//{
+//    filterDevices = devices;
+//}
+//
 + (void)setFilterUsers:(NSArray<User*>*)users
 {
     filterUsers = users;
 }
-
+//
 + (void)setResetFilter:(BOOL)neetToReset
 {
     needToResetFilter = neetToReset;
@@ -64,6 +66,7 @@ BOOL needToResetFilter = NO;
         filterUsers = nil;
         filterDevices = nil;
         filterEvents = nil;
+        filterDoors = nil;
     }
 }
 
@@ -94,10 +97,57 @@ BOOL needToResetFilter = NO;
         return;
     }
     
-    if ([self.delegate respondsToSelector:@selector(searchEventByFilterController:)])
+    if (selectedDoors.count > 0)
     {
-        [self.delegate searchEventByFilterController:searchQuery];
+        NSMutableArray *deviceIDs = [[NSMutableArray alloc] initWithArray:searchQuery.device_id];
+        for (ListDoorItem *door in selectedDoors)
+        {
+            if (door.door_relay.device.id)
+            {
+                if (![deviceIDs containsObject:door.door_relay.device.id])
+                {
+                    [deviceIDs addObject:door.door_relay.device.id];
+                }
+                
+            }
+            
+            if (door.door_sensor.device.id)
+            {
+                if (![deviceIDs containsObject:door.door_sensor.device.id])
+                {
+                    [deviceIDs addObject:door.door_sensor.device.id];
+                }
+            }
+            
+            if (door.entry_device.id)
+            {
+                if (![deviceIDs containsObject:door.entry_device.id])
+                {
+                    [deviceIDs addObject:door.entry_device.id];
+                }
+                
+            }
+            
+            if (door.exit_button.device.id)
+            {
+                if (![deviceIDs containsObject:door.exit_button.device.id])
+                {
+                    [deviceIDs addObject:door.exit_button.device.id];
+                }
+            }
+        }
+        
+        filterDoors = selectedDoors;
+        searchQuery.device_id = deviceIDs;
     }
+    
+    
+    
+    if ([self.delegate respondsToSelector:@selector(searchEventByFilterController: withDoors:)])
+    {
+        [self.delegate searchEventByFilterController:searchQuery withDoors:filterDoors];
+    }
+    
     [self popChildViewController:self parentViewController:self.parentViewController animated:NO];
 }
 
@@ -108,7 +158,6 @@ BOOL needToResetFilter = NO;
 
 - (BOOL)verifyPeriod
 {
-    
     NSArray <NSString *>*values = searchQuery.datetime;
     
     NSString *startDate = [values objectAtIndex:0];
@@ -121,7 +170,22 @@ BOOL needToResetFilter = NO;
     
     if (comparing == NSOrderedDescending || comparing == NSOrderedSame)
     {
-        [self showVerificationPopup:NSLocalizedString(@"error_set_date", nil)];
+        [self showVerificationPopup:NSBaseLocalizedString(@"error_set_date", nil)];
+        return NO;
+    }
+    
+    return YES;
+}
+
+- (BOOL)verifyStartDate:(NSString*)start withEndDate:(NSString*)end
+{
+    NSDate *startDate = [CommonUtil dateFromString:start originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    NSDate *endDate = [CommonUtil dateFromString:end originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'"];
+    
+    NSComparisonResult comparing = [startDate compare:endDate];
+    
+    if (comparing == NSOrderedDescending || comparing == NSOrderedSame)
+    {
         return NO;
     }
     
@@ -273,8 +337,16 @@ BOOL needToResetFilter = NO;
             startStr = [self stringFromChanging:startStr targetDate:dateString];
             NSString *endStr = searchQuery.datetime[1];
             
-            searchQuery.datetime = @[startStr, endStr];
-            [filterTableView reloadData];
+            if ([self verifyStartDate:startStr withEndDate:endStr])
+            {
+                searchQuery.datetime = @[startStr, endStr];
+                [filterTableView reloadData];
+            }
+            else
+            {
+                [self showVerificationPopup:NSBaseLocalizedString(@"error_set_date", nil)];
+            }
+            
         }];
     }
     else
@@ -290,11 +362,17 @@ BOOL needToResetFilter = NO;
             
             NSString *endStr = searchQuery.datetime[1];
             endStr = [self stringFromChanging:expireStr targetDate:dateString];
-            
             NSString *startStr = searchQuery.datetime[0];
             
-            searchQuery.datetime = @[startStr, endStr];
-            [filterTableView reloadData];
+            if ([self verifyStartDate:startStr withEndDate:endStr])
+            {
+                searchQuery.datetime = @[startStr, endStr];
+                [filterTableView reloadData];
+            }
+            else
+            {
+                [self showVerificationPopup:NSBaseLocalizedString(@"error_set_date", nil)];
+            }
         }];
         
     }
@@ -325,8 +403,16 @@ BOOL needToResetFilter = NO;
             
             NSString *endStr = searchQuery.datetime[1];
             
-            searchQuery.datetime = @[startStr, endStr];
-            [filterTableView reloadData];
+            if ([self verifyStartDate:startStr withEndDate:endStr])
+            {
+                searchQuery.datetime = @[startStr, endStr];
+                [filterTableView reloadData];
+            }
+            else
+            {
+                [self showVerificationPopup:NSBaseLocalizedString(@"error_set_date", nil)];
+            }
+            
             
         }];
     }
@@ -345,9 +431,15 @@ BOOL needToResetFilter = NO;
             
             NSString *startStr = searchQuery.datetime[0];
             
-            searchQuery.datetime = @[startStr, expireStr];
-            [filterTableView reloadData];
-            
+            if ([self verifyStartDate:startStr withEndDate:expireStr])
+            {
+                searchQuery.datetime = @[startStr, expireStr];
+                [filterTableView reloadData];
+            }
+            else
+            {
+                [self showVerificationPopup:NSBaseLocalizedString(@"error_set_date", nil)];
+            }
         }];
     }
 }
@@ -358,9 +450,17 @@ BOOL needToResetFilter = NO;
     
     if (nil != searchQuery.device_id)
     {
-        if (filterDevices)
+        if (filterDoors)
         {
-            [self setDeviceContent:filterDevices];
+            selectedDoors = filterDoors;
+            [self setDoorContent:selectedDoors];
+        }
+        else
+        {
+            if (filterDevices)
+            {
+                [self setDeviceContent:filterDevices];
+            }
         }
     }
 
@@ -383,6 +483,13 @@ BOOL needToResetFilter = NO;
 
 - (IBAction)resetCondition:(id)sender
 {
+    filterUsers = nil;
+    filterDevices = nil;
+    filterEvents = nil;
+    filterDoors = nil;
+    
+    selectedDoors = nil;
+    doorDec = nil;
     searchQuery.user_id = nil;
     searchQuery.datetime = nil;
     searchQuery.device_id = nil;
@@ -497,16 +604,40 @@ BOOL needToResetFilter = NO;
     switch (devices.count)
     {
         case 0:
-            
+            deviceDec = NSBaseLocalizedString(@"none", nil);
+            deviceCount = nil;
             break;
         case 1:
             deviceDec = devices[0].name;
+            deviceCount = nil;
             break;
             
         default:
             deviceDec = [NSString stringWithFormat:@"%@ +", devices[0].name];
             NSInteger value = devices.count - 1;
             deviceCount = [NSString stringWithFormat:@"%lu", (long)value];
+            break;
+    }
+    
+    [filterTableView reloadData];
+}
+
+
+- (void)setDoorContent:(NSArray <ListDoorItem*>*)doors
+{
+    switch (doors.count)
+    {
+        case 0:
+            doorDec = NSBaseLocalizedString(@"none", nil);
+            break;
+        case 1:
+            doorDec = doors[0].name;
+            break;
+            
+        default:
+            doorDec = [NSString stringWithFormat:@"%@ +", doors[0].name];
+            NSInteger value = doors.count - 1;
+            doorCount = [NSString stringWithFormat:@"%lu", (long)value];
             break;
     }
     
@@ -520,7 +651,7 @@ BOOL needToResetFilter = NO;
     listPopupCtrl.type = PEROID;
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
     
-    [listPopupCtrl addOptions:@[NSLocalizedString(@"start_date", nil), NSLocalizedString(@"end_date", nil)]];
+    [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"start_date", nil), NSBaseLocalizedString(@"end_date", nil)]];
     
     [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -562,7 +693,7 @@ BOOL needToResetFilter = NO;
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -586,7 +717,7 @@ BOOL needToResetFilter = NO;
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return 5;
+    return 6;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -597,7 +728,7 @@ BOOL needToResetFilter = NO;
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DateCell" forIndexPath:indexPath];
             DateCell *customCell = (DateCell*)cell;
-            customCell.titleLabel.text = NSLocalizedString(@"period", nil);
+            customCell.titleLabel.text = NSBaseLocalizedString(@"period", nil);
             
             NSString *startStr = searchQuery.datetime[0];
             NSString *expireStr = searchQuery.datetime[1];
@@ -616,7 +747,7 @@ BOOL needToResetFilter = NO;
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"TimeCell" forIndexPath:indexPath];
             
             TimeCell *customCell = (TimeCell*)cell;
-            customCell.titleLabel.text = NSLocalizedString(@"time", nil);
+            customCell.titleLabel.text = NSBaseLocalizedString(@"time", nil);
             
             NSString *startStr = searchQuery.datetime[0];
             NSString *expireStr = searchQuery.datetime[1];
@@ -643,8 +774,8 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"event", nil);
-                    customCell.contentLabel.text = NSLocalizedString(@"all_events", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"event", nil);
+                    customCell.contentLabel.text = NSBaseLocalizedString(@"all_events", nil);
                     return customCell;
                 }
                     break;
@@ -654,7 +785,7 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"event", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"event", nil);
                     customCell.contentLabel.text = eventDec;
                     return customCell;
                 }
@@ -664,7 +795,7 @@ BOOL needToResetFilter = NO;
                     // 둘이상 선택했을때
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MultiSelectionCell" forIndexPath:indexPath];
                     MultiSelectionCell *customCell = (MultiSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"event", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"event", nil);
                     customCell.contentLabel.text = eventDec;
                     customCell.numberLabel.text = eventCount;
                     [customCell setNumverViewWidth];
@@ -687,8 +818,8 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"user", nil);
-                    customCell.contentLabel.text = NSLocalizedString(@"all_users", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"user", nil);
+                    customCell.contentLabel.text = NSBaseLocalizedString(@"all_users", nil);
                     return customCell;
                 }
                     break;
@@ -698,7 +829,7 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"user", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"user", nil);
                     customCell.contentLabel.text = userDec;
                     return customCell;
                 }
@@ -708,7 +839,7 @@ BOOL needToResetFilter = NO;
                     // 둘이상 선택했을때
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MultiSelectionCell" forIndexPath:indexPath];
                     MultiSelectionCell *customCell = (MultiSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"user", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"user", nil);
                     customCell.contentLabel.text = userDec;
                     customCell.numberLabel.text = userCount;
                     [customCell setNumverViewWidth];
@@ -721,8 +852,7 @@ BOOL needToResetFilter = NO;
             break;
         case 4:
         {
-            NSArray *values = searchQuery.device_id;
-            switch (values.count)
+            switch (filterDevices.count)
             {
                 case 0:
                 {
@@ -730,8 +860,16 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"device", nil);
-                    customCell.contentLabel.text = NSLocalizedString(@"all_devices", nil);
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"device", nil);
+                    if (selectedDoors.count > 0)
+                    {
+                        customCell.contentLabel.text = NSBaseLocalizedString(@"none", nil);
+                    }
+                    else
+                    {
+                        customCell.contentLabel.text = NSBaseLocalizedString(@"all_devices", nil);
+                    }
+                    
                     return customCell;
                 }
                     break;
@@ -741,8 +879,16 @@ BOOL needToResetFilter = NO;
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
                     
                     SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"device", nil);
-                    customCell.contentLabel.text = deviceDec;
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"device", nil);
+                    if (deviceDec)
+                    {
+                        customCell.contentLabel.text = deviceDec;
+                    }
+                    else
+                    {
+                        customCell.contentLabel.text = NSBaseLocalizedString(@"none", nil);
+                    }
+                    
                     return customCell;
                 }
                     break;
@@ -751,10 +897,19 @@ BOOL needToResetFilter = NO;
                     // 둘이상 선택했을때
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MultiSelectionCell" forIndexPath:indexPath];
                     MultiSelectionCell *customCell = (MultiSelectionCell*)cell;
-                    customCell.titleLabel.text = NSLocalizedString(@"device", nil);
-                    customCell.contentLabel.text = deviceDec;
-                    customCell.numberLabel.text = deviceCount;
-                    [customCell setNumverViewWidth];
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"device", nil);
+                    if (deviceDec)
+                    {
+                        customCell.contentLabel.text = deviceDec;
+                        customCell.numberLabel.text = deviceCount;
+                        [customCell setNumverViewWidth];
+                    }
+                    else
+                    {
+                        customCell.contentLabel.text = NSBaseLocalizedString(@"none", nil);
+                        
+                    }
+                    
                     return customCell;
                 }
                     break;
@@ -763,6 +918,56 @@ BOOL needToResetFilter = NO;
             
             break;
             
+        case 5:
+        {
+            switch (selectedDoors.count)
+            {
+                case 0:
+                {
+                    // 선택 하나도 안했을때
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
+                    
+                    SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"door", nil);
+                    if (doorDec)
+                    {
+                        customCell.contentLabel.text = doorDec;
+                    }
+                    else
+                    {
+                        customCell.contentLabel.text = NSBaseLocalizedString(@"none", nil);
+                    }
+                    
+                    return customCell;
+                }
+                    break;
+                case 1:
+                {
+                    // 하나만 선택했을대
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SingleSelectionCell" forIndexPath:indexPath];
+                    
+                    SingleSelectionCell *customCell = (SingleSelectionCell*)cell;
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"door", nil);
+                    customCell.contentLabel.text = selectedDoors[0].name;
+                    return customCell;
+                }
+                    break;
+                default:
+                {
+                    // 둘이상 선택했을때
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MultiSelectionCell" forIndexPath:indexPath];
+                    MultiSelectionCell *customCell = (MultiSelectionCell*)cell;
+                    customCell.titleLabel.text = NSBaseLocalizedString(@"door", nil);
+                    customCell.contentLabel.text = doorDec;
+                    customCell.numberLabel.text = doorCount;
+                    [customCell setNumverViewWidth];
+                    return customCell;
+                }
+                    break;
+            }
+        }
+            
+            break;
         default:
         {
             UITableViewCell *cell = [[UITableViewCell alloc] init];
@@ -778,22 +983,10 @@ BOOL needToResetFilter = NO;
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 78;
+    //return 78;
+    return 68;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
-{
-    return 41;
-    
-}
-
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
-{
-#warning 2.4.1 에서 filter section 빼기 as
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SectionCell"];
-    
-    return cell.contentView;
-}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -806,7 +999,7 @@ BOOL needToResetFilter = NO;
             [self showListDatePopup:NO];
             break;
         case 2:     // event
-            if (nil != [eventProvider getEventTypes])
+            if (nil != [EventProvider getLocalEventTypes])
             {
                 // 이벤트 선택 팝업 띄우기
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
@@ -853,9 +1046,34 @@ BOOL needToResetFilter = NO;
             
             [devicePopupController getDevices:^(NSArray<SearchResultDevice *> *devices) {
                 filterDevices = devices;
-                
+                filterDoors = nil;
+                selectedDoors = nil;
+                doorDec = nil;
                 [self setDeviceContent:devices];
             }];
+            
+        }
+            break;
+            
+        case 5:     // Door
+        {
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            DoorPopupViewController *doorPopupController = [storyboard instantiateViewControllerWithIdentifier:@"DoorPopupViewController"];
+            
+            
+            [self showPopup:doorPopupController parentViewController:self parentView:self.view];
+            
+            [doorPopupController getDoors:^(NSArray<ListDoorItem *> *doors) {
+                
+                searchQuery.device_id = nil;
+                selectedDoors = doors;
+                filterDevices = nil;
+                deviceDec = nil;
+                deviceCount = nil;
+                [self setDoorContent:doors];
+                
+            }];
+            
             
         }
             break;

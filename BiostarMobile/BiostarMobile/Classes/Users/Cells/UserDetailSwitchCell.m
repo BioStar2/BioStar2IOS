@@ -39,15 +39,18 @@
 
 - (void)setCellContent:(NSString*)status
 {
+    NSString *content;
     if ([status isEqualToString:@"AC"])
     {
         [cellSwitch setOn:YES];
-        titleLabel.text = NSLocalizedString(@"status_active", nil);
+        content = [NSString stringWithFormat:@"%@ %@", NSBaseLocalizedString(@"status", nil), NSBaseLocalizedString(@"active", nil)];
+        titleLabel.text = content;
     }
     else
     {
         [cellSwitch setOn:NO];
-        titleLabel.text = NSLocalizedString(@"status_inactive", nil);
+        content = [NSString stringWithFormat:@"%@ %@", NSBaseLocalizedString(@"status", nil), NSBaseLocalizedString(@"inactive", nil)];
+        titleLabel.text = content;
     }
     
     [password setHidden:YES];
@@ -56,7 +59,7 @@
 - (void)setCellPinContent:(BOOL)flag
 {
     [password setHidden:NO];
-    titleLabel.text = NSLocalizedString(@"pin_upper", nil);
+    titleLabel.text = NSBaseLocalizedString(@"pin_upper", nil);
     [cellSwitch setOn:flag];
     if (flag)
         password.text = @"1234";

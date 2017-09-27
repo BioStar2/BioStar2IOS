@@ -34,6 +34,8 @@
 {
     NSString *description = nil;
     
+    NSArray *eventTypes = [LocalDataManager getEventTypes];
+    
     for (NSDictionary *dic in eventTypes)
     {
         if (code == [[dic objectForKey:@"id_code"] integerValue])
@@ -46,13 +48,52 @@
     return description;
 }
 
++ (NSArray<EventType *>*)getLocalEventTypes
+{
+    NSArray *eventTypes = [LocalDataManager getEventTypes];
+    
+    eventTypes = [EventProvider getSortedEventType:eventTypes];
+    
+    for (EventType *type in eventTypes)
+    {
+        type.isSelected = NO;
+    }
+    
+    return eventTypes;
+}
+
+
++ (NSArray*)getSortedEventType:(NSArray*)originArray
+{
+    InCodeMappingProvider *mappingProvider = [[InCodeMappingProvider alloc] init];
+    ObjectMapper *mapper = [[ObjectMapper alloc] init];
+    mapper.mappingProvider = mappingProvider;
+    
+    [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"event_type_description" forClass:[EventType class]];
+    
+    NSArray <EventType*> *convertedArray = [mapper objectFromSource:originArray toInstanceOfClass:[EventType class]];
+    
+    NSArray <EventType*> *array = [convertedArray sortedArrayUsingComparator:^NSComparisonResult(EventType *a, EventType *b) {
+        NSInteger first = a.code;
+        NSInteger second = b.code;
+        
+        if (second > first) {
+            return (NSComparisonResult)NSOrderedDescending;
+        }
+        
+        if (second < first) {
+            return (NSComparisonResult)NSOrderedAscending;
+        }
+        return (NSComparisonResult)NSOrderedSame;
+        
+    }];
+    
+    return array;
+}
+
 
 - (void)getEventTypes:(EventTypeCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock
 {
-    if (nil == eventTypes)
-    {
-        eventTypes = [[NSMutableArray alloc] init];
-    }
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, API_EVENT_TYPES];
     
@@ -66,26 +107,7 @@
             
             EventTypeSearchResult *result = [mapper objectFromSource:responseObject toInstanceOfClass:[EventTypeSearchResult class]];
             
-            [eventTypes removeAllObjects];
-            
-            NSMutableArray <EventType*> *sortArray = [[NSMutableArray alloc] initWithArray:result.records];
-            
-            NSArray <EventType*> *array = [sortArray sortedArrayUsingComparator:^NSComparisonResult(EventType *a, EventType *b) {
-                NSInteger first = a.code;
-                NSInteger second = b.code;
-                
-                if (second > first) {
-                    return (NSComparisonResult)NSOrderedDescending;
-                }
-                
-                if (second < first) {
-                    return (NSComparisonResult)NSOrderedAscending;
-                }
-                return (NSComparisonResult)NSOrderedSame;
-                
-            }];
-            
-            [eventTypes addObjectsFromArray:array];
+            [LocalDataManager setEventTypes:[responseObject objectForKey:@"records"]];
             
             completeBlock(result);
         }
@@ -100,14 +122,7 @@
 
 }
 
-- (NSMutableArray<EventType *> *)getEventTypes
-{
-    for (EventType *type in eventTypes)
-    {
-        type.isSelected = NO;
-    }
-    return eventTypes;
-}
+
 
 
 - (void)searchEvent:(EventQuery*)query completeBlock:(EventSearchCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock
@@ -133,15 +148,15 @@
     
     
     [network request:url withParam:jsonString method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
-                
-        [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"event_type_description" forClass:[EventType class]];
-        
-        [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[EventLogResult class] forClass:[EventLogSearchResultWithoutTotal class]];
-        
-        EventLogSearchResultWithoutTotal *result = [mapper objectFromSource:responseObject toInstanceOfClass:[EventLogSearchResultWithoutTotal class]];
         
         if (nil == error)
         {
+            [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"event_type_description" forClass:[EventType class]];
+            
+            [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[EventLogResult class] forClass:[EventLogSearchResultWithoutTotal class]];
+            
+            EventLogSearchResultWithoutTotal *result = [mapper objectFromSource:responseObject toInstanceOfClass:[EventLogSearchResultWithoutTotal class]];
+            
             completeBlock(result);
         }
         else

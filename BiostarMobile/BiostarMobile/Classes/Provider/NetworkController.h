@@ -18,6 +18,7 @@
 #import <Foundation/Foundation.h>
 #import "NSData+Base64.h"
 
+#define Time_Out_Interval               60
 #define NetworkControllerInstance   [NetworkController sharedInstance]
 
 #define API_LOGIN                                           @"/login"
@@ -27,16 +28,17 @@
 #define API_USER_PHOTO                                      @"/users/%@/photo"
 #define API_DELETE_USERS                                    @"/users/delete"
 #define API_USERS_FINGERPRINT_TEMPLATES                     @"/users/%@/fingerprint_templates"
+#define API_USERS_FACE_TEMPLATES                            @"/users/%@/face_templates"
 #define API_USERS_CARDS                                     @"/users/%@/cards"
 #define API_USERS_MOBILE_CREDENTIAL                         @"/users/%@/mobile_credentials"
 #define API_USERS_ISSUE_MOBILE_CREDENTIAL                   @"/users/%@/mobile_credentials/issue"
 #define API_USERS_REISSUE_MOBILE_CREDENTIAL                 @"/users/%@/mobile_credentials/%@/reissue"
 #define API_USERS_REGISTER_MOBILE_CREDENTIAL                @"/users/my_profile/mobile_credentials/%@/register"
-#define API_USERS_REQUEST_REIISSUE_MOBILE_CREDENTIAL                @"/users/my_profile/mobile_credentials/%@/request_reissue"
+
+#define API_MY_PROFILE_MOBILE_CREDENTIAL                    @"/users/my_profile/mobile_credentials"
 #define API_USER                                            @"/user/"
 #define API_USER_GROUPS                                     @"/user_groups"
 #define API_ACCESS_GROUPS                                   @"/access_groups"
-#define API_ACCESS_LEVELS                                   @"/access_levels"
 
 #define API_CARDS                                           @"/cards/unassigned"
 #define API_SMART_CARD_LAYOUT                               @"/cards/smart_cards/layouts"
@@ -51,6 +53,7 @@
 #define API_DEVICES                                         @"/devices"
 #define API_DEVICE_TYPES                                    @"/device_types"
 #define API_DEVICE_SCAN_FINGERPRINT                         @"/scan_fingerprint"
+#define API_DEVICE_SCAN_FACE                                @"/scan_face"
 #define API_DEVICE_VERIFY_FINGERPRINT                       @"/verify_fingerprint"
 #define API_DEVICE_WRITE_CARD                               @"/write_card"
 #define API_DEVICE_SCAN_CARD                                @"/scan_card"
@@ -69,7 +72,8 @@
 #define API_EVENT_TYPES                                     @"/references/event_types"
 
 #define API_PERMISSIONS                                     @"/references/role_codes"
-#define API_PRIVILEGES                                      @"/permissions"
+//#define API_PRIVILEGES                                      @"/permissions"
+#define API_PRIVILEGES                                      @"/setting/permission_list"
 #define API_PREFERENCE                                      @"/setting"
 #define API_NOTIFICATIONS                                   @"/setting/notifications"
 #define API_DELETE_NOTIFICATIONS                            @"/setting/notifications/delete"

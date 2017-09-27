@@ -11,6 +11,7 @@
 #import "RadioCell.h"
 #import "ImagePopupViewController.h"
 #import "PreferenceProvider.h"
+#import "AuthProvider.h"
 
 @interface PermissionPopupViewController : BaseViewController
 {

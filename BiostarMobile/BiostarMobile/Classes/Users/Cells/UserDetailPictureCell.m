@@ -21,6 +21,8 @@
 - (void)awakeFromNib {
     // Initialization code
     [super awakeFromNib];
+    
+    self.faceLabel.text = NSBaseLocalizedString(@"face", nil);
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -61,18 +63,6 @@
     switch (mode)
     {
         case VIEW_MODE:
-            if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
-            {
-                [_logImageButton setHidden:NO];
-                [_logLabel setHidden:NO];
-                [_logLabelButton setHidden:NO];
-            }
-            else
-            {
-                [_logImageButton setHidden:YES];
-                [_logLabel setHidden:YES];
-                [_logLabelButton setHidden:YES];
-            }
             
             [_cameraButton setImage:nil forState:UIControlStateNormal];
             [_cameraButton setImage:nil forState:UIControlStateHighlighted];
@@ -104,9 +94,7 @@
         case MODIFY_MODE:
         case CREATE_MODE:
         case PROFILE_MODE:
-            [_logImageButton setHidden:YES];
-            [_logLabel setHidden:YES];
-            [_logLabelButton setHidden:YES];
+            
             [_cameraButton setImage:[UIImage imageNamed:@"ic_camera_nor"] forState:UIControlStateNormal];
             [_cameraButton setImage:[UIImage imageNamed:@"ic_camera_pre"] forState:UIControlStateHighlighted];
             [_cameraButton setHidden:NO];
@@ -148,30 +136,26 @@
     
     if ([PreferenceProvider isUpperVersion])
     {
-        if ([user.fingerprint_template_count integerValue]== 0)
-        {
-            _fingerCount.text = @"";
-        }
-        else
-        {
-            _fingerCount.text = user.fingerprint_template_count;
-        }
+        _fingerCount.text = user.fingerprint_template_count;
+        _faceCountLabel.text =  [NSString stringWithFormat:@"%ld", (long)user.face_template_count];
     }
     else
     {
         if (user.fingerprint_count == 0)
         {
-            _fingerCount.text = @"";
+            _fingerCount.text = @"0";
         }
         else
         {
             _fingerCount.text = [NSString stringWithFormat:@"%ld", (long)user.fingerprint_count];
         }
+        
+        [_faceView setHidden:YES];
     }
     
     if (user.card_count == 0)
     {
-        _cardCount.text = @"";
+        _cardCount.text = @"0";
     }
     else
     {
@@ -191,17 +175,7 @@
     
 }
 
-- (IBAction)logButtonTouchTown:(id)sender {
-    [_logButtonImage setImage:[UIImage imageNamed:@"ic_viewlog_pre"]];
-}
 
-- (IBAction)logButtonTouchUpInside:(id)sender {
-    [_logButtonImage setImage:[UIImage imageNamed:@"ic_viewlog_nor"]];
-}
-
-- (IBAction)logButtonTouchUpOutside:(id)sender {
-    [_logButtonImage setImage:[UIImage imageNamed:@"ic_viewlog_nor"]];
-}
 
 
 @end

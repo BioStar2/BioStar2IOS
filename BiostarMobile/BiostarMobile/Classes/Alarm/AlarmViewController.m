@@ -26,9 +26,9 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
-    titleLabel.text = NSLocalizedString(@"alarm", nil);
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
-    selectTotalDecLabel.text = NSLocalizedString(@"total", nil);
+    titleLabel.text = NSBaseLocalizedString(@"alarm", nil);
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
+    selectTotalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     
     isDeleteMode = NO;
     notifications = [[NSMutableArray alloc] init];
@@ -49,6 +49,7 @@
     scrollButton.transform = CGAffineTransformMakeRotation(M_PI);
     
     provider = [[PreferenceProvider alloc] init];
+    isMainRequest = YES;
     [self getNotifications:limit offset:offset];
     
 }
@@ -73,6 +74,7 @@
     [self startLoading:self];
     
     [provider getNotifications:notiLimit offset:notiOffset resultBlock:^(NotificationSearchResult *result) {
+        isMainRequest = NO;
         [self finishLoading];
         
         [refreshControl endRefreshing];
@@ -107,7 +109,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         if (isDeleteMode)
@@ -124,6 +126,13 @@
             if (isConfirm)
             {
                 [self getNotifications:notiLimit offset:notiOffset];
+            }
+            else
+            {
+                if (isMainRequest)
+                {
+                    [self moveToBack:nil];
+                }
             }
         }];
     }];
@@ -155,7 +164,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -191,7 +200,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -219,7 +228,7 @@
     if (isDeleteMode)
     {
         toDeletedNewAlarmCount = 0;
-        titleLabel.text = NSLocalizedString(@"alarm", nil);
+        titleLabel.text = NSBaseLocalizedString(@"alarm", nil);
         [deleteButton setHidden:NO];
         [doneButton setHidden:YES];
         [deleteTotalCountView setHidden:YES];
@@ -235,6 +244,7 @@
     }
     else
     {
+        [[NSNotificationCenter defaultCenter] postNotificationName:NEED_TO_GET_MOBILE_CREDENTIAL object:nil];
         [self popChildViewController:self parentViewController:self.parentViewController animated:YES];
     }
 
@@ -242,7 +252,20 @@
 
 - (IBAction)changeToDeleteMode:(id)sender
 {
-    titleLabel.text = NSLocalizedString(@"delete_alarm", nil);
+    // 한글 일본어 일때 순서 바꾸기
+    NSString *language = [[NSLocale preferredLanguages] objectAtIndex:0];
+    NSDictionary *languageDic = [NSLocale componentsFromLocaleIdentifier:language];
+    NSString *languageCode = [languageDic objectForKey:@"kCFLocaleLanguageCodeKey"];
+    
+    if ([languageCode isEqualToString:@"ko"] || [languageCode isEqualToString:@"ja"])
+    {
+        titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"alarm", nil) ,NSBaseLocalizedString(@"delete", nil)];
+    }
+    else
+    {
+        titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"delete", nil) ,NSBaseLocalizedString(@"alarm", nil)];
+    }
+    
     deleteTotalCount.text = [NSString stringWithFormat:@"%ld / %ld", (unsigned long)toDeleteArray.count, (long)totalCount];
     [deleteButton setHidden:YES];
     [doneButton setHidden:NO];
@@ -289,9 +312,9 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         //imagePopupCtrl.delegate = self;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"delete_confirm_question", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"delete_confirm_question", nil);
         imagePopupCtrl.type = WARNING;
-        [imagePopupCtrl setContent:[NSString stringWithFormat:NSLocalizedString(@"selected_count %ld", nil), toDeleteArray.count]];
+        [imagePopupCtrl setContent:[NSString stringWithFormat:@"%@ %ld", NSBaseLocalizedString(@"selected_count", nil), (unsigned long)toDeleteArray.count]];
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
         
         [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
@@ -303,7 +326,7 @@
     }
     else
     {
-        [self.view makeToast:NSLocalizedString(@"selected_none", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"selected_none", nil)
                     duration:2.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];

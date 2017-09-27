@@ -29,7 +29,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *deviceLabel;
 
 
-- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo canMoveDetail:(BOOL)canMoveDetail;
+- (void)setContent:(EventLogResult*)eventInfo doorInfo:(SimpleModel*)doorInfo;
 - (void)setIcon:(NSDictionary*)eventInfo;
 - (BOOL)isInCondition:(NSInteger)min max:(NSInteger)max code:(NSInteger)code imageName:(NSString*)imageName;
 - (void)setEventImage:(EventLogResult*)logResult;

@@ -29,6 +29,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
+    [loginBtn setTitle:NSBaseLocalizedString(@"login", nil) forState:UIControlStateNormal];
     //loginScrollView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     currentController = self;
     isLoginFail = NO;
@@ -53,7 +54,6 @@
     UIFont *customFont = nil;
     customFont = [UIFont fontWithName:@"Roboto-Bold" size:userID.font.pointSize];
     
-
     userID.font = customFont;
     password.font = customFont;
     
@@ -64,7 +64,10 @@
     
     [self checkUpdateForAutoLogin];
     
+    
 }
+
+
 
 - (void)setLaunchView
 {
@@ -90,28 +93,44 @@
     //[mainViewController setUser:userInfo];
     
     [self.navigationController pushViewController:mainViewController animated:YES];
+    
 }
 
-- (void)updateNotificationToken:(NSString*)token
+- (void)updatePushNotificationToken:(NSString*)token
 {
-    [preferenceProvoder updateNotificationToken:token resultBlock:nil
-                                        onError:^(Response *error) {
-                                            [self updateNotificationToken:token];
-                                        }];
+    if (nil != token)
+    {
+        [preferenceProvoder updateNotificationToken:token resultBlock:^(Response *response) {
+            
+        } onError:^(Response *error) {
+            [self updatePushNotificationToken:token];
+        }];
+        
+    }
+    
     
 }
 
 
 - (void)checkUpdateForAutoLogin
 {
-    if ([PreferenceProvider isUpperVersion])
+    
+    if ([subDomainLabel.text isEqualToString:@""])
     {
-        [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v2"];
+        [LocalDataManager deleteLocalCookies];
     }
-    else
-    {
-        [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v1"];
-    }
+    
+    [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v2"];
+//    if ([PreferenceProvider isUpperVersion])
+//    {
+//        [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v2"];
+//    }
+//    else
+//    {
+//        [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v1"];
+//    }
+    
+    NSLog(@"[NetworkController sharedInstance] %@", [NetworkController sharedInstance].serverURL);
     
     [self startLoading:self];
     
@@ -148,7 +167,7 @@
         [LocalDataManager deleteLocalCookies];
         
         errorType = UPDATE_CHECK_FAIL;
-        [self showImagePopup:NSLocalizedString(@"fail_retry", nil) content:error.message];
+        [self showImagePopup:NSBaseLocalizedString(@"fail_retry", nil) content:error.message];
     }];
     
 }
@@ -182,7 +201,7 @@
         [LocalDataManager deleteLocalCookies];
         
         errorType = UPDATE_CHECK_FAIL;
-        [self showImagePopup:NSLocalizedString(@"fail_retry", nil) content:error.message];
+        [self showImagePopup:NSBaseLocalizedString(@"fail_retry", nil) content:error.message];
     }];
     
 }
@@ -193,7 +212,7 @@
     [userProvider getMyProfile:^(User *userResult) {
         [self finishLoading];
         
-        [self updateNotificationToken:[PreferenceProvider getDeviceToken]];
+        [self updatePushNotificationToken:[PreferenceProvider getDeviceToken]];
         
         [self moveToMainViewController:userResult];
         
@@ -205,7 +224,7 @@
 
         [LocalDataManager deleteLocalCookies];
         errorType = MYPROFILE_FAIL;
-        [self showImagePopup:NSLocalizedString(@"fail_retry", nil) content:error.message];
+        [self showImagePopup:NSBaseLocalizedString(@"fail_retry", nil) content:error.message];
 
         
     }];
@@ -219,6 +238,7 @@
     
     if (nil != serverAddress)
     {
+        NSLog(@"nil != serverAddress");
         domain = serverAddress;
         [tempDomain setString:serverAddress];
         domainLabel.text = [self parserDomain:serverAddress];
@@ -226,6 +246,7 @@
     }
     else
     {
+        NSLog(@"nil == serverAddress");
         domain = @"https://api.biostar2.com";
         [tempDomain setString:domain];
         domainLabel.text = [self parserDomain:domain];
@@ -244,6 +265,13 @@
         userID.text = [LocalDataManager getUserLoginID];
     }
     
+#warning 외부 테스트용 코드
+//    domain = @"https://apitest.biostar2.com";
+//    [tempDomain setString:domain];
+//    domainLabel.text = [self parserDomain:domain];
+//    domainLabel.text = [self parserIPAddress:domainLabel.text];
+//    subDomainLabel.text = @"alphatest2";
+//    [LocalDataManager setServerAddress:domain];
 }
 
 
@@ -307,6 +335,34 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    
+    UIFont *maxFont = [UIFont fontWithName:biostarLabel.font.fontName size:19];
+    UIFont *middleFont = [UIFont fontWithName:biostarLabel.font.fontName size:12];
+    UIFont *smallFont = [UIFont fontWithName:biostarLabel.font.fontName size:11];
+    
+    NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
+    NSString* version = [infoDict objectForKey:@"CFBundleShortVersionString"];
+    NSString* buildversion = [infoDict objectForKey:@"CFBundleVersion"];
+    
+    NSString *totalVersion = [NSString stringWithFormat:@"%@.%@",version ,buildversion];
+    
+    version = [NSString stringWithFormat:@"BioStar 2 Mobile %@", totalVersion];
+    
+    NSMutableAttributedString *decString= [[NSMutableAttributedString alloc] initWithString:version];
+    [decString addAttribute:NSFontAttributeName
+                      value:maxFont
+                      range:NSMakeRange(0, 8)];
+    
+    [decString addAttribute:NSFontAttributeName
+                      value:middleFont
+                      range:NSMakeRange(10, 6)];
+    
+    [decString addAttribute:NSFontAttributeName
+                      value:smallFont
+                      range:NSMakeRange(16, version.length - 16)];
+    
+    biostarLabel.attributedText = decString;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification
@@ -354,15 +410,18 @@
     [loginProvider login:userID.text password:password.text name:subDomainLabel.text userBlock:^(User *userResult) {
         [self finishLoading];
         
+        password.text = @"";
+        
         [LocalDataManager setDoorCount:0];
         [LocalDataManager setUserCount:0];
+        
         
         domain = tempDomain;
         [LocalDataManager setServerAddress:domain];
         [LocalDataManager setName:subDomainLabel.text];
         [LocalDataManager setUserLoginID:userID.text];
         
-        [preferenceProvoder updateNotificationToken:[PreferenceProvider getDeviceToken] resultBlock:nil onError:nil];
+        [self updatePushNotificationToken:[PreferenceProvider getDeviceToken]];
         
         [self autoLogin];
         //[self moveToMainViewController:userResult];
@@ -376,7 +435,7 @@
         errorType = LOGIN_FAIL;
         
         
-        [self showImagePopup:NSLocalizedString(@"login_fail", nil) content:error.message];
+        [self showImagePopup:NSBaseLocalizedString(@"login_fail", nil) content:error.message];
     }];
 }
 
@@ -423,25 +482,50 @@
     
     [[NetworkController sharedInstance] setServerURL:tempDomain cloudVersion:@"v2"];
     
+    NSLog(@"- (IBAction)login:(id)sender : %@",[NetworkController sharedInstance].serverURL);
+    
     [preferenceProvoder getBiostarVersion:subDomainLabel.text onComplete:^(BioStarVersion *result) {
-        
-        [LocalDataManager setBiostarACVersion:result.biostar_ac_version];
         
         [self finishLoading];
         
-        [tempDomain setString:[tempDomain stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-        domain = tempDomain;
-        
-        if ([PreferenceProvider isUpperVersion])
+        if (result.biostar_ac_version)
         {
-            [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v2"];
+            //[LocalDataManager setBiostarACVersion:@"2.4.0.7"];
+            [LocalDataManager setBiostarACVersion:result.biostar_ac_version];
+            
+            [tempDomain setString:[tempDomain stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+            domain = tempDomain;
+            
+            if ([PreferenceProvider isUpperVersion])
+            {
+                [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v2"];
+            }
+            else
+            {
+                [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v1"];
+            }
+            
+            [self checkUpdate];
         }
         else
         {
-            [[NetworkController sharedInstance] setServerURL:domain cloudVersion:@"v1"];
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+            ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+            
+            imagePopupCtrl.type = MAIN_REQUEST_FAIL;
+            imagePopupCtrl.titleContent = NSBaseLocalizedString(@"login_fail", nil);
+            [imagePopupCtrl setContent:@"biostar_ac_version invalid"];
+            
+            [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+            
+            [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+                if (isConfirm)
+                {
+                    [self login:nil];
+                }
+            }];
         }
         
-        [self checkUpdate];
         
         
     } onError:^(Response *error) {
@@ -452,7 +536,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         
         imagePopupCtrl.type = MAIN_REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"login_fail", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"login_fail", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -680,8 +764,10 @@
         }
         else
         {
-            domainLabel.text = @"";
-            [tempDomain setString:@""];
+            textField.text = @"https://";
+            domainLabel.text = @"https://";
+            [tempDomain setString:@"https://"];
+            return NO;
         }
     }
     return YES;
@@ -753,6 +839,10 @@
             else
             {
                 //delete
+                if ([content isEqualToString:@"https://"])
+                {
+                    return NO;
+                }
                 @try {
                     [content deleteCharactersInRange:range];
                 } @catch (NSException *exception) {

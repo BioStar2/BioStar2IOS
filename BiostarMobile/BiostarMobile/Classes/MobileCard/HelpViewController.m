@@ -18,8 +18,8 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [continuouslyCloseButton setTitle:NSLocalizedString(@"donot_again", nil) forState:UIControlStateNormal];
-    descriptionLabel.text = [NSString stringWithFormat:@"%@\n%@",NSLocalizedString(@"guide_register_mobile_card1", nil) ,NSLocalizedString(@"guide_register_mobile_card2", nil)];
+    [continuouslyCloseButton setTitle:NSBaseLocalizedString(@"donot_again", nil) forState:UIControlStateNormal];
+    descriptionLabel.text = [NSString stringWithFormat:@"%@\n%@",NSBaseLocalizedString(@"guide_register_mobile_card1", nil) ,NSBaseLocalizedString(@"guide_register_mobile_card2", nil)];
     buttonDatas = [[NSMutableArray alloc] init];
     
 }
@@ -49,109 +49,150 @@
 - (void)setMenuItems
 {
     
-    // 순서대로 user, monitoring, alarm, my profile, door
+    [buttonDatas removeAllObjects];
+    
+    // 순서대로 my profile, user, door, monitoring, alarm,
+    
+    ButtonModel *model = [[ButtonModel alloc] init];
+    model.title = NSBaseLocalizedString(@"myprofile_upper", nil);
+    model.normalImage = [UIImage imageNamed:@"main_myprofile_ic"];
+    model.highlightedImage = [UIImage imageNamed:@"main_myprofile_ic_pre"];
+    model.type = MYPROFILE_BUTTON;
+    
+    [buttonDatas addObject:model];
+    
     if ([AuthProvider hasReadPermission:USER_PERMISSION])
     {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                    @{@"LABEL" : NSLocalizedString(@"user_upper", nil),
-                                      @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_user_id"],
-                                      @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_user_id_pre"],
-                                      @"CELL_ICON" : [UIImage imageNamed:@"list_user_ic"],
-                                      @"TYPE" : @"USER"}
-                                    ];
-        [buttonDatas addObject:dic];
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"user_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_user_id"];
+        model.highlightedImage = [UIImage imageNamed:@"main_user_id_pre"];
+        model.icon = [UIImage imageNamed:@"list_user_ic"];
+        model.type = USER_BUTTON;
+        
+        [buttonDatas addObject:model];
+    }
+    
+    if ([AuthProvider hasReadPermission:DOOR_PERMISSION])
+    {
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"door_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_door_ic"];
+        model.highlightedImage = [UIImage imageNamed:@"main_door_ic_pre"];
+        model.icon = [UIImage imageNamed:@"list_door_ic"];
+        model.type = DOOR_BUTTON;
+        
+        [buttonDatas addObject:model];
+    }
+
+    if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
+    {
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"monitoring_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_monitor_ic"];
+        model.highlightedImage = [UIImage imageNamed:@"main_monitor_ic_pre"];
+        model.icon = [UIImage imageNamed:@"list_monitor_ic"];
+        model.type = MONITORING_BUTTON;
+        
+        [buttonDatas addObject:model];
     }
     
     if ([AuthProvider hasReadPermission:MONITORING_PERMISSION])
     {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                    @{@"LABEL" : NSLocalizedString(@"monitoring_upper", nil),
-                                      @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_monitor_ic"],
-                                      @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_monitor_ic_pre"],
-                                      @"CELL_ICON" : [UIImage imageNamed:@"list_monitor_ic"],
-                                      @"TYPE" : @"MONITORING"}
-                                    ];
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"alarm_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_alarm_ic"];
+        model.highlightedImage = [UIImage imageNamed:@"main_alram_ic_pre"];
+        model.icon = [UIImage imageNamed:@"list_alram_ic"];
+        model.count = [AuthProvider getLoginUserInfo].unread_notification_count;
+        model.type = ALARM_BUTTON;
         
-        [buttonDatas addObject:dic];
+        [buttonDatas addObject:model];
     }
     
-    if ([AuthProvider hasWritePermission:DOOR_PERMISSION])
+    if ([PreferenceProvider isSupportMobileCredentialAndFaceTemplate])
     {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                    @{@"LABEL" : NSLocalizedString(@"alarm_upper", nil),
-                                      @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_alarm_ic"],
-                                      @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_alram_ic_pre"],
-                                      @"CELL_ICON" : [UIImage imageNamed:@"list_alram_ic"],
-                                      @"TYPE" : @"ALARM"}
-                                    ];
+        ButtonModel *model = [[ButtonModel alloc] init];
+        model.title = NSBaseLocalizedString(@"mobile_card_upper", nil);
+        model.normalImage = [UIImage imageNamed:@"main_card_ic"];
+        model.highlightedImage = [UIImage imageNamed:@"main_card_ic_pre"];
+        model.icon = [UIImage imageNamed:@"list_mobilecard_ic"];
+        model.type = MOBILE_CARD_BUTTON;
         
-        [buttonDatas addObject:dic];
-    }
-    
-    NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                @{@"LABEL" : NSLocalizedString(@"myprofile", nil),
-                                  @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_myprofile_ic"],
-                                  @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_myprofile_ic_pre"],
-                                  @"TYPE" : @"MYPROFILE"}
-                                ];
-    [buttonDatas addObject:dic];
-    
-    if ([AuthProvider hasReadPermission:DOOR_PERMISSION])
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                    @{@"LABEL" : NSLocalizedString(@"door_upper", nil),
-                                      @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_door_ic"],
-                                      @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_door_ic_pre"],
-                                      @"CELL_ICON" : [UIImage imageNamed:@"list_door_ic"],
-                                      @"TYPE" : @"DOOR"}
-                                    ];
-        
-        [buttonDatas addObject:dic];
-    }
-#warning ble ad 원하는 OS 버전이면 스마트카드 메뉴 보이게
-    if (YES)
-    {
-        NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:
-                                    @{@"LABEL" : NSLocalizedString(@"mobile_card_upper", nil),
-                                      @"NORMAL_IMAGE" : [UIImage imageNamed:@"main_card_ic"],
-                                      @"HIGHLIGHTED_IMAGE" : [UIImage imageNamed:@"main_card_ic_pre"],
-                                      @"CELL_ICON" : [UIImage imageNamed:@"list_mobilecard_ic"],
-                                      @"TYPE" : @"MOBILE_CARD"}
-                                    ];
-        
-        [buttonDatas addObject:dic];
+        [buttonDatas addObject:model];
     }
     
     if (buttonDatas.count > 3)
     {
         // 두줄 배치
-        bottomConstraint.constant = 0;
+        //bottomConstraint.constant = 0;
+        stackViewBottomConstraint.constant = 0;
     }
     else
     {
         // 한줄 배치
-        bottomConstraint.constant = -60;
+        //bottomConstraint.constant = -60;
+        stackViewBottomConstraint.constant = -100;
     }
     
     buttonsTouchDown = @selector(buttonsTouchDown:);
     buttonsTouchUpOutside = @selector(buttonsTouchUpOutside:);
     buttonsTouchUpInside = @selector(buttonsTouchUpInside:);
+    
+    BOOL isFourButtons = NO;
+    if (buttonDatas.count < 6)
+    {
+        if (buttonDatas.count == 4)
+        {
+            isFourButtons = YES;
+        }
+        
+        for (int i = 0; i < 6 - buttonDatas.count; i++)
+        {
+            ButtonModel *model = [[ButtonModel alloc] init];
+            model.title = @"";
+            model.normalImage = nil;
+            model.highlightedImage = nil;
+            model.icon = nil;
+            model.type = EMPTY_BUTTON;
+            [buttonDatas addObject:model];
+        }
+    }
+    
+    
     for (NSInteger i = 0; i < buttonDatas.count; i ++)
     {
-        UILabel *label = [buttonLabels objectAtIndex:i];
-        UIButton *button = [buttons objectAtIndex:i];
-        UIImageView *dotImageView = [dotBoxes objectAtIndex:i];
+        //        UILabel *label = [buttonLabels objectAtIndex:i];
+        //        UIButton *button = [buttons objectAtIndex:i];
+        
+        UILabel *label = [stackViewLabels objectAtIndex:i];
+        UIButton *button = [stackViewButtons objectAtIndex:i];
+        UIImageView *dotBox = [stackDotBoxes objectAtIndex:i];
+        [dotBox setHidden:NO];
         button.tag = i;
         label.tag = i;
         
-        [button setImage:[[buttonDatas objectAtIndex:i] objectForKey:@"NORMAL_IMAGE"] forState:UIControlStateNormal];
-        [button setImage:[[buttonDatas objectAtIndex:i] objectForKey:@"HIGHLIGHTED_IMAGE"] forState:UIControlStateHighlighted];
+        ButtonModel *model = [buttonDatas objectAtIndex:i];
+        [button setImage:model.normalImage forState:UIControlStateNormal];
+        [button setImage:model.highlightedImage forState:UIControlStateHighlighted];
         [button addTarget:self action:buttonsTouchDown forControlEvents:UIControlEventTouchDown];
         [button addTarget:self action:buttonsTouchUpOutside forControlEvents:UIControlEventTouchUpOutside];
         [button addTarget:self action:buttonsTouchUpInside forControlEvents:UIControlEventTouchUpInside];
         
+        if (!isFourButtons)
+        {
+            UIView *buttonView = [buttonViews objectAtIndex:i];
+            if (model.type == EMPTY_BUTTON)
+            {
+                [buttonView setHidden:YES];
+            }
+            else
+            {
+                [buttonView setHidden:NO];
+            }
+        }
         
-        if ([[[buttonDatas objectAtIndex:i] objectForKey:@"TYPE"] isEqualToString:@"MOBILE_CARD"])
+        if (model.type == MOBILE_CARD_BUTTON)
         {
             [button addSubview:badgeAlertView];
             [badgeAlertView setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -188,16 +229,15 @@
                                                                attribute:NSLayoutAttributeTrailing
                                                               multiplier:1
                                                                 constant:0]];
-            [dotImageView setHidden:NO];
         }
         else
         {
             [button setHidden:YES];
             [label setHidden:YES];
-            [dotImageView setHidden:YES];
+            [dotBox setHidden:YES];
         }
         
-        [label setText:[[buttonDatas objectAtIndex:i] objectForKey:@"LABEL"]];
+        [label setText:model.title];
         
     }
     
@@ -240,10 +280,16 @@
 
 - (IBAction)closeHelpView:(id)sender
 {
+    [LocalDataManager confirmShowHelpView];
     [self closePopup:self parentViewController:self.parentViewController];
 }
 
 - (IBAction)closeHelpViewContinuously:(id)sender
+{
+    [self closePopup:self parentViewController:self.parentViewController];
+}
+
+- (IBAction)closeView:(id)sender
 {
     [self closePopup:self parentViewController:self.parentViewController];
 }

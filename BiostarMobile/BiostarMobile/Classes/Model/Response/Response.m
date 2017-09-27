@@ -10,4 +10,9 @@
 
 @implementation Response
 
+- (void)setMessage:(NSString *)message
+{
+    _message = [message stringByReplacingOccurrencesOfString:@"<br/>" withString:@"\n"];
+    
+}
 @end

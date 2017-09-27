@@ -26,29 +26,17 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     if (self.notiDic)
     {
-//        if ([[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] isKindOfClass:[NSDictionary class]])
-//        {
-//            if (nil != [[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"title"])
-//            {
-//                titleLabel.text = [[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"title"];
-//            }
-//            if ([[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"body"])
-//            {
-//                contentLabel.text = [[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] objectForKey:@"body"];
-//            }
-//        }
-        
         
         if ([[[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"] isKindOfClass:[NSDictionary class]])
         {
             NSDictionary *alert = [[self.notiDic objectForKey:@"aps"] objectForKey:@"alert"];
             
-            titleLabel.text = NSLocalizedString([alert objectForKey:@"title-loc-key"], nil);
+            titleLabel.text = NSBaseLocalizedString([alert objectForKey:@"title-loc-key"], nil);
             
             NSArray *args = [alert objectForKey:@"loc-args"];
             
@@ -58,12 +46,12 @@
                 NSMutableData* data = [NSMutableData dataWithLength: sizeof(id) * [args count]];
                 [args getObjects: (__unsafe_unretained id *)data.mutableBytes range:range];
                 
-                NSString *content = [[NSString alloc] initWithFormat:NSLocalizedString([alert objectForKey:@"loc-key"], nil) arguments:data.mutableBytes];
-                contentLabel.text = content;
+                NSString *content = [[NSString alloc] initWithFormat:NSBaseLocalizedString([alert objectForKey:@"loc-key"], nil) arguments:data.mutableBytes];
+                contentTextView.text = content;
             }
             else
             {
-                contentLabel.text = NSLocalizedString([alert objectForKey:@"loc-key"], nil);
+                contentTextView.text = NSBaseLocalizedString([alert objectForKey:@"loc-key"], nil);
             }
             
             

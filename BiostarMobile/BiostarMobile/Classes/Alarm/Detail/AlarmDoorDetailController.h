@@ -23,7 +23,6 @@
 #import "UserNewDetailViewController.h"
 #import "ImagePopupViewController.h"
 #import "AlarmTimeTablePopupController.h"
-#import "EventQuery.h"
 #import "PreferenceProvider.h"
 #import "AuthProvider.h"
 
@@ -34,34 +33,24 @@
     __weak IBOutlet UILabel *doorNameLabel;
     __weak IBOutlet UILabel *doorDescription;
     __weak IBOutlet UITableView *detailTableView;
-    __weak IBOutlet UIButton *logImageButton;
-    __weak IBOutlet UIButton *logButton;
-    __weak IBOutlet UILabel *logLabel;
     __weak IBOutlet UIButton *doorControlButton;
 
     DoorProvider *doorProvider;
-    EventProvider *eventProvider;
     
-    EventQuery *searchQuery;
-    ListDoorItem *searchedDoor;
+    SimpleModel *currentDoor;
     SimpleUser *user;
     NSString *phoneNumber;
-    BOOL isFoundDoor;
-    NSInteger doorID;
+    
     NSInteger menuIndex;
 }
 
 @property (strong, nonatomic) GetNotification *detailInfo;
 
-- (void)getDoor:(NSInteger)searchDoorID;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
-- (IBAction)moveToLog:(id)sender;
 - (void)controlDoorOperator:(NSInteger)index;
 - (NSString*)getToastContent;
 - (NSString*)getErrorToastContent:(NSString *)message;
-- (void)setDefaultPeriod;
-- (void)setDefaultEventType;
-- (void)setDefaultDevice;
-- (void)showErrorToast:(NSString*)errorMessage;
+- (void)showErrorPopup:(NSString*)errorMessage;
+- (void)showSuccessPopup:(NSString*)title message:(NSString*)message;
 @end

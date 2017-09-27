@@ -35,39 +35,55 @@
 - (NSData*)convertToNSDate:(NSString*)body
 {
     NSData *bodyData = nil;
-    bodyData = [[NSData alloc] initWithData:[body dataUsingEncoding:NSUTF8StringEncoding]];
+    if (nil != body)
+    {
+        bodyData = [[NSData alloc] initWithData:[body dataUsingEncoding:NSUTF8StringEncoding]];
+    }
     return bodyData;
 }
 
 
 - (void)request:(NSString *)URL withParam:(NSString*)param method:(Method)method completionHandler:(NetworkCompleteBolck)handler
 {
-    NSURL *url = [NSURL URLWithString:[URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    NSCharacterSet *set = [NSCharacterSet URLQueryAllowedCharacterSet];
+    NSURL *url = [NSURL URLWithString:[URL stringByAddingPercentEncodingWithAllowedCharacters:set]];
+    
     NSMutableURLRequest *mutableRequest = [NSMutableURLRequest requestWithURL:url];
     [mutableRequest setTimeoutInterval:TIMEOUT_INTERVAL];
     [mutableRequest setValue:@"UTF-8" forHTTPHeaderField:@"charset"];
-    [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    
     
     switch (method)
     {
         case GET:
         case PHOTO_GET:
             [mutableRequest setHTTPMethod:@"GET"];
+            [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
             break;
         case POST:
         case LOGIN_POST:
             [mutableRequest setHTTPMethod:@"POST"];
+            [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
             break;
         case PUT:
             [mutableRequest setHTTPMethod:@"PUT"];
+            [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
             break;
         case DELETE:
             [mutableRequest setHTTPMethod:@"DELETE"];
+            [mutableRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            break;
+        case PHOTO_PUT:
+            [mutableRequest setHTTPMethod:@"PUT"];
+            [mutableRequest setValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
             break;
     }
     
-    NSString *isoCode = [[NSLocale preferredLanguages] objectAtIndex:0];
-    [mutableRequest setValue:isoCode forHTTPHeaderField:@"Content-Language"];
+    //NSString *isoCode = [[NSLocale preferredLanguages] objectAtIndex:0];
+    
+    NSString* code = [NSLocale currentLocale].languageCode;
+    
+    [mutableRequest setValue:code forHTTPHeaderField:@"content-language"];
     
     if (method != GET && method != PHOTO_GET)
     {
@@ -82,6 +98,8 @@
                               [cookieJar cookies]];
     [mutableRequest setAllHTTPHeaderFields:headers];
     
+    
+    
     task = [NetworkControllerInstance.URLsession dataTaskWithRequest:mutableRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         
         if (nil == error)
@@ -89,7 +107,6 @@
             if (method == LOGIN_POST)
             {
                 [[NSHTTPCookieStorage sharedHTTPCookieStorage] getCookiesForTask:task completionHandler:^(NSArray *cookies) {
-                    
                     // 쿠키 저장하기
                     [LocalDataManager storeLocalCookies:cookies URL:url];
                     
@@ -141,7 +158,9 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 
                 NSMutableDictionary *errorDic = [[NSMutableDictionary alloc] init];
-                [errorDic setObject:[error localizedDescription] forKey:@"message"];
+                
+                NSString *errorMessage = [NSString stringWithFormat:@"errorCode : %ld \n dec : %@ \n domain : %@",error.code ,[error localizedDescription], error.domain];
+                [errorDic setObject:errorMessage forKey:@"message"];
                 
                 handler(errorDic, error);
             });
@@ -149,7 +168,6 @@
         
         
     }];
-    
     
     [task resume];
 }
@@ -165,7 +183,7 @@
     if (nil == decData || decData.length == 0)
     {
         NSMutableDictionary *tempDic = [[NSMutableDictionary alloc] init];
-        [tempDic setObject:NSLocalizedString(@"error_network2", nil) forKey:@"message"];
+        [tempDic setObject:NSBaseLocalizedString(@"error_network2", nil) forKey:@"message"];
         NSError *error = [NSError errorWithDomain:@"" code:1000 userInfo:tempDic];
         returnBlock(tempDic, error, NO);
         return;
@@ -196,9 +214,8 @@
         {
             if (nil == [dic objectForKey:@"message"] || [[dic objectForKey:@"message"] isEqualToString:@""])
             {
-                [dic setObject:NSLocalizedString(@"error_network2", nil) forKey:@"message"];
+                [dic setObject:NSBaseLocalizedString(@"error_network2", nil) forKey:@"message"];
             }
-            //[dic setObject:[NSNumber numberWithInteger:status_code] forKey:@"status_code"];
             
             NSError *error = [NSError errorWithDomain:@"" code:1000 userInfo:dic];
             returnBlock(dic, error, NO);

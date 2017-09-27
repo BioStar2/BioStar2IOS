@@ -43,6 +43,8 @@
 #import "CardCredentialViewController.h"
 #import "PreferenceProvider.h"
 #import "LocalDataManager.h"
+#import "PermissionProvider.h"
+
 
 @protocol UserDetailDelegate <NSObject>
 
@@ -60,6 +62,7 @@
     __weak IBOutlet NSLayoutConstraint *tableViewConstraint;
     __weak IBOutlet UIView *editButtonView;
     __weak IBOutlet UIView *titleView;
+    __weak IBOutlet UIButton *logButton;
 
     UserProvider *provider;
     PreferenceProvider *preferenceProvoder;
@@ -68,6 +71,7 @@
     NSString *userID;
     BOOL hasOperator;
     BOOL isUpdatedOrDeleted;
+    NSInteger rowCount;
 }
 
 @property (assign, nonatomic) id <UserDetailDelegate> delegate;
@@ -123,12 +127,12 @@
 
 - (void)getUser:(NSString*)ID;
 
-- (BOOL)isAllDigits:(NSString*)content;
+- (IBAction)moveToMonitoring:(id)sender;
+
 
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)updateUserInfo:(id)sender;
 - (IBAction)switchEditMode:(id)sender;
-- (IBAction)moveToLog:(id)sender;
 - (IBAction)showStartDatePopup:(id)sender;
 - (IBAction)showExpireDatePopup:(id)sender;
 - (IBAction)deleteUser:(id)sender;

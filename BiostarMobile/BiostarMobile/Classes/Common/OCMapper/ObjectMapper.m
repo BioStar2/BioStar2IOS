@@ -199,7 +199,37 @@
 					propertyValue = [self processDictionaryFromArray:propertyValue];
 				}
 				
-				if (propertyValue) [props setObject:propertyValue forKey:propertyName];
+#warning 오픈소스 수정
+                const char * type = property_getAttributes(property);
+                
+                NSString * typeString = [NSString stringWithUTF8String:type];
+                NSArray * attributes = [typeString componentsSeparatedByString:@","];
+                NSString * typeAttribute = [attributes objectAtIndex:0];
+                NSString * propertyType = [typeAttribute substringFromIndex:1];
+                const char * rawPropertyType = [propertyType UTF8String];
+                
+                if (strcmp(rawPropertyType, @encode(BOOL)) == 0) {
+                    //it's a BOOL
+                    NSLog(@"propertyName : %@", propertyName);
+                    NSLog(@"stringValue : %@", [propertyValue stringValue]);
+                    
+                    id boolPropertyValue;
+                    
+                    if ([propertyValue intValue] == 0)
+                    {
+                        boolPropertyValue = [NSNumber numberWithBool:NO];
+                    }
+                    else
+                    {
+                        boolPropertyValue = [NSNumber numberWithBool:YES];
+                    }
+                    [props setObject:boolPropertyValue forKey:propertyName];
+                }
+                else if (propertyValue) [props setObject:propertyValue forKey:propertyName];
+#warning 오픈소스 수정
+                
+				//if (propertyValue) [props setObject:propertyValue forKey:propertyName];
+                
 			}
 		}
 		
@@ -307,7 +337,7 @@
 				else
 				{
 					NSString *propertyTypeString = [self typeForProperty:propertyName andClass:class];
-					
+                    
 					// Convert NSString to NSDate if needed
 					if ([propertyTypeString isEqualToString:@"NSDate"])
 					{
@@ -330,6 +360,10 @@
 					{
 						nestedObject = [value stringValue];
 					}
+                    else if ([propertyTypeString isEqualToString:@"BOOL"] && [value isKindOfClass:[NSString class]])
+                    {
+                        nestedObject = [NSNumber numberWithBool:[value boolValue]];
+                    }
 					else
 					{
 						nestedObject = value;
@@ -339,7 +373,23 @@
 				if ([nestedObject isKindOfClass:[NSNull class]])
 					nestedObject = nil;
 				
-				[object setValue:nestedObject forKey:propertyName];
+#warning 오픈소스 수정
+                //[object setValue:nestedObject forKey:propertyName];
+                @try {
+                    [object setValue:nestedObject forKey:propertyName];
+                } @catch (NSException *exception) {
+                    NSLog(@"exception : %@", exception.description);
+                    if (([nestedObject isKindOfClass:[NSString class]] &&
+                         [nestedObject isEqualToString:@"false"]) ||
+                        [nestedObject isEqualToString:@"true"])
+                    {
+                        NSLog(@"propertyName : %@ : %hhd", propertyName, [nestedObject boolValue]);
+                        NSNumber *tempNestedObject = [NSNumber numberWithBool:[nestedObject boolValue]];
+                        [object setValue:tempNestedObject forKey:propertyName];
+                        
+                    }
+                }
+#warning 오픈소스 수정
 			}
 			else
 			{

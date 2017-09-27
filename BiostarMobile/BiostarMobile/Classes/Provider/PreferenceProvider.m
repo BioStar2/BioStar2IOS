@@ -38,6 +38,9 @@ BioStarSetting *biostarSetting = nil;
         
         mapper = [[ObjectMapper alloc] init];
         mapper.mappingProvider = mappingProvider;
+        
+        [PreferenceProvider getDataFormatList];
+        [PreferenceProvider getTimeFormatList];
     }
     
     return self;
@@ -70,14 +73,17 @@ BioStarSetting *biostarSetting = nil;
     {
         DateFormat *first_format = [DateFormat new];
         first_format.date_format = @"yyyy/MM/dd";
+        first_format.display_date_format = @"yyyy/mm/dd";
         first_format.isSelected = NO;
         
         DateFormat *second_format = [DateFormat new];
         second_format.date_format = @"MM/dd/yyyy";
+        second_format.display_date_format = @"mm/dd/yyyy";
         second_format.isSelected = NO;
         
         DateFormat *third_format = [DateFormat new];
-        third_format.date_format = @"dd/mm/yyyy";
+        third_format.date_format = @"dd/MM/yyyy";
+        third_format.display_date_format = @"dd/mm/yyyy";
         third_format.isSelected = NO;
         
         dataFormatArray = @[first_format, second_format, third_format];
@@ -109,15 +115,24 @@ BioStarSetting *biostarSetting = nil;
     return timeFormatArray;
 }
 
-+ (NSString*)getDateFormat
+- (NSString*)getDateFormat
 {
-    return dateFormat;
+    NSString *format = nil;
+    for (DateFormat *date_format in dataFormatArray)
+    {
+        if ([date_format.date_format isEqualToString:dateFormat])
+        {
+            format = date_format.date_format;
+            break;
+        }
+    }
+    return format;
 }
 
-+ (NSString*)getTimeFormat
-{
-    return timeFormat;
-}
+//+ (NSString*)getTimeFormat
+//{
+//    return timeFormat;
+//}
 
 - (void)checkUpdateWithCompleteHandler:(VersionObjectBlock)resultBlock onError:(SettingErrorBlock)errorBlock
 {
@@ -160,6 +175,9 @@ BioStarSetting *biostarSetting = nil;
             timeFormat = setting.time_format;
             dateFormat = setting.date_format;
             
+            [LocalDataManager setDateFormat:[self getDateFormat]];
+            [LocalDataManager setTimeFormat:timeFormat];
+            
             resultBlock(setting);
         }
         else
@@ -182,6 +200,7 @@ BioStarSetting *biostarSetting = nil;
     
     if (nil != jsonError)
     {
+        NSLog(@"jsonError");
         Response *response = [Response new];
         response.message = [jsonError localizedDescription];
         errorBlock(response);
@@ -193,12 +212,18 @@ BioStarSetting *biostarSetting = nil;
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, API_PREFERENCE];
     
+    NSLog(@"jsonString : %@", jsonString);
+    NSLog(@"url : %@", url);
+    
     [network request:url withParam:jsonString method:PUT completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         if (nil == error)
         {
             timeFormat = setting.time_format;
             dateFormat = setting.date_format;
+            
+            [LocalDataManager setDateFormat:[self getDateFormat]];
+            [LocalDataManager setTimeFormat:timeFormat];
             
             Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
             resultBlock(response);
@@ -321,9 +346,11 @@ BioStarSetting *biostarSetting = nil;
 
 - (void)updateNotificationToken:(NSString*)token resultBlock:(ResultBlock)resultBlock onError:(ErrorBlock)errorBlock
 {
-#warning error meessage must be in
     if (nil == deviceToken)
     {
+        Response *resoponse = [Response new];
+        resoponse.message = NSBaseLocalizedString(@"error_network2", nil);
+        errorBlock(resoponse);
         return;
     }
     
@@ -432,4 +459,32 @@ BioStarSetting *biostarSetting = nil;
     }
 }
 
++ (BOOL)isSupportMobileCredentialAndFaceTemplate
+{
+    NSString *version = [LocalDataManager getBiostarACVersion];
+    if ([BLE_SUPPORT_VERSION compare:version options:NSNumericSearch] == NSOrderedDescending)
+    {
+        // V1
+        return NO;
+    }
+    else
+    {
+        // SupportMobileCredential
+        return YES;
+    }
+}
+
++ (BOOL)isSupportCoreSation
+{
+    NSString *version = [LocalDataManager getBiostarACVersion];
+    if ([CORE_STATION_SUPPORT_VERSION compare:version options:NSNumericSearch] == NSOrderedDescending)
+    {
+        return NO;
+    }
+    else
+    {
+        // Support Core Station
+        return YES;
+    }
+}
 @end

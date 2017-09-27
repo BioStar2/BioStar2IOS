@@ -18,19 +18,20 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
+    
     
     switch (_type)
     {
         case TIME_FORMAT:
-            titleLabel.text = NSLocalizedString(@"time_format", nil);
+            titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"time", nil) ,NSBaseLocalizedString(@"forma", nil)];
             timeFormats = [[NSMutableArray alloc] init];
             
             break;
         case DATE_FORMAT:
-            titleLabel.text = NSLocalizedString(@"date_format", nil);
+            titleLabel.text = [NSString stringWithFormat:@"%@ %@",NSBaseLocalizedString(@"date", nil) ,NSBaseLocalizedString(@"format", nil)];
             totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)dateFormats.count];
             dateFormats = [[NSMutableArray alloc] init];
             
@@ -100,6 +101,10 @@
 {
     [timeFormats addObjectsFromArray:array];
     
+    for (TimeFormat *timeFormat in timeFormats) {
+        timeFormat.isSelected = NO;
+    }
+    
     [listTableView reloadData];
     [self adjustHeight:timeFormats.count];
     totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)timeFormats.count];
@@ -108,6 +113,11 @@
 - (void)setDateFormats:(NSArray*)array
 {
     [dateFormats addObjectsFromArray:array];
+    
+    for (DateFormat *dateFormat in dateFormats) {
+        dateFormat.isSelected = NO;
+    }
+    
     [listTableView reloadData];
     [self adjustHeight:dateFormats.count];
     totalCountLabel.text = [NSString stringWithFormat:@"%ld", (unsigned long)dateFormats.count];
@@ -164,7 +174,7 @@
         case DATE_FORMAT:
         {
             DateFormat *format = [dateFormats objectAtIndex:indexPath.row];
-            customCell.titleLabel.text = format.date_format;
+            customCell.titleLabel.text = format.display_date_format;
             [customCell checkSelected:format.isSelected];
         }
             return customCell;

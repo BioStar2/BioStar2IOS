@@ -50,7 +50,10 @@ typedef enum{
     __weak IBOutlet UIImageView *subDomainImageView;
     __weak IBOutlet UIImageView *domainImageView;
     __weak IBOutlet UIButton *refreshButton;
+    __weak IBOutlet UIButton *loginBtn;
     __weak IBOutlet UIView *editView;
+    __weak IBOutlet UIView *mobileView;
+    __weak IBOutlet UILabel *biostarLabel;
     
     
     UIView *launchView;
@@ -91,7 +94,7 @@ typedef enum{
 - (void)autoLogin;
 - (NSString*)parserDomain:(NSString*)domainName;
 - (NSString*)parserIPAddress:(NSString*)domainName;
-- (void)updateNotificationToken:(NSString*)token;
+- (void)updatePushNotificationToken:(NSString*)token;
 
 
 - (void)setDefaultLoginInfo;

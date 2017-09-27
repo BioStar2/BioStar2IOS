@@ -41,6 +41,7 @@
     __weak IBOutlet UIView *contentView;
     __weak IBOutlet UIButton *cancelBtn;
     __weak IBOutlet UIButton *confirmBtn;
+    __weak IBOutlet UILabel *totalDecLabel;
     
     
     NSMutableArray *contentListArray;

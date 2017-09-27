@@ -7,34 +7,8 @@
  */
 
 // ios only
-"%ld minute %ld sec" = "%ld Min %ld s";
-"%ld minute" = "%ld Min";
-"%ld sec" = "%ld s";
-"%ldth_fingerprint" = "%ldto Otisk prstu";
-"1st_fingerprint" = "1mo Otisk prstu";
-"2nd_fingerprint" = "2ndo Otisk prstu";
-"3rd_fingerprint" = "3zo Otisk prstu";
-"quality %ld" = "Kvalita %ld";
-"selected_count %ld" = "Vybraný %ld";
-"user:%ld device:%ld event:%ld" = "Uživatel:%ld Zařízení:%ld Událost:%ld";
-"add_card" = "Přidat Karta";
-"date_format" = "Datum Formát";
-"date_time_format" = "Datum/Čas Formát";
-"delete_alarm" = "Smazat Poplachy";
-"delete_user" = "Smazat Uživatel";
 "from_photo" = "od Snímek";
-"select_operator" = "Zvolit Operátor";
-"select_option" = "Zvolit Volba";
-"status_active" = "Stav Aktivní";
-"status_inactive" = "Stav Neaktivní";
-"time_format" = "Čas Formát";
-"email_not_setted" = "V nastavení aplikace vyplňte e-mail.";
-"AC" = "Aktivní";
-"IN" = "Neaktivní";
 // ios only
-
-
-// push
 "notificationType.message.deviceReboot"               = "%@ was restarted.";
 "notificationType.message.deviceRs485Disconnect"      = "%@ was disconnected.";
 "notificationType.message.deviceTampering"            = "%@ was tampered.";
@@ -42,12 +16,8 @@
 "notificationType.message.doorForcedOpen"             = "Forced open door was detected from %@";
 "notificationType.message.doorHeldOpen"               = "Held open door was detected from %@";
 "notificationType.message.doorOpenRequest"            = "(%1$@)door open request was made by user(%2$@).";
-"notificationType.message.exception"                  = "Exception";
-"notificationType.message.exceptionManagement"        = "Exception";
-"notificationType.message.leaveManagement"            = "Leave";
 "notificationType.message.zoneApb"                    = "APB alarm was detected from %@.";
 "notificationType.message.zoneFire"                   = "Fire alarm was detected from  %@.";
-
 "notificationType.title.deviceReboot"                 = "Device Reboot";
 "notificationType.title.deviceRs485Disconnect"        = "Device's RS485 connection was disconnected.";
 "notificationType.title.deviceTampering"              = "Device Tampering";
@@ -55,14 +25,8 @@
 "notificationType.title.doorForcedOpen"               = "Forced Open Door";
 "notificationType.title.doorHeldOpen"                 = "Held Open Door ";
 "notificationType.title.doorOpenRequest"              = "Door Open Request";
-"notificationType.title.exception"                    = "Exception";
-"notificationType.title.exceptionManagement"          = "Exception";
-"notificationType.title.leaveManagement"              = "Leave";
 "notificationType.title.zoneApb"                      = "APB Zone ";
 "notificationType.title.zoneFire"                     = "FireAlarm Zone";
-// push
-
-
 "access_group" = "Skupina";
 "active" = "Aktivní";
 "add" = "Přidat";
@@ -108,6 +72,7 @@
 "edit" = "Editace";
 "edit_photo" = "Změnit fotografii";
 "email" = "E-mail";
+"email_not_setted" = "V nastavení aplikace vyplňte e-mail.";
 "end_date" = "Datum expirace";
 "end_time" = "Do...";
 "entry_device" = "Čas pro vstup";
@@ -159,6 +124,7 @@
 "monitoring" = "Deník událostí";
 "monitoring_upper" = "DENÍK";
 "myprofile" = "Můj profil";
+"myprofile_upper" = "Můj profil";
 "name" = "Jméno";
 "nd" = "ND";
 "new_" = "Nové";
@@ -253,46 +219,3 @@
 "version_mobile" = "BioStar 2 - verze pro mobilní zařízení";
 "view_log" = "Zobrazit log";
 "wait" = "Prosím čekejte";
-
-
-/////
-"mobile_card" = "Mobile Smart Card";
-"myprofile_upper" = "MY PROFILE";
-"mobile_card_upper" = "MOBILE CARD";
-"access_on_card" = "Access On Card";
-"secure_card" = "Secure Card";
-"donot_again" = "Do not display again.";
-"guide_register_mobile_card1" = "Check issued mobile smart cards.";
-"guide_register_mobile_card2" = "Use a mobile smart card after registration.";
-"guide_register_mobile_card3" = "Touch a mobile smart card to register.";
-"guide_register_mobile_card4" = "Fingerprint data are saved in your mobile device.";
-"guide_register_mobile_card5" = "When you want to disable a mobile smart card, \n swipe to the left.";
-"register_mobile_card" = "The selected card is registerred.";
-"stop_mobile_card" = "The selected card is disabled.";
-"user_other_device_mobile_card" = "This card is used by another mobile device.";
-"issue_card_count" = "Issue Count";
-"block" = "Block";
-"unblock" = "Unblock";
-"register_card" = "Card Registration";
-"card_type" = "Card Type";
-"register_method" = "Registration Method";
-"card_data_format" = "Card Data Format";
-"card_layout_format" = "Card Layout Format";
-"smartcard_type" = "Smart Card Type";
-"id_code" = "Facility Code";
-"csn" = "CSN";
-"wiegand" = "WIEGAND";
-"smartcard" = "Smart Card";
-"read_card" = "Read Card";
-"registeration_option_direct_input" = "Enter Manually";
-"none_wigand" = "The selected Wiegand format is not set in the device. Set the Wiegand format for the device with the PC version of BioStar.";
-"csn_format_wigand_scan" = "CSN card can not be scanned because the CSN format type is set to Wiegand.";
-"none_registered_fingerprint" = "There is no registered fingerprint data.";
-"none_select_card" = "No card input(selection) was made.";
-"rescan" = "Rescan method";
-"rescan_default" = "Scan quality score : 80 (recommended)";
-"rescan_change" = "Scan quality change";
-"question_block_card" = "Do you want to block a selected card?";
-"question_unblock_card" = "Do you want to unblock a selected card?";
-"question_reregister_card" = "Do you want to allow re-registration with the selected mobile smart card?";
-////

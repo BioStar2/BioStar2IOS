@@ -36,4 +36,6 @@
     _settingSwitch.on = notification.subscribed;
 
 }
+
+
 @end

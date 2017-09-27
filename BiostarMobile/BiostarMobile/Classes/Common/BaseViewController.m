@@ -17,6 +17,7 @@
 #import "BaseViewController.h"
 
 NSInteger popupCount = 0;
+NSUInteger chlidCount = 0;
 
 static BaseViewController *sharedInstance = nil;
 
@@ -26,10 +27,29 @@ static BaseViewController *sharedInstance = nil;
 
 @implementation BaseViewController
 
+- (NSString *)localizedBaseString:(NSString *)key comment:(NSString *)comment
+{
+    NSString* localizedString = NSBaseLocalizedString(key, nil);
+    
+    //use base language if current language setting on device does not find a proper value
+    if([localizedString isEqualToString:key]) {
+        
+        NSString * path = [[NSBundle mainBundle] pathForResource:@"Base" ofType:@"lproj"];
+        NSBundle * bundle = nil;
+        if(path == nil){
+            bundle = [NSBundle mainBundle];
+        }else{
+            bundle = [NSBundle bundleWithPath:path];
+        }
+        localizedString = [bundle localizedStringForKey:key value:comment table:nil];
+    }
+    return localizedString;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
+    didSearch = NO;
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
     loadingViewController = [storyboard instantiateViewControllerWithIdentifier:@"LoadingViewController"];
@@ -64,6 +84,18 @@ static BaseViewController *sharedInstance = nil;
     sharedInstance = controller;
 }
 
+- (BOOL)isHomeScreen
+{
+    if (chlidCount == 0)
+    {
+        return YES;
+    }
+    else
+    {
+        return NO;
+    }
+}
+
 - (void)startLoading:(UIViewController*)parentViewController
 {
     if (isLoading)
@@ -94,6 +126,7 @@ static BaseViewController *sharedInstance = nil;
 
 - (void)pushChildViewController:(UIViewController*)childViewController parentViewController:(UIViewController*)parentViewController contentView:(UIView*)contentView animated:(BOOL)animated
 {
+    isHome = NO;
     currentController = childViewController;
     parentViewController.parentViewController.view.userInteractionEnabled = NO;
     parentViewController.view.userInteractionEnabled = NO;
@@ -128,6 +161,8 @@ static BaseViewController *sharedInstance = nil;
             viewController.view.userInteractionEnabled = YES;
         }
     }
+
+    chlidCount++;
     
 }
 
@@ -149,6 +184,8 @@ static BaseViewController *sharedInstance = nil;
             [childViewController removeFromParentViewController];
             
             parentViewController.view.userInteractionEnabled = YES;
+            
+            
         }];
     }
     else
@@ -159,13 +196,14 @@ static BaseViewController *sharedInstance = nil;
         
         parentViewController.view.userInteractionEnabled = YES;
     }
-    
-    
+    chlidCount--;
 }
 
 - (void)popToRootViewController
 {
     popupCount = 0;
+    chlidCount = 0;
+    
     NSLog(@"popToRootViewController %lu", (unsigned long)self.childViewControllers.count);
     
     for (UIViewController *viewController in self.childViewControllers)
@@ -257,7 +295,7 @@ static BaseViewController *sharedInstance = nil;
     
     [LocalDataManager deleteLocalCookies];
     
-    [sharedInstance.sessionPopupController setMessage:NSLocalizedString(@"login_expire", nil)];
+    [sharedInstance.sessionPopupController setMessage:NSBaseLocalizedString(@"login_expire", nil)];
     [sharedInstance showPopup:sharedInstance.sessionPopupController parentViewController:sharedInstance.sessionPopupController.parentViewController parentView:sharedInstance.view];
 }
 

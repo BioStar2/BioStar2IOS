@@ -15,7 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
-
+#import "Common.h"
 @protocol PinCellDelegate <NSObject>
 
 @optional

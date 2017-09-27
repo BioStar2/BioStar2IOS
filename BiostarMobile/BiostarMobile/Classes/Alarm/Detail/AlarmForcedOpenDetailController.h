@@ -18,7 +18,6 @@
 #import "BaseViewController.h"
 #import "DoorControlPopupViewController.h"
 #import "DoorProvider.h"
-#import "EventProvider.h"
 #import "AlarmDoorDetailNormalCell.h"
 #import "AlarmDoorDetailAcclCell.h"
 #import "ImagePopupViewController.h"
@@ -33,36 +32,26 @@
     __weak IBOutlet UILabel *doorDescription;
     __weak IBOutlet UITableView *detailTableView;
     __weak IBOutlet UIButton *doorControlButton;
-    __weak IBOutlet UIButton *logImageButton;
-    __weak IBOutlet UIButton *logButton;
-    __weak IBOutlet UILabel *logLabel;
     __weak IBOutlet UIImageView *alarmImage;
     
     DoorProvider *doorProvider;
-    EventProvider *eventProvider;
-    ListDoorItem *searchedDoor;
-    EventQuery *searchQuery;
+    SimpleModel *currentDoor;
+    
     NSMutableArray *openTimeArray;
-    
-    BOOL isMainRequest;
-    
-    NSInteger doorID;
     NSInteger menuIndex;
 }
 
 @property (strong, nonatomic) GetNotification *detailInfo;
 @property (assign, nonatomic) NotificationType notiType;
 
-- (void)getDoor:(NSInteger)searchDoorID;
 - (IBAction)moveToBack:(id)sender;
 - (IBAction)showDoorController:(id)sender;
-- (IBAction)moveToLog:(id)sender;
 - (void)controlDoorOperator:(NSInteger)index;
 - (NSString*)getToastContent;
 - (NSString*)getErrorToastContent:(NSString *)message;
-- (void)setDefaultPeriod;
-- (void)setDefaultEventType;
-- (void)setDefaultDevice;
-- (void)showErrorToast:(NSString*)errorMessage;
+- (void)showErrorPopup:(NSString*)errorMessage;
+- (void)showSuccessPopup:(NSString*)title message:(NSString*)message;
 - (NSString*)getLocalizedDecription:(NSString*)key args:(NSArray*)args;
+
+
 @end

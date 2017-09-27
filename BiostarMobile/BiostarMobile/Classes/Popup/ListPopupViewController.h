@@ -20,6 +20,7 @@
 #import "CardProvider.h"
 #import "ImagePopupViewController.h"
 #import "SelectModel.h"
+#import "BioStarSetting.h"
 
 @interface ListPopupViewController :BaseViewController
 {
@@ -57,6 +58,7 @@ typedef void (^ListPopupCancelBlock)();
 @property (nonatomic, strong) ListPopupIndexResponseBlock indexResponseBlock;
 @property (nonatomic, strong) ListPopupModelResponseBlock modelResponseBlock;
 @property (nonatomic, strong) ListPopupCancelBlock cancelBlock;
+@property (nonatomic, strong) BioStarSetting *setiing;
 
 - (IBAction)cancelCurrentPopup:(id)sender;
 - (IBAction)confirmCurrentPopup:(id)sender;

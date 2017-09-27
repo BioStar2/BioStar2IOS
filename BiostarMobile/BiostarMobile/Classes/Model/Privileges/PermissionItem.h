@@ -10,7 +10,7 @@
 
 @interface PermissionItem : NSObject <NSCopying>
 
-@property (nonatomic, strong) NSArray <NSString*>*allowed_group_id_list;
+@property (nonatomic, strong) NSArray <NSNumber*>*allowed_group_id_list;
 @property (nonatomic, strong) NSString *module;
 @property (nonatomic, assign) BOOL read;
 @property (nonatomic, assign) BOOL write;

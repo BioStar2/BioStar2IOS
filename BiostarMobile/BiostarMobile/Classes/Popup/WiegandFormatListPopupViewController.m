@@ -20,14 +20,14 @@
     [self setSharedViewController:self];
     [containerView setHidden:YES];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     cardProvider = [[CardProvider alloc] init];
     contentListArray = [[NSMutableArray alloc] init];
     [self getWiegandCardFormats];
     
-    titleLabel.text = NSLocalizedString(@"smartcard_type", nil);
+    titleLabel.text = NSBaseLocalizedString(@"smartcard_type", nil);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -106,7 +106,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         imagePopupCtrl.type = REQUEST_FAIL;

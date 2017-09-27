@@ -20,6 +20,16 @@
 
 #endif
 
+#import "LocalizationHandlerUtil.h"
+
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
+#define NSBaseLocalizedString(key,_comment) [[LocalizationHandlerUtil singleton] localizedString:key  comment:_comment]
+
 #define IS_IPHONE_4 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)480) < DBL_EPSILON)
 #define IS_IPHONE_5 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)568) < DBL_EPSILON)
 #define IS_IPHONE_6 (fabs((double)[[UIScreen mainScreen]bounds].size.height - (double)667) < DBL_EPSILON)
@@ -35,11 +45,18 @@
 #define DOOR_COUNT_UPDATE               @"DOOR_COUNT_UPDATE"
 #define ALARM_COUNT_UPDATE              @"ALARM_COUNT_UPDATE"
 #define PUSH_HAS_BEEN_OCCURED           @"PUSH_HAS_BEEN_OCCURED"
+#define APP_DID_ENTER_BACKGROUND        @"APP_DID_ENTER_BACKGROUND"
+#define APP_WILL_ENTER_FOREGROUND       @"APP_WILL_ENTER_FOREGROUND"
+#define USE_FACE_TEMPLATE               @"USE_FACE_TEMPLATE"
 #define LOGGED_IN_USER_UPDATEED         @"LOGGED_IN_USER_UPDATEED"
+#define SETTING_DID_UPDATE              @"SETTING_DID_UPDATE"
+#define NEED_TO_GET_MOBILE_CREDENTIAL   @"NEED_TO_GET_MOBILE_CREDENTIAL"
+#define SETTING_WILL_CLOSE              @"SETTING_WILL_CLOSE"
 
 #define QUALITY                         @"QUALITY"
 #define APP_SEPARATION_VERSION          @"2.4.0"
-#define ACVersion                       @"2.4.0"
+#define BLE_SUPPORT_VERSION             @"2.4.1"
+#define CORE_STATION_SUPPORT_VERSION    @"2.5.0"
 
 
 #define LIST_POPUP_MINIMUM_HEIGHT 320      // 팝업 리스트뷰 최소 사이즈
@@ -78,6 +95,7 @@ typedef enum{
     SMART_CARD_MODE,
     MOBILE_CARD_MODE,
     READING_CARD_MODE,
+    FACE_TEMPLATE
 } DeviceMode;
 
 

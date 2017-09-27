@@ -20,10 +20,10 @@
     [self setSharedViewController:self];
     [containerView setHidden:YES];
     fingerprintIndexs = [[NSMutableArray alloc] init];
-    titleLabel.text = NSLocalizedString(@"fingerprint", nil);
+    titleLabel.text = NSBaseLocalizedString(@"fingerprint", nil);
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     
     [self adjustHeight:templates.count];
@@ -123,13 +123,13 @@
     NSString *description;
     
     if (value == 1)
-        description = NSLocalizedString(@"1st_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"st", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else if (value == 2)
-        description = NSLocalizedString(@"2nd_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"nd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else if (value == 3)
-        description = NSLocalizedString(@"3rd_fingerprint", nil);
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"rd", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     else
-        description = [NSString stringWithFormat:NSLocalizedString(@"%ldth_fingerprint", nil), (long)value];
+        description = [NSString stringWithFormat:@"%ld%@ %@",(long)value ,NSBaseLocalizedString(@"th", nil) ,NSBaseLocalizedString(@"fingerprint", nil)];
     
     customCell.titleLabel.text = description;
     [customCell checkSelected:model.isSelected];

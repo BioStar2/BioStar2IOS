@@ -17,7 +17,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [continuouslyCloseButton setTitle:NSLocalizedString(@"donot_again", nil) forState:UIControlStateNormal];
+    [continuouslyCloseButton setTitle:NSBaseLocalizedString(@"donot_again", nil) forState:UIControlStateNormal];
     [contentView setBackgroundColor:[UIColor colorWithRed:88/255 green:80/255 blue:83/255 alpha:0.7]];
     
     if (IS_IPHONE_6_PLUS)
@@ -56,6 +56,12 @@
 
 - (IBAction)closeHelpViewContinuously:(id)sender
 {
+    [LocalDataManager confirmShowMobileHelpView];
+    [self closePopup:self parentViewController:self.parentViewController];
+}
+
+- (IBAction)closeViewContinuously:(id)sender {
+    [LocalDataManager confirmShowMobileHelpView];
     [self closePopup:self parentViewController:self.parentViewController];
 }
 

@@ -26,8 +26,8 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
-    titleLabel.text = NSLocalizedString(@"open_door_time", nil);
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    titleLabel.text = NSBaseLocalizedString(@"open_door_time", nil);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -103,13 +103,13 @@
         
         NSString *timeFormat;
         
-        if ([[PreferenceProvider getTimeFormat] isEqualToString:@"hh:mm a"])
+        if ([[LocalDataManager getTimeFormat] isEqualToString:@"hh:mm a"])
         {
-            timeFormat = [NSString stringWithFormat:@"%@ %@",[PreferenceProvider getDateFormat], @"hh:mm:ss a"];
+            timeFormat = [NSString stringWithFormat:@"%@ %@",[LocalDataManager getDateFormat], @"hh:mm:ss a"];
         }
         else
         {
-            timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[PreferenceProvider getDateFormat], [PreferenceProvider getTimeFormat]];
+            timeFormat = [NSString stringWithFormat:@"%@ %@:ss",[LocalDataManager getDateFormat], [LocalDataManager getTimeFormat]];
         }
         
         NSString *content = [CommonUtil stringFromCurrentLocaleDateString:[calculatedDate description]

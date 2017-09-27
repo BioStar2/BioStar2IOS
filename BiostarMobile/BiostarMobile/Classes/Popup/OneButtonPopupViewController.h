@@ -27,7 +27,10 @@ typedef enum{
     FORCE_UPDATE_NEED,
     SETTING,
     CARD_CHANGED,
-    PERMISSION_DENIED
+    PERMISSION_DENIED,
+    DOOR_CONTROL,
+    SAVE_REQUEST_FAIL,
+    BLE_POWER_OFF
 } OneButtonPopupType;
 
 
@@ -39,6 +42,7 @@ typedef enum{
     __weak IBOutlet UIImageView *notiImage;
     __weak IBOutlet UIView *contentView;
     __weak IBOutlet UIButton *confirmBtn;
+    __weak IBOutlet NSLayoutConstraint *heightConstraint;
     
 
 }
@@ -48,6 +52,8 @@ typedef void (^ResponseBlock)(OneButtonPopupType type);
 @property (assign, nonatomic) OneButtonPopupType type;
 @property (strong, nonatomic) NSString *popupContent;
 @property (nonatomic, strong) ResponseBlock responseBlock;
+@property (nonatomic, strong) NSString *titleStr;
+
 
 - (IBAction)closePopup:(id)sender;
 - (void)getResponse:(ResponseBlock)responseBlock;

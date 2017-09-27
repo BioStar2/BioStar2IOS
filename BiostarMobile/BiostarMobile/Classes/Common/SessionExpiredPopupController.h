@@ -15,6 +15,7 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "Common.h"
 
 @protocol SessionPopupDelete <NSObject>
 

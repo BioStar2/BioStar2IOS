@@ -27,17 +27,17 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     switch (_type)
     {
         case PIN:
-            titleLabel.text = NSLocalizedString(@"pin_upper", nil);
+            titleLabel.text = NSBaseLocalizedString(@"pin_upper", nil);
             break;
             
         case PASSWORD:
-            titleLabel.text = NSLocalizedString(@"password", nil);
+            titleLabel.text = NSBaseLocalizedString(@"password", nil);
             contentViewHeightConstraint.constant = 320;
             break;
     }
@@ -92,7 +92,7 @@
     {
         if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
         {
-            [self.view makeToast:NSLocalizedString(@"password_guide", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_guide", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -100,7 +100,7 @@
         }
         if (![CommonUtil matchingByRegex:@"(?=.*[A-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
         {
-            [self.view makeToast:NSLocalizedString(@"password_guide", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_guide", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -111,7 +111,7 @@
     {
         if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:pin])
         {
-            [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_guide_strong", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -119,7 +119,7 @@
         }
         if (![CommonUtil matchingByRegex:@"(?=.*[A-Z])(?=.*[^\\w\\s\\d])(?=.*[a-z])(?=.*[0-9])(?!.*[ ]).{8,}" withField:comparisonPin])
         {
-            [self.view makeToast:NSLocalizedString(@"password_guide_strong", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_guide_strong", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -150,7 +150,7 @@
         {
             if (nil == pin || nil == comparisonPin)
             {
-                [self.view makeToast:NSLocalizedString(@"password_empty", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"password_empty", nil)
                             duration:2.0
                             position:CSToastPositionTop
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -159,14 +159,14 @@
             
             if (pin.length < 4 || comparisonPin.length < 4)
             {
-                [self.view makeToast:NSLocalizedString(@"pincount", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"pincount", nil)
                             duration:2.0
                             position:CSToastPositionTop
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 return;
             }
             
-            [self.view makeToast:NSLocalizedString(@"password_invalid", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_invalid", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -180,7 +180,7 @@
         
         if (![pin isEqualToString:comparisonPin])
         {
-            [self.view makeToast:NSLocalizedString(@"password_invalid", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"password_invalid", nil)
                         duration:2.0
                         position:CSToastPositionTop
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -270,6 +270,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (_type == PASSWORD)
+        if (indexPath.row == 0)
+            return;
+    
     UITableViewCell *theCell = [tableView cellForRowAtIndexPath:indexPath];
     PinCell *customCell = (PinCell*)theCell;
     [customCell setFirstResponder];

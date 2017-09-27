@@ -7,10 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Common.h"
 #import "NSString+EnumParser.h"
 #import "User.h"
 #import "CommonUtil.h"
 #import "PreferenceProvider.h"
+#import "SDImageCache.h"
+#import "GetMobileCredential.h"
 
 @protocol MobileCellDelegate <NSObject>
 
@@ -42,6 +45,6 @@
 
 @property (nonatomic, weak) id <MobileCellDelegate> delegate;
 
-- (void)setMobileCardContent:(Card*)card user:(User*)user;
+- (void)setMobileCardContent:(GetMobileCredential*)card user:(User*)user status:(NSString*)status;
 
 @end

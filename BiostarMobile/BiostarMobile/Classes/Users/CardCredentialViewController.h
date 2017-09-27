@@ -42,6 +42,7 @@
     NSMutableArray <FingerprintTemplate *>*fingerPrintTemplates;        // 지문 정보들(스마트 카드에서 사용할때)
     NSMutableArray <Card*> *userCards;
     NSMutableArray <Card* >*toDeleteArray;
+    NSMutableArray <NSNumber*> *cellHeights;
     Card *mobileCard;
     CardProvider *cardProvider;
     UserProvider *userProvier;

@@ -21,8 +21,9 @@
 #import "EventLogSearchResultWithoutTotal.h"
 #import "EventTypeSearchResult.h"
 #import "EventQuery.h"
+#import "LocalDataManager.h"
 
-static NSMutableArray <EventType*> *eventTypes = nil;
+//static NSMutableArray <EventType*> *eventTypes = nil;
 
 /**
  *
@@ -55,7 +56,9 @@ typedef void(^EventTypeCompleteBolck)(EventTypeSearchResult *result);
  *  @return all event messages
  */
 
-- (NSMutableArray*)getEventTypes;
++ (NSArray<EventType *>*)getLocalEventTypes;
+
++ (NSArray*)getSortedEventType:(NSArray*)originArray;
 
 /**
  *  Get All Event Type
@@ -64,7 +67,6 @@ typedef void(^EventTypeCompleteBolck)(EventTypeSearchResult *result);
  */
 
 - (void)getEventTypes:(EventTypeCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock;
-
 
 
 /**
@@ -88,6 +90,7 @@ typedef void(^EventTypeCompleteBolck)(EventTypeSearchResult *result);
  */
 
 - (void)searchEvent:(EventQuery*)query completeBlock:(EventSearchCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock;
+
 
 
 

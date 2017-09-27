@@ -21,14 +21,15 @@
     
     [self setSharedViewController:self];
 
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
     
     devices = [[NSMutableArray alloc] init];
     selectedDevices = [[NSMutableArray alloc] init];
     [containerView setHidden:YES];
     hasNextPage = NO;
-    isForSearch = NO;
+    
     offset = 0;
     limit = 50;
     loadedItemCount = 0;
@@ -39,19 +40,19 @@
     switch (_deviceMode)
     {
         case FINGERPRINT_MODE:
-            titleLabel.text = NSLocalizedString(@"select_device_orginal", nil);
         case CARD_MODE:
         case CSN_CARD_MODE:
         case WIEGAND_CARD_MODE:
         case SMART_CARD_MODE:
         case READING_CARD_MODE:
-            titleLabel.text = NSLocalizedString(@"select_device_orginal", nil);
+        case FACE_TEMPLATE:
+            titleLabel.text = NSBaseLocalizedString(@"select_device_orginal", nil);
             break;
             
         case ALL_DEVICES_MODE:
             
             multiSelect = YES;
-            titleLabel.text = NSLocalizedString(@"select_device_orginal", nil);
+            titleLabel.text = NSBaseLocalizedString(@"select_device_orginal", nil);
             break;
         default:
             break;
@@ -66,10 +67,10 @@
     
     if ([PreferenceProvider isUpperVersion])
     {
-        if (!multiSelect)
-        {
-            tableViewTopConstraint.constant = - multiSelectSearchView.frame.size.height;
-        }
+//        if (!multiSelect)
+//        {
+//            tableViewTopConstraint.constant = - multiSelectSearchView.frame.size.height;
+//        }
     }
 }
 
@@ -102,11 +103,12 @@
         
         [self adjustHeight:responseArray.count];
         
-        if (isForSearch)
+        if (offset == 0)
         {
             [devices removeAllObjects];
-            isForSearch = NO;
         }
+
+        
         [devices addObjectsFromArray:responseArray];
 
         loadedItemCount += result.records.count;
@@ -135,7 +137,7 @@
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -160,7 +162,7 @@
 - (IBAction)showSearchTextFieldView:(id)sender
 {
     [textView setHidden:NO];
-    [searchTextField resignFirstResponder];
+    [searchTextField becomeFirstResponder];
 }
 
 
@@ -169,6 +171,15 @@
 {
     [self.view endEditing:YES];
     [textView setHidden:YES];
+    
+    if ((nil == query || [query isEqualToString:@""]))
+    {
+        
+        offset = 0;
+        limit = 50;
+        
+        [self getDevice:query limit:limit offset:offset mode:_deviceMode];
+    }
 }
 
 
@@ -187,6 +198,11 @@
 
 - (IBAction)cancelCurrentPopup:(id)sender
 {
+    if (self.cancelBlock )
+    {
+        self.cancelBlock();
+        self.cancelBlock = nil;
+    }
     [self closePopup:self parentViewController:self.parentViewController];
 }
 
@@ -204,27 +220,6 @@
         self.devicesBlock = nil;
     }
     
-//    switch (self.deviceMode)
-//    {
-//        case FINGERPRINT_MODE:
-//        case CARD_MODE:
-//        case CSN_CARD_MODE:
-//        case WIEGAND_CARD_MODE:
-//        case SMART_CARD_MODE:
-//            if (self.deviceBlock && nil != selectedDevice)
-//            {
-//                self.deviceBlock(selectedDevice);
-//                self.deviceBlock = nil;
-//            }
-//            break;
-//        case ALL_DEVICES_MODE:
-//            if (self.devicesBlock && selectedDevices.count > 0)
-//            {
-//                self.devicesBlock(selectedDevices);
-//                self.devicesBlock = nil;
-//            }
-//            break;
-//    }
     
     [self closePopup:self parentViewController:self.parentViewController];
 }
@@ -239,6 +234,10 @@
     self.deviceBlock = deviceBlock;
 }
 
+- (void)getCancelBlock:(CancelBlock)cancelBlock
+{
+    self.cancelBlock = cancelBlock;
+}
 
 #pragma mark - Table view data source
 
@@ -318,13 +317,51 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    query = textField.text;
-    offset = 0;
-    isForSearch = YES;
-    [self getDevice:query limit:10000 offset:offset mode:mode];
-    
-    [textField resignFirstResponder];
+    if (![textField.text isEqualToString:@""])
+    {
+        query = textField.text;
+        offset = 0;
+        
+        [self getDevice:query limit:10000 offset:offset mode:mode];
+        
+        [textField resignFirstResponder];
+    }
     return YES;
 }
+
+
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    query = @"";
+    return YES;
+}
+
+- (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    NSMutableString *content = [[NSMutableString alloc] initWithString:textField.text];
+    
+    if (![string isEqualToString:@""])
+    {
+        // append
+        @try {
+            [content insertString:string atIndex:range.location];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    else
+    {
+        //delete
+        @try {
+            [content deleteCharactersInRange:range];
+        } @catch (NSException *exception) {
+            NSLog(@"%@ \n %@", exception.description, content);
+        }
+    }
+    
+    query = content;
+    return YES;
+}
+
 
 @end

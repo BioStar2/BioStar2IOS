@@ -27,11 +27,12 @@
     // Do any additional setup after loading the view.
     [containerView setHidden:YES];
     
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     if (nil != _content)
     {
+        _content = [_content stringByReplacingOccurrencesOfString:@"\\n" withString:@"\n"];
         contentLabel.text = _content;
     }
     
@@ -44,12 +45,12 @@
     {
         case MAIN_REQUEST_FAIL:
         case REQUEST_FAIL:
-            [confirmButton setTitle:NSLocalizedString(@"retry", nil) forState:UIControlStateNormal];
+            [confirmButton setTitle:NSBaseLocalizedString(@"retry", nil) forState:UIControlStateNormal];
             popupImage.image = [UIImage imageNamed:@"popup_error_ic"];
             containerHeightConstraint.constant = 400;
             break;
         case LOW_QUALITY:
-            [confirmButton setTitle:NSLocalizedString(@"retry", nil) forState:UIControlStateNormal];
+            [confirmButton setTitle:NSBaseLocalizedString(@"retry", nil) forState:UIControlStateNormal];
             popupImage.image = [UIImage imageNamed:@"popup_error_ic"];
             containerHeightConstraint.constant = 400;
             break;
@@ -59,32 +60,32 @@
             containerHeightConstraint.constant = 320;
             break;
         case CARD_BLOCK:
-            titleLabel.text = NSLocalizedString(@"block", nil);
-            contentLabel.text = NSLocalizedString(@"question_block_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"block", nil);
+            contentLabel.text = NSBaseLocalizedString(@"question_block_card", nil);
             popupImage.image = [UIImage imageNamed:@"user_card_number_ic"];
             containerHeightConstraint.constant = 360;
             break;
         case CARD_RELEASE:
-            titleLabel.text = NSLocalizedString(@"unblock", nil);
-            contentLabel.text = NSLocalizedString(@"question_unblock_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"unblock", nil);
+            contentLabel.text = NSBaseLocalizedString(@"question_unblock_card", nil);
             popupImage.image = [UIImage imageNamed:@"user_card_number_ic"];
             containerHeightConstraint.constant = 360;
             break;
         case CARD_REGISTER:
-            titleLabel.text = NSLocalizedString(@"mobile_card_upper", nil);
-            contentLabel.text = NSLocalizedString(@"question_reregister_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"mobile_card_upper", nil);
+            contentLabel.text = NSBaseLocalizedString(@"question_reregister_card", nil);
             popupImage.image = [UIImage imageNamed:@"user_card_number_ic"];
             containerHeightConstraint.constant = 360;
             break;
         case CARD_REREGISTER:
-            titleLabel.text = NSLocalizedString(@"mobile_card_upper", nil);
-            contentLabel.text = NSLocalizedString(@"question_reregister_card", nil);
+            titleLabel.text = NSBaseLocalizedString(@"mobile_card_upper", nil);
+            contentLabel.text = NSBaseLocalizedString(@"question_reregister_card", nil);
             popupImage.image = [UIImage imageNamed:@"user_card_number_ic"];
             containerHeightConstraint.constant = 360;
             break;
         case USER_CREATED:
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"add_credential", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"add_credential", nil);
             popupImage.image = [UIImage imageNamed:@"popup_check_ic"];
             containerHeightConstraint.constant = 400;
             break;

@@ -46,7 +46,8 @@ typedef enum{
     /*! Post method for login */
     LOGIN_POST,
     /*! Get mothod for photo*/
-    PHOTO_GET
+    PHOTO_GET,
+    PHOTO_PUT
 } Method;
 
 

@@ -25,55 +25,72 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     [containerView setHidden:YES];
     switch (_type)
     {
         case UPDATE_USER:
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"user_modify_success", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"user_modify_success", nil);
             break;
         case CREATE_USER:
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"user_create_success", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"user_create_success", nil);
             break;
         case SESSION_EXPIRED:
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
-            titleLabel.text = NSLocalizedString(@"notification", nil);
-            contentLabel.text = NSLocalizedString(@"login_expire", nil);
+            titleLabel.text = NSBaseLocalizedString(@"notification", nil);
+            contentLabel.text = NSBaseLocalizedString(@"login_expire", nil);
             break;
         case FINGERPRINT_VERIFICATION_FAIL:
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
-            titleLabel.text = NSLocalizedString(@"notification", nil);
-            contentLabel.text = NSLocalizedString(@"fail_verify_finger", nil);
+            titleLabel.text = NSBaseLocalizedString(@"notification", nil);
+            contentLabel.text = NSBaseLocalizedString(@"fail_verify_finger", nil);
             break;
         case USER_INFO_VERIFICATION_FAIL:
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
-            titleLabel.text = NSLocalizedString(@"info", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
             contentLabel.text = _popupContent;
             break;
         case LOGIN_INFO_LACK:
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"login_empty", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"login_empty", nil);
             break;
         case FORCE_UPDATE_NEED:
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
-            titleLabel.text = NSLocalizedString(@"notification", nil);
-            contentLabel.text = NSLocalizedString(@"forceUpdate", nil);
+            titleLabel.text = NSBaseLocalizedString(@"notification", nil);
+            contentLabel.text = NSBaseLocalizedString(@"forceUpdate", nil);
             break;
         case SETTING:
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"success", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"success", nil);
             break;
         case CARD_CHANGED:
-            titleLabel.text = NSLocalizedString(@"info", nil);
-            contentLabel.text = NSLocalizedString(@"success", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            contentLabel.text = NSBaseLocalizedString(@"success", nil);
             break;
         case PERMISSION_DENIED:
-            titleLabel.text = NSLocalizedString(@"info", nil);
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
             notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
             contentLabel.text = _popupContent;
+            break;
+        case SAVE_REQUEST_FAIL:
+            titleLabel.text = NSBaseLocalizedString(@"fail", nil);
+            notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
+            heightConstraint.constant = 400;
+            contentLabel.text = _popupContent;
+            break;
+        case DOOR_CONTROL:
+            heightConstraint.constant = 400;
+            titleLabel.text = _titleStr;
+            notiImage.image = [UIImage imageNamed:@"popup_door_ic"];
+            contentLabel.text = _popupContent;
+            break;
+        case BLE_POWER_OFF:
+            titleLabel.text = NSBaseLocalizedString(@"info", nil);
+            notiImage.image = [UIImage imageNamed:@"popup_error_ic"];
+            contentLabel.text = NSBaseLocalizedString(@"need_turn_on_ble", nil);;
             break;
     }
 }

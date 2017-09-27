@@ -18,15 +18,6 @@
 
 @interface DoorProvider()
 
-/**
- *  Make body data as JSON string 
- *
- *  @param doorID       Door ID
- *  @return JSON string for request body
- */
-
-- (NSString*)getDoorRequestBody:(NSInteger)doorID;
-
 @end
 
 @implementation DoorProvider
@@ -44,29 +35,29 @@
     return self;
 }
 
-- (NSString*)getDoorRequestBody:(NSInteger)doorID
-{
-#warning error test optional
-    NSDictionary *door = @{@"id" : [NSNumber numberWithInteger:doorID], @"status" : [NSNumber numberWithInteger:0]};
-    NSArray *doors = @[door];
-    
-    NSDictionary *doorsDic = @{@"rows" : doors, @"total" : [NSNumber numberWithInteger:doors.count]};
-    NSDictionary *doorCollection = @{@"DoorCollection" : doorsDic};
-    
-    NSError *jsonError;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:doorCollection options:kNilOptions error:&jsonError];
-    
-    if (nil != jsonError)
-    {
-        jsonParsingError = [jsonError copy];
-    }
-    else
-        jsonParsingError = nil;
-    
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
-    return jsonString;
-}
+#warning error test 사용해도 되고 안해도 됨 현재 swagger 에서는 사용하지 않음 optional
+//- (NSString*)getDoorRequestBody:(NSInteger)doorID
+//{
+//    NSDictionary *door = @{@"id" : [NSNumber numberWithInteger:doorID], @"status" : [NSNumber numberWithInteger:0]};
+//    NSArray *doors = @[door];
+//    
+//    NSDictionary *doorsDic = @{@"rows" : doors, @"total" : [NSNumber numberWithInteger:doors.count]};
+//    NSDictionary *doorCollection = @{@"DoorCollection" : doorsDic};
+//    
+//    NSError *jsonError;
+//    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:doorCollection options:kNilOptions error:&jsonError];
+//    
+//    if (nil != jsonError)
+//    {
+//        jsonParsingError = [jsonError copy];
+//    }
+//    else
+//        jsonParsingError = nil;
+//    
+//    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//    
+//    return jsonString;
+//}
 
 - (void)searchDoors:(NSString*)query limit:(NSInteger)limit offset:(NSInteger)offset completeBlock:(DoorsCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock
 {
@@ -78,15 +69,15 @@
     
     [network request:url withParam:nil method:GET completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
-        [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"door_description" forClass:[ListDoorItem class]];
         
-        [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[ListDoorItem class] forClass:[GetDoorList class]];
-        
-        GetDoorList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[GetDoorList class]];
-        
-        NSLog(@"%@", result);
         if (nil == error)
         {
+            [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"door_description" forClass:[ListDoorItem class]];
+            
+            [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[ListDoorItem class] forClass:[GetDoorList class]];
+            
+            GetDoorList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[GetDoorList class]];
+            
             completeBlock(result);
         }
         else
@@ -99,32 +90,6 @@
     
 }
 
-//- (void)getDoors:(DoorsCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock
-//{
-//    
-//    NSString* url = [NSString stringWithFormat:@"%@%@?limit=100&offset=0", [NetworkController sharedInstance].serverURL, API_DOORS];
-//    
-//    [network request:url withParam:nil method:GET completionHandler:^(NSDictionary *responseObject, NSError *error) {
-//        
-//        [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"door_description" forClass:[ListDoorItem class]];
-//        
-//        [mappingProvider mapFromDictionaryKey:@"records" toPropertyKey:@"records" withObjectType:[ListDoorItem class] forClass:[GetDoorList class]];
-//        
-//        GetDoorList *result = [mapper objectFromSource:responseObject toInstanceOfClass:[GetDoorList class]];
-//        
-//        NSLog(@"%@", result);
-//        if (nil == error)
-//        {
-//            completeBlock(result);
-//        }
-//        else
-//        {
-//            Response *error = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
-//            errorBlock(error);
-//        }
-//    }];
-//    
-//}
 
 - (void)getDoor:(NSInteger)doorID completeBlock:(DoorCompleteBolck)completeBlock onError:(ErrorBlock)errorBlock
 {
@@ -134,12 +99,12 @@
     
     [network request:url withParam:nil method:GET completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
-        [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"door_description" forClass:[ListDoorItem class]];
-        
-        ListDoorItem *result = [mapper objectFromSource:responseObject toInstanceOfClass:[ListDoorItem class]];
-        
         if (nil == error)
         {
+            [mappingProvider mapFromDictionaryKey:@"description" toPropertyKey:@"door_description" forClass:[ListDoorItem class]];
+            
+            ListDoorItem *result = [mapper objectFromSource:responseObject toInstanceOfClass:[ListDoorItem class]];
+            
             completeBlock(result);
         }
         else
@@ -155,7 +120,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_OPEN, (long)doorID]];
     
-    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    //NSString *jsonStringParam = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -166,7 +131,7 @@
         return;
     }
     
-    [network request:url withParam:jsonStringParam method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         
@@ -188,7 +153,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_LOCK, (long)doorID]];
     
-    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    //NSString *jsonStringParam = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -199,7 +164,7 @@
         return;
     }
     
-    [network request:url withParam:jsonStringParam method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         
         if (nil == error)
@@ -218,7 +183,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_UNLOCK, (long)doorID]];
     
-    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    //NSString *jsonStringParam = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -229,7 +194,7 @@
         return;
     }
     
-    [network request:url withParam:jsonStringParam method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         
@@ -249,7 +214,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_RELEASE, (long)doorID]];
     
-    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    //NSString *jsonStringParam = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -260,7 +225,7 @@
         return;
     }
     
-    [network request:url withParam:jsonStringParam method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         
@@ -280,7 +245,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_CLEAR_ALARM, (long)doorID]];
     
-    NSString *jsonStringParam = [self getDoorRequestBody:doorID];
+    //NSString *jsonStringParam = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -291,7 +256,7 @@
         return;
     }
     
-    [network request:url withParam:jsonStringParam method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         
@@ -311,7 +276,7 @@
     
     NSString* url = [NSString stringWithFormat:@"%@%@", [NetworkController sharedInstance].serverURL, [NSString stringWithFormat:API_DOORS_CLEAR_APB, (long)doorID]];
     
-    NSString *jsonString = [self getDoorRequestBody:doorID];
+    //NSString *jsonString = [self getDoorRequestBody:doorID];
     
     if (jsonParsingError)
     {
@@ -322,7 +287,7 @@
         return;
     }
     
-    [network request:url withParam:jsonString method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
+    [network request:url withParam:nil method:POST completionHandler:^(NSDictionary *responseObject, NSError *error) {
         
         Response *response = [mapper objectFromSource:responseObject toInstanceOfClass:[Response class]];
         

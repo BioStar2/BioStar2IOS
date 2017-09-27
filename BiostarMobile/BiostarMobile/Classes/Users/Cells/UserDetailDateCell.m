@@ -35,7 +35,7 @@
     
     if (nil != startDate)
     {
-        NSString *startDateStr =  [CommonUtil stringFromDateString:startDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[PreferenceProvider getDateFormat]];
+        NSString *startDateStr =  [CommonUtil stringFromDateString:startDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[LocalDataManager getDateFormat]];
         
         if (nil != startDateStr)
         {
@@ -45,7 +45,7 @@
     
     if (nil != expireDate)
     {
-        NSString *expiryDateStr =  [CommonUtil stringFromDateString:expireDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[PreferenceProvider getDateFormat]];
+        NSString *expiryDateStr =  [CommonUtil stringFromDateString:expireDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[LocalDataManager getDateFormat]];
         
         if (nil != expiryDateStr)
         {

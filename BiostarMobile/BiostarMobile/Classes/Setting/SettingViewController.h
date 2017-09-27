@@ -21,23 +21,31 @@
 #import "TimezoneCell.h"
 #import "DateTimeCell.h"
 #import "SwitchCell.h"
+#import "BLESettingCell.h"
 #import "PreferenceProvider.h"
 #import "AuthProvider.h"
 #import "DateTimeFormatPopupViewController.h"
 #import "OneButtonPopupViewController.h"
 #import "ImagePopupViewController.h"
+#import "BLESwtichCell.h"
+#import "BLEDistanceCell.h"
 
-@interface SettingViewController : BaseViewController
+@interface SettingViewController : BaseViewController <BLESettingCellDelegate, BLESwtichCellDelegate, BLEDistanceCellDelegate>
 {
     __weak IBOutlet UITableView *settingTableView;
     __weak IBOutlet UILabel *titleLabel;
     PreferenceProvider *provider;
     BOOL hasNewVersion;
     
+    
 }
 
 @property (strong, nonatomic) Setting *setting;
 @property (strong, nonatomic) NSString *userID;
+@property (assign, nonatomic) BOOL BLEisOn;
+@property (assign, nonatomic) BOOL justTurnOnUsage;
+
+@property (assign, nonatomic) NSUInteger BLEdistance;
 
 - (void)getPreferencd;
 - (void)getAppVersions;

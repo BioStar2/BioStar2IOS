@@ -36,9 +36,9 @@
 #import "MobileCardViewController.h"
 #import "ButtonModel.h"
 #import "LocalDataManager.h"
+#import "LicenseViewController.h"
 
 #define SIDE_MENU_VELOCOTY      600
-
 
 /**
  *
@@ -58,6 +58,7 @@
     __weak IBOutlet UIButton *closeButton;
     __weak IBOutlet UIView *sidemenuBottonView;
     __weak IBOutlet UILabel *versionLabel;
+    __weak IBOutlet UIButton *logoutBtn;
     
     __weak IBOutlet UILabel *userName;
     __weak IBOutlet UILabel *userOperator;
@@ -79,6 +80,7 @@
     
     NSTimer *timer;
     BOOL isSidemenuOpen;
+    
     CGPoint draggingPoint;
     NSInteger requestCount;
     
@@ -97,6 +99,12 @@
     SEL buttonsTouchUpInside;
     
     NSInteger badgeCount;
+    NSString *transDateFormate;
+    __weak IBOutlet UIStackView *verticalStackView;
+    __weak IBOutlet NSLayoutConstraint *stackViewBottomConstraint;
+    IBOutletCollection(UIView) NSArray *buttonViews;
+    IBOutletCollection(UIButton) NSArray *stackViewButtons;
+    IBOutletCollection(UILabel) NSArray *stackViewLabels;
 }
 
 typedef enum
@@ -158,7 +166,9 @@ typedef enum
  *
  */
 - (IBAction)logout:(id)sender;
+- (IBAction)moveToLicense:(id)sender;
 
+- (void)getMobileCredential;
 - (void)addBadgeViewConstraint:(UIButton*)button;
 - (void)openSideMenu:(NSInteger)velocity;
 - (void)closeSideMenu:(NSInteger)velocity;

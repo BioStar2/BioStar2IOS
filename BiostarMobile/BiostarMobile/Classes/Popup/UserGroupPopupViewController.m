@@ -19,13 +19,13 @@
     // Do any additional setup after loading the view.
     
     [self setSharedViewController:self];
-    totalDecLabel.text = NSLocalizedString(@"total", nil);
-    [cancelBtn setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
-    [confirmBtn setTitle:NSLocalizedString(@"ok", nil) forState:UIControlStateNormal];
+    totalDecLabel.text = NSBaseLocalizedString(@"total", nil);
+    [cancelBtn setTitle:NSBaseLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
+    [confirmBtn setTitle:NSBaseLocalizedString(@"ok", nil) forState:UIControlStateNormal];
     
     isMenuSelected = NO;
     [containerView setHidden:YES];
-    titleLabel.text = NSLocalizedString(@"select_user_group", nil);
+    titleLabel.text = NSBaseLocalizedString(@"select_user_group", nil);
     userProvider = [[UserProvider alloc] init];
     userGroups = [[NSMutableArray alloc] init];
     [self getUserGroups];
@@ -65,7 +65,29 @@
         
         [self finishLoading];
         
-        [userGroups addObjectsFromArray:userSearchResult.records];
+        UserGroup *allUsers = nil;
+        for (UserGroup *userGroup in userSearchResult.records)
+        {
+            if ([userGroup.id isEqualToString:@"1"])
+            {
+                allUsers = userGroup;
+                break;
+            }
+        }
+        if (allUsers)
+        {
+            [userGroups addObject:allUsers];
+            
+            NSMutableArray *sortedArray = [[NSMutableArray alloc] initWithArray:userSearchResult.records];
+            [sortedArray removeObject:allUsers];
+            
+            [userGroups addObjectsFromArray:sortedArray];
+        }
+        else
+        {
+            [userGroups addObjectsFromArray:userSearchResult.records];
+        }
+        
         
         [self adjustHeight:userGroups.count];
         
@@ -80,7 +102,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];

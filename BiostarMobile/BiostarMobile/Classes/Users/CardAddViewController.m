@@ -22,12 +22,13 @@
     // Do any additional setup after loading the view.
     [self setSharedViewController:self];
     
-    titleLabel.text = NSLocalizedString(@"register_card", nil);
+    titleLabel.text = NSBaseLocalizedString(@"register_card", nil);
     
     WIEGANDFormat = [WiegandFormat new];
     wiegandCard = [WiegandCard new];
     mobileCredential = [MobileCredential new];
-    mobileCredential.type = SECURE;
+    mobileCredential.type = ACCESS;
+    mobileCredential.card_id = currentUser.user_id;
     
     secureCredential = [SecureCredential new];
     secureCredential.user_id = currentUser.user_id;
@@ -39,7 +40,7 @@
     registrationType = NEW_CARD;
     smartCardType = [[SimpleModel alloc] init];
     smartCardType.id = @"0";
-    smartCardType.name = NSLocalizedString(@"secure_card", nil);
+    smartCardType.name = NSBaseLocalizedString(@"secure_card", nil);
     
     contentTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     
@@ -48,6 +49,9 @@
     cardProvider = [[CardProvider alloc] init];
     userProvider = [[UserProvider alloc] init];
     deviceProvider = [[DeviceProvider alloc] init];
+    settingProvider = [[PreferenceProvider alloc] init];
+    [self getACSettingInfo];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification
@@ -85,6 +89,40 @@
     // Pass the selected object to the new view controller.
 }
 */
+
+- (void)getACSettingInfo
+{
+    [self startLoading:self];
+    
+    [settingProvider getBiostarACSetting:^(BioStarSetting *result) {
+        [self finishLoading];
+        
+        acSetting = result;
+        
+    } onError:^(Response *error) {
+        
+        [self finishLoading];
+        
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+        imagePopupCtrl.type = REQUEST_FAIL;
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+        [imagePopupCtrl setContent:error.message];
+        
+        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        
+        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+            if (isConfirm)
+            {
+                [self getACSettingInfo];
+            }
+            else
+            {
+                [self moveToBack:nil];
+            }
+        }];
+    }];
+}
 
 - (IBAction)moveToBack:(id)sender
 {
@@ -161,7 +199,7 @@
 
 - (void)showInvalidCardTypeToast
 {
-    [self.view makeToast:NSLocalizedString(@"invalid_card_type", nil)
+    [self.view makeToast:NSBaseLocalizedString(@"invalid_card_type", nil)
                 duration:1.0
                 position:CSToastPositionBottom
                    image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -171,7 +209,7 @@
 {
     if (nil == selectedDevice)
     {
-        [self.view makeToast:NSLocalizedString(@"select_device_orginal", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"select_device_orginal", nil)
                     duration:1.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -219,8 +257,8 @@
             default:
                 break;
         }
-        scanedCard = scanCard;
         
+        scanedCard = scanCard;
         
         if(cardType == CSN_WIEGAND || cardType == WIEGAND)
         {
@@ -259,7 +297,7 @@
         // secure card
         if (nil == secureCredential.card_id || [secureCredential.card_id isEqualToString:@""])
         {
-            [self.view makeToast:NSLocalizedString(@"none_select_card", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
                         duration:1.0
                         position:CSToastPositionBottom
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -269,7 +307,7 @@
     
     if (nil == selectedDevice)
     {
-        [self.view makeToast:NSLocalizedString(@"none_card_layout_format", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"none_card_layout_format", nil)
                     duration:1.0
                     position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
@@ -334,27 +372,19 @@
     
     if (popupType == CARD_TYPE)
     {
-        
-#warning 2.4.0 에는 mobile_card_upper 빼야함
-#if MOBILE_CARD
-        [listPopupCtrl addOptions:@[NSLocalizedString(@"csn", nil),
-                                    NSLocalizedString(@"wiegand", nil),
-                                    NSLocalizedString(@"smartcard", nil),
-                                    NSLocalizedString(@"mobile_card_upper", nil),
-                                    NSLocalizedString(@"read_card", nil)]];
-#else
-        [listPopupCtrl addOptions:@[NSLocalizedString(@"csn", nil),
-                                    NSLocalizedString(@"wiegand", nil),
-                                    NSLocalizedString(@"smartcard", nil),
-                                    NSLocalizedString(@"read_card", nil)]];
-#endif
+        [listPopupCtrl setSetiing:acSetting];
+        [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"csn", nil),
+                                    NSBaseLocalizedString(@"wiegand", nil),
+                                    NSBaseLocalizedString(@"smartcard", nil),
+                                    NSBaseLocalizedString(@"mobile_card_upper", nil),
+                                    NSBaseLocalizedString(@"read_card", nil)]];
         
     }
     else if (popupType == REGISTRATION_POPUP)
     {
-        [listPopupCtrl addOptions:@[NSLocalizedString(@"registeration_option_card_reader", nil),
-                                    NSLocalizedString(@"registeration_option_assign_card", nil),
-                                    NSLocalizedString(@"registeration_option_direct_input", nil)]];
+        [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"registeration_option_card_reader", nil),
+                                    NSBaseLocalizedString(@"registeration_option_assign_card", nil),
+                                    NSBaseLocalizedString(@"registeration_option_direct_input", nil)]];
     }
     
     [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
@@ -371,7 +401,8 @@
         wiegandCard = [WiegandCard new];
         
         mobileCredential = [MobileCredential new];
-        mobileCredential.type = SECURE;
+        mobileCredential.type = ACCESS;
+        mobileCredential.card_id = currentUser.user_id;
         
         secureCredential = [SecureCredential new];
         secureCredential.user_id = currentUser.user_id;
@@ -475,21 +506,23 @@
     
     [self showPopup:listPopupCtrl parentViewController:self parentView:self.view];
     
-    [listPopupCtrl addOptions:@[NSLocalizedString(@"secure_card", nil),
-                                NSLocalizedString(@"access_on_card", nil)]];
+    [listPopupCtrl addOptions:@[NSBaseLocalizedString(@"secure_card", nil),
+                                NSBaseLocalizedString(@"access_on_card", nil)]];
     
     [listPopupCtrl getIndexResponseBlock:^(NSInteger index) {
         if (index == 0)
         {
-            smartCardType.name = NSLocalizedString(@"secure_card", nil);
+            smartCardType.name = NSBaseLocalizedString(@"secure_card", nil);
             smartCardType.id = @"0";
             mobileCredential.type = SECURE;
+            mobileCredential.card_id = @"";
         }
         else
         {
-            smartCardType.name = NSLocalizedString(@"access_on_card", nil);
+            smartCardType.name = NSBaseLocalizedString(@"access_on_card", nil);
             smartCardType.id = @"1";
             mobileCredential.type = ACCESS;
+            mobileCredential.card_id = currentUser.user_id;
         }
         
         secureCredential.card_id = nil;
@@ -588,7 +621,7 @@
 {
     if (currentUser.fingerprint_template_count == 0)
     {
-        [self.view makeToast:NSLocalizedString(@"none_registered_fingerprint", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"none_registered_fingerprint", nil)
                     duration:1.0 position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
         
@@ -599,7 +632,7 @@
     {
         if (nil == selectedDevice)
         {
-            [self.view makeToast:NSLocalizedString(@"none_card_layout_format", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"none_card_layout_format", nil)
                         duration:1.0 position:CSToastPositionBottom
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
             return;
@@ -609,7 +642,7 @@
     {
         if (nil == currentCardLayout)
         {
-            [self.view makeToast:NSLocalizedString(@"none_card_layout_format", nil)
+            [self.view makeToast:NSBaseLocalizedString(@"none_card_layout_format", nil)
                         duration:1.0 position:CSToastPositionBottom
                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
             return;
@@ -662,7 +695,7 @@
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         imagePopupCtrl.type = REQUEST_FAIL;
@@ -682,7 +715,7 @@
 {
     if (nil == card)
     {
-        [self.view makeToast:NSLocalizedString(@"none_select_card", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
                     duration:1.0 position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
         
@@ -724,21 +757,15 @@
     } onErrorBlock:^(Response *error) {
         
         [self finishLoading];
-        
+
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:error.message];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
         
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        [oneButtonPopupCtrl setPopupContent:error.message];
         
-        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-            if (isConfirm)
-            {
-                [self assignCard:card];
-            }
-        }];
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
     }];
     
 }
@@ -747,7 +774,7 @@
 {
     if (nil == inputCardID)
     {
-        [self.view makeToast:NSLocalizedString(@"none_select_card", nil)
+        [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
                     duration:1.0 position:CSToastPositionBottom
                        image:[UIImage imageNamed:@"toast_popup_i_03"]];
         
@@ -770,19 +797,27 @@
         [self finishLoading];
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:error.message];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
         
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        [oneButtonPopupCtrl setPopupContent:error.message];
         
-        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-            if (isConfirm)
-            {
-                [self assignCSNCard];
-            }
-        }];
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
+//        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//        imagePopupCtrl.type = REQUEST_FAIL;
+//        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+//        [imagePopupCtrl setContent:error.message];
+//        
+//        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//        
+//        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//            if (isConfirm)
+//            {
+//                [self assignCSNCard];
+//            }
+//        }];
         
     }];
     
@@ -796,7 +831,7 @@
         case NEW_CARD:
             if (nil == selectedDevice || nil == wiegandCard.wiegand_card_id_list)
             {
-                [self.view makeToast:NSLocalizedString(@"wiegand_format_empty", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"wiegand_format_empty", nil)
                             duration:1.0 position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 
@@ -807,7 +842,7 @@
         case ASSIGNMENT:
             if (nil == wiegandCard.wiegand_card_id_list)
             {
-                [self.view makeToast:NSLocalizedString(@"none_select_card", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
                             duration:1.0 position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 
@@ -818,7 +853,7 @@
         case INPUT:
             if (nil == wiegandCard.wiegand_card_id_list)
             {
-                [self.view makeToast:NSLocalizedString(@"wiegand_format_empty", nil)
+                [self.view makeToast:NSBaseLocalizedString(@"wiegand_format_empty", nil)
                             duration:1.0 position:CSToastPositionBottom
                                image:[UIImage imageNamed:@"toast_popup_i_03"]];
                 
@@ -834,14 +869,14 @@
                     {
                         if (i == 0)
                         {
-                            [self.view makeToast:NSLocalizedString(@"discern_empty", nil)
+                            [self.view makeToast:NSBaseLocalizedString(@"discern_empty", nil)
                                         duration:1.0 position:CSToastPositionBottom
                                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
                             return;
                         }
                         else
                         {
-                            [self.view makeToast:NSLocalizedString(@"none_select_card", nil)
+                            [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
                                         duration:1.0 position:CSToastPositionBottom
                                            image:[UIImage imageNamed:@"toast_popup_i_03"]];
                             
@@ -850,8 +885,6 @@
                     }
                 }
             }
-            
-            
             break;
     }
     
@@ -874,19 +907,27 @@
         [self finishLoading];
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:error.message];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
         
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        [oneButtonPopupCtrl setPopupContent:error.message];
         
-        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-            if (isConfirm)
-            {
-                [self assignWIEGANDCard];
-            }
-        }];
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
+//        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//        imagePopupCtrl.type = REQUEST_FAIL;
+//        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+//        [imagePopupCtrl setContent:error.message];
+//        
+//        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//        
+//        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//            if (isConfirm)
+//            {
+//                [self assignWIEGANDCard];
+//            }
+//        }];
         
     }];
 }
@@ -923,7 +964,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -970,7 +1011,7 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
         ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
         imagePopupCtrl.type = REQUEST_FAIL;
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
+        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
         [imagePopupCtrl setContent:error.message];
         
         [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
@@ -987,6 +1028,24 @@
 
 - (void)issueMobileCredential
 {
+    if (nil == mobileCredential.layout_id || [mobileCredential.layout_id isEqualToString:@""])
+    {
+        [self.view makeToast:NSBaseLocalizedString(@"none_card_layout_format", nil)
+                    duration:1.0
+                    position:CSToastPositionBottom
+                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
+        return;
+    }
+    
+    if (nil == mobileCredential.card_id || [mobileCredential.card_id isEqualToString:@""])
+    {
+        [self.view makeToast:NSBaseLocalizedString(@"none_select_card", nil)
+                    duration:1.0
+                    position:CSToastPositionBottom
+                       image:[UIImage imageNamed:@"toast_popup_i_03"]];
+        return;
+    }
+    
     [self startLoading:self];
     [userProvider issueMobileCredential:mobileCredential userID:currentUser.user_id responseBlock:^(AddResponse *response) {
         
@@ -1012,19 +1071,27 @@
         [self finishLoading];
         
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
-        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
-        imagePopupCtrl.titleContent = NSLocalizedString(@"fail_retry", nil);
-        [imagePopupCtrl setContent:error.message];
+        OneButtonPopupViewController *oneButtonPopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"OneButtonPopupViewController"];
+        oneButtonPopupCtrl.type = SAVE_REQUEST_FAIL;
         
-        imagePopupCtrl.type = REQUEST_FAIL;
-        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+        [oneButtonPopupCtrl setPopupContent:error.message];
         
-        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
-            if (isConfirm)
-            {
-                [self issueMobileCredential];
-            }
-        }];
+        [self showPopup:oneButtonPopupCtrl parentViewController:self parentView:self.view];
+        
+//        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Popup" bundle:nil];
+//        ImagePopupViewController *imagePopupCtrl = [storyboard instantiateViewControllerWithIdentifier:@"ImagePopupViewController"];
+//        imagePopupCtrl.titleContent = NSBaseLocalizedString(@"fail_retry", nil);
+//        [imagePopupCtrl setContent:error.message];
+//        
+//        imagePopupCtrl.type = REQUEST_FAIL;
+//        [self showPopup:imagePopupCtrl parentViewController:self parentView:self.view];
+//        
+//        [imagePopupCtrl getResponse:^(ImagePopupType type, BOOL isConfirm) {
+//            if (isConfirm)
+//            {
+//                [self issueMobileCredential];
+//            }
+//        }];
         
     }];
     
@@ -1153,7 +1220,14 @@
                 
                 break;
             case MOBILE_CARD_MODE:
-                return 5;
+                if ([mobileCredential.type isEqualToString:ACCESS])
+                {
+                    return 5;
+                }
+                else
+                {
+                    return 3;
+                }
                 break;
                 
             case READING_CARD_MODE:
@@ -1194,7 +1268,7 @@
     // 폰트 때문에 뷰에서 섹션 타이틀 정해줘야 할 필요 있음.
     if (section == 1)
     {
-        return NSLocalizedString(@"info", nil);
+        return NSBaseLocalizedString(@"info", nil);
     }
     else
         return nil;
@@ -1224,45 +1298,45 @@
             case NEW_CARD:
                 if (indexPath.row == 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"csn", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"csn", nil)];
                 }
                 else if (indexPath.row == 1)
                 {
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_card_reader", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_card_reader", nil)];
                 }
                 else if (indexPath.row == 2)
                 {
-                    [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                    [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                 }
                 else if (indexPath.row == 3)
                 {
-                    [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                    [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                 }
                 break;
                 
             case ASSIGNMENT:
                 if (indexPath.row == 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"csn", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"csn", nil)];
                 }
                 else if (indexPath.row == 1)
                 {
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_assign_card", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_assign_card", nil)];
                 }
                 else if (indexPath.row == 2)
                 {
-                    [customCell setTitle:NSLocalizedString(@"registeration_option_assign_card", nil) content:nil];
+                    [customCell setTitle:NSBaseLocalizedString(@"registeration_option_assign_card", nil) content:nil];
                 }
                 break;
                 
             case INPUT:
                 if (indexPath.row == 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"csn", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"csn", nil)];
                 }
                 else if (indexPath.row == 1)
                 {
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_direct_input", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_direct_input", nil)];
                 }
                 break;
         }
@@ -1275,13 +1349,13 @@
         customCell.delegate = self;
         switch (registrationType) {
             case NEW_CARD:
-                [customCell setTitle:NSLocalizedString(@"card_id", nil) content:scanedCard.card_id];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:scanedCard.card_id];
                 break;
             case ASSIGNMENT:
-                [customCell setTitle:NSLocalizedString(@"card_id", nil) content:scanedCard.card_id];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:scanedCard.card_id];
                 break;
             case INPUT:
-                [customCell setTitle:NSLocalizedString(@"card_id", nil) field:inputCardID];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) field:inputCardID];
                 break;
         }
         [customCell setCardInfoType:registrationType deviceMode:deviceMode];
@@ -1301,7 +1375,7 @@
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
                     
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"wiegand", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"wiegand", nil)];
                     return customCell;
                 }
                 else if (indexPath.row == 1)
@@ -1309,21 +1383,21 @@
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
                     
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_card_reader", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_card_reader", nil)];
                     return customCell;
                 }
                 else if (indexPath.row == 2)
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                    [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                    [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                     return customCell;
                 }
                 else if (indexPath.row == 3)
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                     CardInfoText *customCell = (CardInfoText*)cell;
-                    [customCell setTitle:NSLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
                     [customCell setOnlyContent];
                     return customCell;
                 }
@@ -1332,7 +1406,7 @@
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
                     
-                    [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                    [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                     return customCell;
                 }
             }
@@ -1344,14 +1418,14 @@
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"wiegand", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"wiegand", nil)];
                     return customCell;
                 }
                 else if (indexPath.row == 1)
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_assign_card", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_assign_card", nil)];
                     return customCell;
                 }
                 else if (indexPath.row == 2)
@@ -1359,7 +1433,7 @@
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                     CardInfoText *customCell = (CardInfoText*)cell;
                     customCell.delegate = self;
-                    [customCell setTitle:NSLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
                     [customCell setOnlyContent];
                     
                     return customCell;
@@ -1368,7 +1442,7 @@
                 {
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                    [customCell setTitle:NSLocalizedString(@"registeration_option_assign_card", nil) content:@""];
+                    [customCell setTitle:NSBaseLocalizedString(@"registeration_option_assign_card", nil) content:@""];
                     return customCell;
                 }
                 
@@ -1381,15 +1455,15 @@
                 CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
                 if (indexPath.row == 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"wiegand", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"wiegand", nil)];
                 }
                 else if (indexPath.row == 1)
                 {
-                    [customCell setTitle:NSLocalizedString(@"register_method", nil) content:NSLocalizedString(@"registeration_option_direct_input", nil)];
+                    [customCell setTitle:NSBaseLocalizedString(@"register_method", nil) content:NSBaseLocalizedString(@"registeration_option_direct_input", nil)];
                 }
                 else
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_data_format", nil) content:WIEGANDFormat.name];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_data_format", nil) content:WIEGANDFormat.name];
                 }
                 return customCell;
             }
@@ -1408,11 +1482,11 @@
                 [customCell setCardInfoType:registrationType deviceMode:deviceMode];
                 if (indexPath.row == 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"id_code", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
+                    [customCell setTitle:NSBaseLocalizedString(@"id_code", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
                 }
                 else
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_id", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
                 }
                 
                 return customCell;
@@ -1428,19 +1502,19 @@
                 
                 if (WIEGANDFormat.wiegand_card_id_list.count == 1)
                 {
-                    [customCell setTitle:NSLocalizedString(@"card_id", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
                     return customCell;
                 }
                 else
                 {
                     if (indexPath.row == 0)
                     {
-                        [customCell setTitle:NSLocalizedString(@"id_code", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
+                        [customCell setTitle:NSBaseLocalizedString(@"id_code", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
                         return customCell;
                     }
                     else
                     {
-                        [customCell setTitle:NSLocalizedString(@"card_id", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) field:wiegandCard.wiegand_card_id_list[indexPath.row].card_id maxValue:WIEGANDFormat.wiegand_card_id_list[indexPath.row].card_id_max_num];
                         return customCell;
                     }
                 }
@@ -1459,21 +1533,21 @@
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"smartcard", nil)];
+            [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"smartcard", nil)];
             return customCell;
         }
         else if (indexPath.row == 1)
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+            [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
             return customCell;
         }
         else if (indexPath.row == 2)
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
             CardInfoText *customCell = (CardInfoText*)cell;
-            [customCell setTitle:NSLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
+            [customCell setTitle:NSBaseLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
             [customCell setCardInfoType:NEW_CARD deviceMode:deviceMode];
             return customCell;
         }
@@ -1481,7 +1555,7 @@
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"smartcard_type", nil) content:smartCardType.name];
+            [customCell setTitle:NSBaseLocalizedString(@"smartcard_type", nil) content:smartCardType.name];
             return customCell;
         }
         else
@@ -1500,7 +1574,7 @@
                 CardInfoText *customCell = (CardInfoText*)cell;
                 customCell.delegate = self;
                 [customCell setCardInfoType:INPUT deviceMode:deviceMode];
-                [customCell setTitle:NSLocalizedString(@"card_id", nil) field:secureCredential.card_id];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) field:secureCredential.card_id];
                 return customCell;
             }
             else if (indexPath.row == 1)
@@ -1510,11 +1584,11 @@
                 
                 if (mobileCredential.fingerprint_index_list.count > 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
                 }
                 else
                 {
-                    [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:nil];
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:nil];
                 }
                 return customCell;
             }
@@ -1524,7 +1598,7 @@
                 CardInfoText *customCell = (CardInfoText*)cell;
                 customCell.delegate = self;
                 [customCell setPinExist:currentUser.pin_exist];
-                [customCell setTitle:NSLocalizedString(@"pin_upper", nil) content:nil];
+                [customCell setTitle:NSBaseLocalizedString(@"pin_upper", nil) content:nil];
                 return customCell;
             }
         }
@@ -1536,7 +1610,7 @@
                 CardInfoText *customCell = (CardInfoText*)cell;
                 customCell.delegate = self;
                 [customCell setOnlyContent];
-                [customCell setTitle:NSLocalizedString(@"card_id", nil) content:currentUser.user_id];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:currentUser.user_id];
                 return customCell;
             }
             else if (indexPath.row == 1)
@@ -1546,11 +1620,11 @@
                 
                 if (mobileCredential.fingerprint_index_list.count > 0)
                 {
-                    [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
                 }
                 else
                 {
-                    [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:nil];
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:nil];
                 }
                 return customCell;
             }
@@ -1559,7 +1633,7 @@
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                 CardInfoText *customCell = (CardInfoText*)cell;
                 [customCell setPinExist:currentUser.pin_exist];
-                [customCell setTitle:NSLocalizedString(@"pin_upper", nil) content:nil];
+                [customCell setTitle:NSBaseLocalizedString(@"pin_upper", nil) content:nil];
                 return customCell;
             }
             else if (indexPath.row == 3)
@@ -1568,7 +1642,7 @@
                 CardInfoText *customCell = (CardInfoText*)cell;
                 [customCell setOnlyContent];
                 NSString *accessGroup = currentUser.access_groups.count > 0 ? currentUser.access_groups[0].name : nil;
-                [customCell setTitle:NSLocalizedString(@"access_group", nil) content:accessGroup];
+                [customCell setTitle:NSBaseLocalizedString(@"access_group", nil) content:accessGroup];
                 return customCell;
             }
             else
@@ -1576,7 +1650,7 @@
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                 CardInfoText *customCell = (CardInfoText*)cell;
                 [customCell setOnlyContent];
-                [customCell setTitle:NSLocalizedString(@"period", nil) content:nil];
+                [customCell setTitle:NSBaseLocalizedString(@"period", nil) content:nil];
                 [customCell setStartDate:currentUser.start_datetime andExpireDate:currentUser.expiry_datetime];
                 return customCell;
             }
@@ -1594,77 +1668,125 @@
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"mobile_card_upper", nil)];
+            [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"mobile_card_upper", nil)];
             return customCell;
         }
         else if (indexPath.row == 1)
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"card_layout_format", nil) content:currentCardLayout.name];
+            [customCell setTitle:NSBaseLocalizedString(@"card_layout_format", nil) content:currentCardLayout.name];
             return customCell;
         }
         else
         {
             UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            [customCell setTitle:NSLocalizedString(@"smartcard_type", nil) content:smartCardType.name];
+            if ([mobileCredential.type isEqualToString:ACCESS])
+            {
+                [customCell setTitle:NSBaseLocalizedString(@"smartcard_type", nil) content:NSBaseLocalizedString(@"access_on_card", nil)];
+            }
+            else
+            {
+                [customCell setTitle:NSBaseLocalizedString(@"smartcard_type", nil) content:NSBaseLocalizedString(@"secure_card", nil)];
+            }
+            
             return customCell;
         }
     }
     else
     {
-        if (indexPath.row == 0)
+        if ([mobileCredential.type isEqualToString:ACCESS])
         {
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
-            CardInfoText *customCell = (CardInfoText*)cell;
-            customCell.delegate = self;
-            [customCell setCardInfoType:INPUT deviceMode:deviceMode];
-            [customCell setTitle:NSLocalizedString(@"card_id", nil) field:mobileCredential.card_id];
-            return customCell;
-        }
-        else if (indexPath.row == 1)
-        {
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
-            CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-            
-            if (mobileCredential.fingerprint_index_list.count > 0)
+            if (indexPath.row == 0)
             {
-                [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                customCell.delegate = self;
+                [customCell setOnlyContent];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:mobileCredential.card_id];
+                return customCell;
+            }
+            else if (indexPath.row == 1)
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
+                CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
+                
+                if (mobileCredential.fingerprint_index_list.count > 0)
+                {
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
+                }
+                else
+                {
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:nil];
+                }
+                return customCell;
+            }
+            else if (indexPath.row == 2)
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                [customCell setPinExist:currentUser.pin_exist];
+                [customCell setTitle:NSBaseLocalizedString(@"pin_upper", nil) content:nil];
+                return customCell;
+            }
+            else if (indexPath.row == 3)
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                [customCell setOnlyContent];
+                NSString *accessGroup = currentUser.access_groups.count > 0 ? currentUser.access_groups[0].name : nil;
+                [customCell setTitle:NSBaseLocalizedString(@"access_group", nil) content:accessGroup];
+                return customCell;
             }
             else
             {
-                [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:nil];
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                [customCell setOnlyContent];
+                [customCell setTitle:NSBaseLocalizedString(@"period", nil) content:nil];
+                [customCell setStartDate:currentUser.start_datetime andExpireDate:currentUser.expiry_datetime];
+                return customCell;
             }
-            return customCell;
-        }
-        else if (indexPath.row == 2)
-        {
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
-            CardInfoText *customCell = (CardInfoText*)cell;
-            [customCell setPinExist:currentUser.pin_exist];
-            [customCell setTitle:NSLocalizedString(@"pin_upper", nil) content:nil];
-            return customCell;
-        }
-        else if (indexPath.row == 3)
-        {
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
-            CardInfoText *customCell = (CardInfoText*)cell;
-            [customCell setOnlyContent];
-            NSString *accessGroup = currentUser.access_groups.count > 0 ? currentUser.access_groups[0].name : nil;
-            [customCell setTitle:NSLocalizedString(@"access_group", nil) content:accessGroup];
-            return customCell;
         }
         else
         {
-            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
-            CardInfoText *customCell = (CardInfoText*)cell;
-            [customCell setOnlyContent];
-            [customCell setTitle:NSLocalizedString(@"period", nil) content:nil];
-            [customCell setStartDate:currentUser.start_datetime andExpireDate:currentUser.expiry_datetime];
-            return customCell;
+            if (indexPath.row == 0)
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                customCell.delegate = self;
+                [customCell setCardInfoType:INPUT deviceMode:deviceMode];
+                [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) field:mobileCredential.card_id];
+                return customCell;
+            }
+            else if (indexPath.row == 1)
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
+                CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
+                
+                if (mobileCredential.fingerprint_index_list.count > 0)
+                {
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:[mobileCredential getFingerprintDescription]];
+                }
+                else
+                {
+                    [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:nil];
+                }
+                return customCell;
+            }
+            else
+            {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
+                CardInfoText *customCell = (CardInfoText*)cell;
+                customCell.delegate = self;
+                [customCell setPinExist:currentUser.pin_exist];
+                [customCell setTitle:NSBaseLocalizedString(@"pin_upper", nil) content:nil];
+                return customCell;
+            }
         }
     }
+
 }
 
 
@@ -1680,15 +1802,15 @@
             CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
             if (indexPath.row == 0)
             {
-                [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"read_card", nil)];
+                [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"read_card", nil)];
             }
             else if (indexPath.row == 1)
             {
-                [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
             }
             else
             {
-                [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
             }
             return customCell;
         }
@@ -1704,15 +1826,15 @@
                     CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
                     if (indexPath.row == 0)
                     {
-                        [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"read_card", nil)];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"read_card", nil)];
                     }
                     else if (indexPath.row == 1)
                     {
-                        [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                     }
                     else
                     {
-                        [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                        [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                     }
                     return customCell;
                 }
@@ -1723,21 +1845,21 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"read_card", nil)];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"read_card", nil)];
                         return customCell;
                     }
                     else if (indexPath.row == 1)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                         return customCell;
                     }
                     else if (indexPath.row == 2)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_data_format", nil) content:scanedCard.wiegand_format.name];
                         [customCell setOnlyContent];
                         return customCell;
                     }
@@ -1745,7 +1867,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                        [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                         return customCell;
                     }
                     
@@ -1756,21 +1878,21 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"read_card", nil)];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"read_card", nil)];
                         return customCell;
                     }
                     else if (indexPath.row == 1)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                         return customCell;
                     }
                     else if (indexPath.row == 2)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
                         [customCell setOnlyContent];
                         return customCell;
                     }
@@ -1778,7 +1900,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
-                        [customCell setTitle:NSLocalizedString(@"smartcard_type", nil) smartCardType:scanedCard.type];
+                        [customCell setTitle:NSBaseLocalizedString(@"smartcard_type", nil) smartCardType:scanedCard.type];
                         [customCell setOnlyContent];
                         return customCell;
                     }
@@ -1786,7 +1908,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                        [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                         return customCell;
                     }
                     
@@ -1797,21 +1919,21 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_type", nil) content:NSLocalizedString(@"read_card", nil)];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_type", nil) content:NSBaseLocalizedString(@"read_card", nil)];
                         return customCell;
                     }
                     else if (indexPath.row == 1)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"device", nil) content:selectedDevice.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"device", nil) content:selectedDevice.name];
                         return customCell;
                     }
                     else if (indexPath.row == 2)
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
-                        [customCell setTitle:NSLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_layout_format", nil) content:selectedDevice.smart_card_layout.name];
                         [customCell setOnlyContent];
                         return customCell;
                     }
@@ -1819,7 +1941,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
-                        [customCell setTitle:NSLocalizedString(@"smartcard_type", nil) smartCardType:scanedCard.type];
+                        [customCell setTitle:NSBaseLocalizedString(@"smartcard_type", nil) smartCardType:scanedCard.type];
                         [customCell setOnlyContent];
                         return customCell;
                     }
@@ -1827,7 +1949,7 @@
                     {
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardAddInfoCell" forIndexPath:indexPath];
                         CardAddInfoCell *customCell = (CardAddInfoCell*)cell;
-                        [customCell setTitle:NSLocalizedString(@"read_card", nil) content:@""];
+                        [customCell setTitle:NSBaseLocalizedString(@"read_card", nil) content:@""];
                         return customCell;
                     }
                 }
@@ -1850,7 +1972,7 @@
                     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                     CardInfoText *customCell = (CardInfoText*)cell;
                     [customCell setOnlyContent];
-                    [customCell setTitle:NSLocalizedString(@"card_id", nil) content:scanedCard.card_id];
+                    [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:scanedCard.card_id];
                     return customCell;
                 }
                 case CSN_WIEGAND:
@@ -1860,7 +1982,7 @@
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
                         [customCell setOnlyContent];
-                        [customCell setTitle:NSLocalizedString(@"id_code", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
+                        [customCell setTitle:NSBaseLocalizedString(@"id_code", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
                         return customCell;
                     }
                     else
@@ -1868,7 +1990,7 @@
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
                         [customCell setOnlyContent];
-                        [customCell setTitle:NSLocalizedString(@"card_id", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:wiegandCard.wiegand_card_id_list[indexPath.row].card_id];
                         return customCell;
                     }
                     
@@ -1879,7 +2001,7 @@
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
                         [customCell setOnlyContent];
-                        [customCell setTitle:NSLocalizedString(@"card_id", nil) content:scanedCard.card_id];
+                        [customCell setTitle:NSBaseLocalizedString(@"card_id", nil) content:scanedCard.card_id];
                         return customCell;
                     }
                     else if (indexPath.row == 1)
@@ -1890,11 +2012,11 @@
                         
                         if (scanedCard.fingerprint_templates.count > 0)
                         {
-                            [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:[scanedCard getFingerprintDescription]];
+                            [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:[scanedCard getFingerprintDescription]];
                         }
                         else
                         {
-                            [customCell setTitle:NSLocalizedString(@"fingerprint", nil) content:nil];
+                            [customCell setTitle:NSBaseLocalizedString(@"fingerprint", nil) content:nil];
                         }
                         
                         return customCell;
@@ -1905,7 +2027,7 @@
                         CardInfoText *customCell = (CardInfoText*)cell;
                         customCell.delegate = self;
                         [customCell setPinExist:scanedCard.pin_exist];
-                        [customCell setTitle:NSLocalizedString(@"pin_upper", nil) content:nil];
+                        [customCell setTitle:NSBaseLocalizedString(@"pin_upper", nil) content:nil];
                         return customCell;
                     }
                     else if (indexPath.row == 3)
@@ -1915,16 +2037,16 @@
                         [customCell setOnlyContent];
                         if (scanedCard.access_groups.count > 0)
                         {
-                            [customCell setTitle:NSLocalizedString(@"access_group", nil) content:scanedCard.access_groups[0].name];
+                            [customCell setTitle:NSBaseLocalizedString(@"access_group", nil) content:scanedCard.access_groups[0].name];
                         }
                         else if (scanedCard.access_groups.count  > 1)
                         {
-                            NSString *content = [NSString stringWithFormat:@"%@ +%ld",scanedCard.access_groups[0].name , scanedCard.access_groups.count - 1];
-                            [customCell setTitle:NSLocalizedString(@"access_group", nil) content:content];
+                            NSString *content = [NSString stringWithFormat:@"%@ +%lu",scanedCard.access_groups[0].name , scanedCard.access_groups.count - 1];
+                            [customCell setTitle:NSBaseLocalizedString(@"access_group", nil) content:content];
                         }
                         else
                         {
-                            [customCell setTitle:NSLocalizedString(@"access_group", nil) content:nil];
+                            [customCell setTitle:NSBaseLocalizedString(@"access_group", nil) content:nil];
                         }
                         
                         return customCell;
@@ -1934,7 +2056,7 @@
                         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CardInfoText" forIndexPath:indexPath];
                         CardInfoText *customCell = (CardInfoText*)cell;
                         [customCell setOnlyContent];
-                        [customCell setTitle:NSLocalizedString(@"period", nil) content:nil];
+                        [customCell setTitle:NSBaseLocalizedString(@"period", nil) content:nil];
                         [customCell setStartDate:scanedCard.start_datetime andExpireDate:scanedCard.expiry_datetime];
                         return customCell;
                     }
@@ -2023,50 +2145,55 @@
     }
     
     
-    if ([cellTitle isEqualToString:NSLocalizedString(@"card_type", nil)])
+    if ([cellTitle isEqualToString:NSBaseLocalizedString(@"card_type", nil)])
     {
         // 카드 종류 -> 카드 종류 선택 팝업
         [self showListPopup:CARD_TYPE];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"register_method", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"register_method", nil)])
     {
         // 등록 방법 -> 리더, 할당, 직접 입력 팝업
         [self showListPopup:REGISTRATION_POPUP];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"device", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"device", nil)])
     {
         // 장치 선택 팝업
         [self showDevicePopup];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"read_card", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"read_card", nil)])
     {
         // 카드 읽기
         [self showScanCardPopup];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"registeration_option_assign_card", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"registeration_option_assign_card", nil)])
     {
         // 카드 할당 unassigned cards 팝업
         [self showUnassignedCardPopup];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"smartcard_type", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"smartcard_type", nil)])
     {
         // 스마트 카드 종류 팝업
-        [self showSmartCardPopup];
+        if (deviceMode != READING_CARD_MODE)
+            [self showSmartCardPopup];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"fingerprint", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"fingerprint", nil)])
     {
         // 지문 팝업
-        [self showFingerPrintSelectPopup];
+        if (deviceMode != READING_CARD_MODE)
+            [self showFingerPrintSelectPopup];
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"card_layout_format", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"card_layout_format", nil)])
     {
-        if (deviceMode == MOBILE_CARD_MODE)
+        if (deviceMode != READING_CARD_MODE)
         {
-            // 모바일 카드에서 카드레이아웃 형식
-            [self showCardLayoutPopup];
+            if (deviceMode == MOBILE_CARD_MODE)
+            {
+                // 모바일 카드에서 카드레이아웃 형식
+                [self showCardLayoutPopup];
+            }
         }
     }
-    else if ([cellTitle isEqualToString:NSLocalizedString(@"card_data_format", nil)])
+    else if ([cellTitle isEqualToString:NSBaseLocalizedString(@"card_data_format", nil)])
     {
         // 카드 데이터 형식 wiegand
         if (registrationType == INPUT)
@@ -2118,16 +2245,16 @@
     }
 }
 
-- (void)maxValueIsOver:(NSInteger)maxValue
+- (void)maxValueIsOver:(NSString*)maxValue
 {
-    [self.view makeToast:[NSString stringWithFormat:@"%@\n%ld",NSLocalizedString(@"over_value", nil) ,(long)maxValue]
+    [self.view makeToast:[NSString stringWithFormat:@"%@\n%@",NSBaseLocalizedString(@"over_value", nil), maxValue]
                 duration:1.0 position:CSToastPositionTop
                    image:[UIImage imageNamed:@"toast_popup_i_03"]];
 }
 
 - (void)zeroValueNotAllowed
 {
-    [self.view makeToast:NSLocalizedString(@"invalid_card_id", nil)
+    [self.view makeToast:NSBaseLocalizedString(@"invalid_card_id", nil)
                 duration:1.0 position:CSToastPositionTop
                    image:[UIImage imageNamed:@"toast_popup_i_03"]];
 }

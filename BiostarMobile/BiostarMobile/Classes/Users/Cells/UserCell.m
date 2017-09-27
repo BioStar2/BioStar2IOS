@@ -34,23 +34,71 @@
 }
 
 
-- (void)setUser:(User*)user
+- (void)setUser:(User*)user isEditMode:(BOOL)isEditMode
 {
-    if (user.isSelected)
+    if (isEditMode)
     {
-        [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
-        [_checkView setHidden:NO];
+        [_accView setHidden:YES];
+        
+        if (user.isSelected)
+        {
+            [self.contentView setBackgroundColor:UIColorFromRGB(0xf7ce86)];
+            [_checkView setHidden:NO];
+        }
+        else
+        {
+            if ([PermissionProvider isEnableDeleteUser:user])
+            {
+                [self.contentView setBackgroundColor:[UIColor whiteColor]];
+            }
+            else
+            {
+                [self.contentView setBackgroundColor:[UIColor lightGrayColor]];
+            }
+            
+            [_checkView setHidden:YES];
+        }
     }
     else
     {
         [self.contentView setBackgroundColor:[UIColor whiteColor]];
+        [_accView setHidden:NO];
         [_checkView setHidden:YES];
     }
     
-    if ([PreferenceProvider isUpperVersion])
-        _FPCount.text = user.fingerprint_template_count;
+    
+    if ([user.fingerprint_template_count integerValue] > 0)
+    {
+        [_fingerView setHidden:NO];
+    }
     else
-        _FPCount.text = [NSString stringWithFormat:@"%ld", (long)user.fingerprint_count];
+    {
+        [_fingerView setHidden:YES];
+    }
+    
+    if (user.card_count > 0)
+    {
+        [_cardView setHidden:NO];
+    }
+    else
+    {
+        [_cardView setHidden:YES];
+    }
+    
+    if (user.face_template_count > 0)
+    {
+        [_faceView setHidden:NO];
+    }
+    else
+    {
+        [_faceView setHidden:YES];
+    }
+    
+    if (user.pin_exist)
+        [_pinView setHidden:NO];
+    else
+        [_pinView setHidden:YES];
+    
     
     if (nil == user.name || [user.name isEqualToString:@""])
         _name.text = user.user_id;
@@ -59,12 +107,9 @@
     
     _userIDLabel.text = user.user_id;
     
-    _cardCount.text = [NSString stringWithFormat:@"%ld", (long)user.card_count];
     
-    if (user.pin_exist)
-        [_pinView setHidden:NO];
-    else
-        [_pinView setHidden:YES];
+    
+    
     
     
     // 사진 데이터 가져오기

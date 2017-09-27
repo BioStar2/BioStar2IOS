@@ -20,7 +20,8 @@
 #import "InCodeMappingProvider.h"
 #import "RoleSearchResult.h"
 #import "PrivilegeSearchResult.h"
-
+#import "User.h"
+#import "AuthProvider.h"
 
 /**
  *
@@ -56,5 +57,9 @@ typedef void(^PrivilegeBolck)(PrivilegeSearchResult *permissionResult);
  */
 
 - (void)getPrivileges:(PrivilegeBolck)privilegeBlock onError:(ErrorBlock)errorBlock;
+
++ (BOOL)isEnableModifyUser:(User*)user;
+
++ (BOOL)isEnableDeleteUser:(User*)user;
 
 @end

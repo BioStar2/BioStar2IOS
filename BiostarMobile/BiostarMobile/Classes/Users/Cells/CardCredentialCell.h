@@ -23,18 +23,17 @@
 
 @interface CardCredentialCell : UITableViewCell
 {
-    __weak IBOutlet UIButton *blockButton;
-    __weak IBOutlet UIButton *releaseButton;
+    __weak IBOutlet UISwitch *statusSwitch;
     __weak IBOutlet UILabel *cardTypeLabel;
     __weak IBOutlet UILabel *cardIDLabel;
     __weak IBOutlet UIImageView *checkImage;
-    
+    NSString *cardID;
 }
 
 @property (nonatomic, weak) id <CardCredentialCellDelegate> delegate;
 
 - (void)setContent:(Card*)card mode:(BOOL)isDeleteMode viewMode:(BOOL)isProfile;
-- (IBAction)block:(id)sender;
-- (IBAction)release:(id)sender;
+- (IBAction)blockOrReleaseCard:(UISwitch *)sender;
+- (CGFloat)getIDLabelHeight;
 
 @end

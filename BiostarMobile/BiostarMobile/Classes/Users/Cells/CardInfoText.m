@@ -86,11 +86,11 @@
     NSString *typeStr;
     if (type == SECURE_CREDENTIAL)
     {
-        typeStr = NSLocalizedString(@"secure_card", nil);
+        typeStr = NSBaseLocalizedString(@"secure_card", nil);
     }
     else
     {
-        typeStr = NSLocalizedString(@"access_on_card", nil);
+        typeStr = NSBaseLocalizedString(@"access_on_card", nil);
     }
     
     contentLabel.text = typeStr;
@@ -102,7 +102,7 @@
     cardIDTextField.text = content;
 }
 
-- (void)setTitle:(NSString*)title field:(NSString*)content maxValue:(NSInteger)value
+- (void)setTitle:(NSString*)title field:(NSString*)content maxValue:(NSString*)value
 {
     titleLabel.text = title;
     cardIDTextField.text = content;
@@ -111,9 +111,9 @@
 
 - (void)setStartDate:(NSString*)startDate andExpireDate:(NSString*)expireDate
 {
-    NSString *startDateStr =  [CommonUtil stringFromDateString:startDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[PreferenceProvider getDateFormat]];
+    NSString *startDateStr =  [CommonUtil stringFromDateString:startDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[LocalDataManager getDateFormat]];
     
-    NSString *expiryDateStr =  [CommonUtil stringFromDateString:expireDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[PreferenceProvider getDateFormat]];
+    NSString *expiryDateStr =  [CommonUtil stringFromDateString:expireDate originDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SS'Z'" transDateFormat:[LocalDataManager getDateFormat]];
     
     
     contentLabel.text = [NSString stringWithFormat:@"%@ ~ %@",startDateStr ,expiryDateStr];
@@ -182,6 +182,7 @@
 
 - (BOOL)textField:(UITextField *) textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
+
     if ([string isEqualToString:@""])
     {
         return YES;
@@ -224,9 +225,28 @@
         NSMutableString *strValue = [[NSMutableString alloc] init];
         [strValue appendString:textField.text];
         [strValue appendString:string];
-        NSInteger value = [strValue integerValue];
         
-        if (value > maxValue)
+        JKBigInteger *current = [[JKBigInteger alloc] initWithString:strValue];
+        JKBigInteger *max = [[JKBigInteger alloc] initWithString:maxValue];
+        
+        NSComparisonResult resutl = [current compare:max];
+        
+        NSLog(@"max     : %@", maxValue);
+        NSLog(@"current : %@", strValue);
+//        switch (resutl) {
+//            case NSOrderedAscending:
+//                NSLog(@"NSOrderedAscending");
+//                break;
+//                
+//            case NSOrderedSame:
+//                NSLog(@"NSOrderedSame");
+//                break;
+//            case NSOrderedDescending:
+//                NSLog(@"NSOrderedDescending");
+//                break;
+//        }
+        
+        if (resutl == NSOrderedDescending)
         {
             if ([self.delegate respondsToSelector:@selector(maxValueIsOver:)])
             {
@@ -242,7 +262,7 @@
     }
     else
     {
-        // smart 24
+        // smart 57 자
         return newLength <= SMART_MAXLENGTH || returnKey;
     }
     

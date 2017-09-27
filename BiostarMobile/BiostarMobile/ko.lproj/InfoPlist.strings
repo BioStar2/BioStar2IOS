@@ -9,5 +9,6 @@
 //"NSPhotoLibraryUsageDescription" = "사용자 사진을 교체 또는 추가하기 위해서 사진첩에 접근합니다.";
 //"NSCameraUsageDescription" = "사용자 사진을 교체 또는 추가하기 위해서 카메라에 접근합니다.";
 
-"NSPhotoLibraryUsageDescription" = "";
-"NSCameraUsageDescription" = "";
+"NSPhotoLibraryUsageDescription" = "사용자의 사진 등록을 위해서, 카메라와 사진첩에 접근합니다.";
+"NSCameraUsageDescription" = "사용자의 사진 등록을 위해서, 카메라와 사진첩에 접근합니다.";
+"NSBluetoothPeripherealUsageDescription" = "모바일 카드를 사용을 위해, 블루투스 기능을 사용 합니다.";

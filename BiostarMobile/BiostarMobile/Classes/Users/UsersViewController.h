@@ -24,6 +24,8 @@
 #import "ImagePopupViewController.h"
 #import "UserGroupPopupViewController.h"
 #import "PreferenceProvider.h"
+#import "CommonUtil.h"
+
 
 @interface UsersViewController : BaseViewController <UserDetailDelegate>
 {
@@ -50,6 +52,7 @@
     BOOL isEditMode;
     BOOL isSearchMode;
     BOOL isForFilter;
+    BOOL isFirstLoad;
     NSMutableArray <User*> *users;
     NSMutableArray *toDeleteUsers;
     NSString *query;
@@ -61,7 +64,8 @@
     float firstYPosition;
     float secondYPosition;
     UserGroup *selectedUserGroup;
-
+    
+    
 }
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
@@ -79,4 +83,6 @@
 - (IBAction)deleteUsers:(id)sender;
 - (void)refreshUsers;
 - (void)loadUserPhoto:(NSArray*)tempUsers;
+- (void)showUserGroups;
+- (void)moveToCreateUserController:(UserGroup*)userGroup;
 @end

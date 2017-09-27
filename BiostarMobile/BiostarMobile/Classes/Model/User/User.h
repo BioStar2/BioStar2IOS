@@ -36,6 +36,7 @@
 @property (nonatomic, strong) NSString *start_datetime;
 @property (nonatomic, strong) NSString *status;
 @property (nonatomic, assign) NSInteger fingerprint_count;
+@property (nonatomic, assign) NSInteger face_template_count;
 @property (nonatomic, strong) NSString *fingerprint_template_count; // v2
 @property (nonatomic, assign) NSInteger card_count;
 @property (nonatomic, strong) NSString *password;

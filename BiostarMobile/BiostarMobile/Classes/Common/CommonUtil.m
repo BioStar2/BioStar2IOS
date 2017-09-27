@@ -15,6 +15,7 @@
  */
 
 #import "CommonUtil.h"
+#import <CommonCrypto/CommonCryptor.h>
 
 @implementation CommonUtil
 
@@ -131,6 +132,10 @@
     
     [formatter setTimeZone:[NSTimeZone localTimeZone]];
     [formatter setDateFormat:transFormat];
+    
+    NSString *isoCode = [[NSLocale preferredLanguages] objectAtIndex:0];
+    NSString *identifier = [NSString stringWithFormat:@"%@_POSIX", isoCode];
+    formatter.locale = [[NSLocale alloc] initWithLocaleIdentifier:identifier];
     
     NSString *startDateStr = [formatter stringFromDate:startDate];
     
@@ -356,27 +361,137 @@
 }
 
 
-+ (NSString*)getUUID
++ (BOOL)isAllDigits:(NSString*)content
 {
-    // initialize keychaing item for saving UUID.
-    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:@"UUID" accessGroup:nil];
+    NSCharacterSet* nonNumbers = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
+    NSRange r = [content rangeOfCharacterFromSet: nonNumbers];
+    return r.location == NSNotFound && content.length > 0;
+}
+
+static inline char itoh(int i) {
+    if (i > 9) return 'A' + (i - 10);
+    return '0' + i;
+}
+
+NSString * NSDataToHex(NSData *data) {
+    NSUInteger i, len;
+    unsigned char *buf, *bytes;
     
-    NSString *uuid = [wrapper objectForKey:(__bridge id)(kSecAttrAccount)];
+    len = data.length;
+    bytes = (unsigned char*)data.bytes;
+    buf = malloc(len*2);
     
-    if( uuid == nil || uuid.length == 0)
-    {
-        // if there is not UUID in keychain, make UUID and save it.
-        CFUUIDRef uuidRef = CFUUIDCreate(NULL);
-        CFStringRef uuidStringRef = CFUUIDCreateString(NULL, uuidRef);
-        CFRelease(uuidRef);
-        uuid = [NSString stringWithString:(__bridge NSString *) uuidStringRef];
-        CFRelease(uuidStringRef);
-        
-        // save UUID in keychain
-        [wrapper setObject:uuid forKey:(__bridge id)(kSecAttrAccount)];
+    for (i=0; i<len; i++) {
+        buf[i*2] = itoh((bytes[i] >> 4) & 0xF);
+        buf[i*2+1] = itoh(bytes[i] & 0xF);
     }
     
-    return uuid;
+    return [[NSString alloc] initWithBytesNoCopy:buf
+                                          length:len*2
+                                        encoding:NSASCIIStringEncoding
+                                    freeWhenDone:YES];
+}
+
++ (NSUInteger)getIngetegerFromHexString:(NSString*)hexString
+{
+    unsigned value = 0;
+    NSScanner *scanner = [NSScanner scannerWithString:[NSString stringWithFormat:@"#%@", hexString]];
+    
+    [scanner setScanLocation:1]; // bypass '#' character
+    [scanner scanHexInt:&value];
+    
+    return value;
+}
+
++ (NSData*)encryptData:(NSData*)data key:(NSData*)key iv:(NSData*)iv
+{
+    NSData* result = nil;
+    
+    // setup key
+    unsigned char cKey[FBENCRYPT_KEY_SIZE];
+    bzero(cKey, sizeof(cKey));
+    [key getBytes:cKey length:FBENCRYPT_KEY_SIZE];
+    
+    // setup iv
+    char cIv[FBENCRYPT_BLOCK_SIZE];
+    bzero(cIv, FBENCRYPT_BLOCK_SIZE);
+    if (iv) {
+        [iv getBytes:cIv length:FBENCRYPT_BLOCK_SIZE];
+    }
+    
+    // setup output buffer
+    size_t bufferSize = [data length] + FBENCRYPT_BLOCK_SIZE;
+    void *buffer = malloc(bufferSize);
+    
+    // do encrypt
+    size_t encryptedSize = 0;
+    CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt,
+                                          FBENCRYPT_ALGORITHM,
+                                          kCCOptionECBMode,
+                                          cKey,
+                                          FBENCRYPT_KEY_SIZE,
+                                          cIv,
+                                          [data bytes],
+                                          [data length],
+                                          buffer,
+                                          bufferSize,
+                                          &encryptedSize);
+    if (cryptStatus == kCCSuccess) {
+        result = [NSData dataWithBytesNoCopy:buffer length:encryptedSize];
+    } else {
+        free(buffer);
+        NSLog(@"[ERROR] failed to encrypt|CCCryptoStatus: %d", cryptStatus);
+    }
+    
+    return result;
+}
+
++(UIImage*)drawFront:(UIImage*)image text:(NSString*)text atPoint:(CGPoint)point font:(UIFont*)font atRect:(CGRect)rect
+{
+    UIFont *tempFont = [UIFont fontWithName:font.fontName size:14];
+    CGSize size = CGSizeMake(rect.size.width, rect.size.height);
+    UIGraphicsBeginImageContext(size);
+    
+    CGRect drawRect = CGRectMake(rect.origin.x, rect.origin.y + 4, rect.size.width, rect.size.height - 4);
+    
+    [image drawInRect:drawRect];
+    
+    [[UIColor whiteColor] set];
+    
+    NSMutableAttributedString* attString = [[NSMutableAttributedString alloc] initWithString:text];
+    NSRange range = NSMakeRange(0, [attString length]);
+    
+    [attString addAttribute:NSFontAttributeName value:tempFont range:range];
+    [attString addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:range];
+    
+//    NSShadow* shadow = [[NSShadow alloc] init];
+//    shadow.shadowColor = [UIColor darkGrayColor];
+//    shadow.shadowOffset = CGSizeMake(1.0f, 1.5f);
+//    [attString addAttribute:NSShadowAttributeName value:shadow range:range];
+    
+    [attString drawInRect:CGRectIntegral(drawRect)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return newImage;
+}
+
++(UIImage*) drawText:(NSString*) text
+             inImage:(UIImage*)  image
+             atPoint:(CGPoint)   point
+{
+    
+    UIFont *font = [UIFont boldSystemFontOfSize:12];
+    UIGraphicsBeginImageContext(image.size);
+    [image drawInRect:CGRectMake(0,0,image.size.width,image.size.height)];
+    CGRect rect = CGRectMake(point.x, point.y, image.size.width, image.size.height);
+    [[UIColor whiteColor] set];
+    //text drawInRect:CGRectIntegral(rect) withAttributes:<#(nullable NSDictionary<NSString *,id> *)#>
+    [text drawInRect:CGRectIntegral(rect) withFont:font];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return newImage;
 }
 
 @end

@@ -76,4 +76,71 @@
 
 }
 
+- (BLEStatus)BLEStatusTypeEnumFromString
+{
+    NSDictionary<NSString*,NSNumber*> *statusTypes = @{
+                                                    @"BROADCAST_BLE_SUCESS": @(BROADCAST_BLE_SUCESS),
+                                                    @"BROADCAST_BLE_ERROR_CONNECT": @(BROADCAST_BLE_ERROR_CONNECT),
+                                                    @"BROADCAST_BLE_ERROR_DATA": @(BROADCAST_BLE_ERROR_DATA),
+                                                    @"BROADCAST_BLE_CONNECT": @(BROADCAST_BLE_CONNECT),
+                                                    @"BROADCAST_NONE": @(BROADCAST_NONE)
+                                                    };
+    return statusTypes[self].integerValue;
+    
+}
+
++ (NSString*)BLEStatusTypeStringFromEnum:(BLEStatus)type
+{
+    NSDictionary<NSNumber*,NSString*> *statusTypes = @{
+                                                     @(BROADCAST_BLE_SUCESS): @"BROADCAST_BLE_SUCESS",
+                                                     @(BROADCAST_BLE_ERROR_CONNECT) : @"BROADCAST_BLE_ERROR_CONNECT",
+                                                     @(BROADCAST_BLE_ERROR_DATA) : @"BROADCAST_BLE_ERROR_DATA",
+                                                     @(BROADCAST_BLE_CONNECT) : @"BROADCAST_BLE_CONNECT",
+                                                     @(BROADCAST_NONE) : @"BROADCAST_NONE"
+                                                     };
+    
+    NSString *stringType = [statusTypes objectForKey:@(type)];
+    return stringType;
+}
+
+- (BLEConnectionStatus)BLEConnectionStatusTypeEnumFromString
+{
+    NSDictionary<NSString*,NSNumber*> *statusTypes = @{
+                                                       @"READY_TO_SCAN": @(READY_TO_SCAN),
+                                                       @"SCANNING": @(SCANNING),
+                                                       @"TRYING_TO_SCAN": @(TRYING_TO_SCAN),
+                                                       @"CONNECTING": @(CONNECTING),
+                                                       @"CONNECTED": @(CONNECTED),
+                                                       @"FAIL_TO_CONNECT": @(FAIL_TO_CONNECT),
+                                                       @"DISCONNECTED": @(DISCONNECTED),
+                                                       @"DISCONNECTED_WITH_ERROR": @(DISCONNECTED_WITH_ERROR),
+                                                       @"SUCCESS_TRANSACTION": @(SUCCESS_TRANSACTION),
+                                                       @"FAILED_TRANSACTION": @(FAILED_TRANSACTION),
+                                                       @"STATUS_NONE": @(STATUS_NONE),
+                                                       @"POWER_OFF": @(POWER_OFF)
+                                                       };
+    return statusTypes[self].integerValue;
+}
+
++ (NSString*)BLEConnectionStatusTypeStringFromEnum:(BLEConnectionStatus)type
+{
+    NSDictionary<NSNumber*,NSString*> *statusTypes = @{
+                                                       @(READY_TO_SCAN): @"READY_TO_SCAN",
+                                                       @(TRYING_TO_SCAN): @"TRYING_TO_SCAN",
+                                                       @(SCANNING) : @"SCANNING",
+                                                       @(CONNECTING) : @"CONNECTING",
+                                                       @(CONNECTED) : @"CONNECTED",
+                                                       @(FAIL_TO_CONNECT) : @"FAIL_TO_CONNECT",
+                                                       @(DISCONNECTED) : @"DISCONNECTED",
+                                                       @(DISCONNECTED_WITH_ERROR) : @"DISCONNECTED_WITH_ERROR",
+                                                       @(SUCCESS_TRANSACTION) : @"SUCCESS_TRANSACTION",
+                                                       @(FAILED_TRANSACTION) : @"FAILED_TRANSACTION",
+                                                       @(STATUS_NONE) : @"STATUS_NONE",
+                                                       @(POWER_OFF) : @"POWER_OFF"
+                                                       };
+    
+    NSString *stringType = [statusTypes objectForKey:@(type)];
+    return stringType;
+}
+
 @end
